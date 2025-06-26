@@ -63,18 +63,23 @@ out_170           = paths_gps['170_enu']
 
 # Manual exclusion list
 manual_exclude = [
-    "EBBS", "EBMD", "FLNT", "INV1", "LKVW", "LRA1", "LRA2", "LRA4",
-    "MONB", "OREO", "OXMT", "P136", "P149", "P150", "P170", "P221",
-    "P274", "P299", "P312", "P332", "P340", "P348", "MCCM", "P215",
-    "P656", "P663", "P666", "P668", "P671", "P674", "P794",
-    "RAPT", "RBRU", "RDFD", "TRAN", "YBHB", "P242"]
+    "DUBP", "EBBS", "EBMD", "FLNT", "INV1", "LKVW", "LRA1", "LRA2", "LRA4",
+    "MCCM", "MNRC", "MONB", "OREO", "OXMT", "P136", "P141", "P144", "P144", 
+    "P149", "P150", "P170", "P215", "P221", "P222", "P242", "P274", "P299",
+    "P312", "P332", "P340", "P348", "P655", "P656", "P658", "P663", "P666", 
+    "P668", "P671", "P673", "P674", "P794", "RAPT", "RBRU", "RDFD", "RDGM", 
+    "RNO1", "SLID", "TRAN", "YBHB",]
+
 
 # Don't fix the equipment step for these stations
-skip_equip = ["HCRO", "MCCM", "MODB", "P136", "P143", "P159",  "P195", "P207", "P320", "P336","P341",
-              "P668", "P671", "P336", "P668", "P671", "P322", "MUSB", "P730", "P239", "P329","P362",
-              "LKVW", "MUSB", "CCSF", "P096", "P140", "P172", "P191", "P195", "CCSF", "P306", "P335", 
-              "P657", "P672", "P731", "SACR", "SBRB", "STFU", "CAP1", "FARB", "HOPB", "LUTZ", "P059",
-              "P164", "SAOB"]
+skip_equip = [
+    "CAP1", "CCSF", "CCSF", "CROW", "CYTE", "FARB", "HCRO", "HOPB", "LKVW",
+    "LUTZ", "MCCM", "MODB", "MUSB", "MUSB", "P059", "P096", "P136", "P140",
+    "P143", "P155", "P155", "P159", "P164", "P172", "P191", "P195", "P195",
+    "P207", "P239", "P276", "P286", "P306", "P320", "P322", "P329", "P335",
+    "P336", "P336", "P341", "P362", "P657", "P668", "P668", "P671", "P671",
+    "P672", "P730", "P731", "SACR", "SAOB", "SARG", "SBRB", "STFU",
+]
 
 # Missing steps from steps.txt -- Not complete and some have been fixed and now redunant 
 manual_steps = [
@@ -97,7 +102,6 @@ manual_steps = [
     ["P242", 2023.2444], ["P242", 2023.3155], ["P242", 2023.9343], ["P247", 2023.6304],
     ["P250", 2023.4579], ["P254", 2023.3046], ["P304", 2023.4196], ["P332", 2023.4935],
     ["P670", 2023.4004], ["P670", 2023.403] ]
-
 
 
 # ---------------------------------------------------------------------------
@@ -397,6 +401,7 @@ def run_path(
         
         # Get steps
         equip_all, quake = parse_steps_file(steps_file, sid)
+        print(f"{sid}: raw quake steps →", quake)
         # Filter steps for those between start and end dates
         equip = [x for x in equip_all if t0 < x < te]
         
