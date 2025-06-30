@@ -24,7 +24,7 @@ offset = 0
 # Call the function with the path to the uploaded file
 ref_date = utils.yymmdd_to_decimal_year("200929")
 sec_date, centered_perp_base = utils.read_baselines(paths_068["baselines"])
-pairs, mean, btemp, bperp = utils.read_coherence_data(paths_068["coherence"])
+pairs, mean, btemp, bperp = utils.read_coherence_data(paths_068["CASR"]["coherence"])
 
 dic_068 = {
     "ref_date": ref_date, 
@@ -42,7 +42,7 @@ dic_068["pairs_bperp"] = utils.calculate_pairs_bperp(dic_068)
 ### ******* 169 *******
 ref_date = utils.yymmdd_to_decimal_year("150408")
 sec_date, centered_perp_base = utils.read_baselines(paths_169["baselines"])
-pairs, mean, btemp, bperp = utils.read_coherence_data(paths_169["coherence"])
+pairs, mean, btemp, bperp = utils.read_coherence_data(paths_169["CASR"]["coherence"])
 
 dic_169 = {
     "ref_date": ref_date, 
@@ -61,7 +61,7 @@ dic_169["pairs_bperp"] = utils.calculate_pairs_bperp(dic_169)
 ### ******* 170 *******
 ref_date = utils.yymmdd_to_decimal_year("150511")
 sec_date, centered_perp_base = utils.read_baselines(paths_170["baselines"])
-pairs, mean, btemp, bperp = utils.read_coherence_data(paths_170["coherence"])
+pairs, mean, btemp, bperp = utils.read_coherence_data(paths_170["CASR"]["coherence"])
 
 dic_170 = {
     "ref_date": ref_date, 
@@ -169,31 +169,6 @@ fig.text(text="San Francisco",  x=sfo_lon, y=sfo_lat, justify="BL", offset="0.2c
 fig.text(text="Crescent City",  x=cre_lon, y=cre_lat, justify="BL", offset="0.2c/0c", font="9p,gray15" )
 
 fig.text(text="a)", position="TL", justify="TL", offset="0.1c/-0.1c")
-
-# points_Ee = [(-123.47774, 40.06503)]
-# points_Mc = [(-123.98816, 40.93079)]
-# points_Gr = [(-123.83538, 40.70382)] # 40.70382, -123.83538
-
-# # Coordinates of points
-# points_CV1 = [(-122.1996, 39.6806)] # Central Valley North
-# points_CV2 = [(-122.0723, 39.0036)] # Central Valley South
-
-# fig.plot(x=points_Ee[0][0], y=points_Ee[0][1], style="kdiamond/0.22c", pen="1p,black", fill="dodgerblue3")
-# fig.plot(x=points_Mc[0][0], y=points_Mc[0][1], style="kdiamond/0.22c", pen="1p,black", fill="dodgerblue3")
-# fig.plot(x=points_Gr[0][0], y=points_Gr[0][1], style="kdiamond/0.22c", pen="1p,black", fill="dodgerblue3")
-# fig.plot(x=points_CV1[0][0], y=points_CV1[0][1], style="kdiamond/0.22c", pen="1p,black", fill="dodgerblue3")
-# fig.plot(x=points_CV2[0][0], y=points_CV2[0][1], style="kdiamond/0.22c", pen="1p,black", fill="dodgerblue3")
-
-# fig.text(text="Fig 9e",x=points_Ee[0][0], y=points_Ee[0][1], justify="BL", offset="0.2c/0c", font="9p,gray15" )
-# fig.text(text="Fig 9g",x=points_Mc[0][0], y=points_Mc[0][1], justify="BL", offset="0.2c/0c", font="9p,gray15" )
-# fig.text(text="Fig 9i",x=points_Gr[0][0], y=points_Gr[0][1], justify="BL", offset="0.2c/0c", font="9p,gray15" )
-# fig.text(text="Fig 9a",x=points_CV1[0][0], y=points_CV1[0][1], justify="BL", offset="0.2c/0c", font="9p,gray15" )
-# fig.text(text="Fig 9c",x=points_CV2[0][0], y=points_CV2[0][1], justify="BL", offset="0.2c/0c", font="9p,gray15" )
-
-#cv_min_lon=-122.35
-#cv_max_lon=-121.8
-#cv_min_lat=38.85
-#cv_max_lat=39.26
 
 #Subplot of central valley validation site. 
 val_min_lon=-122.35
@@ -309,8 +284,6 @@ with fig.subplot(nrows=3, ncols=1, figsize=("5c", "13.4c"), autolabel="b)", marg
     fig.plot(x=dic_169["ref_date"],y=0, style="c.1c", fill="black", pen="0.1p", projection=size) # ******
     fig.plot(x=dic_169["sec_date"],y=dic_169["centered_perp_base"], style="c.1c", fill="black", projection=size) # ******
     
-    
-    
     ###### Des 170. 
     fig.basemap(region=fig_region, projection=size, frame=["ya+lBperp (m)", "lStE+tDescending 170", "xa"], panel=True)   
     
@@ -319,8 +292,6 @@ with fig.subplot(nrows=3, ncols=1, figsize=("5c", "13.4c"), autolabel="b)", marg
         
     fig.plot(x=dic_170["ref_date"],y=0, style="c.1c", fill="black", pen="0.1p", projection=size) # ******
     fig.plot(x=dic_170["sec_date"],y=dic_170["centered_perp_base"], style="c.1c", fill="black", projection=size) # ******
-    
-   
     
     ##### Asc 068
     # Network

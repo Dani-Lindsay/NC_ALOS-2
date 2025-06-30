@@ -94,9 +94,9 @@ insar_068["Vel"] = insar_068["Vel_quadramp"]
 # Save New H5 Files with Deramped Velocities
 # ------------------------
 # Velocities are scaled by 1/1000 (e.g., converting from mm/yr to m/yr for consistency).
-utils.write_new_h5(insar_169["Vel"]/1000, vel_file_169, shape169, "deramp")
-utils.write_new_h5(insar_170["Vel"]/1000, vel_file_170, shape170, "deramp")
-utils.write_new_h5(insar_068["Vel"]/1000, vel_file_068, shape068, "deramp")
+utils.write_new_h5(insar_169["Vel"]/unit, vel_file_169, shape169, "deramp")
+utils.write_new_h5(insar_170["Vel"]/unit, vel_file_170, shape170, "deramp")
+utils.write_new_h5(insar_068["Vel"]/unit, vel_file_068, shape068, "deramp")
 
 
 # --- Prep vel files ---    
@@ -106,7 +106,16 @@ utils.run_command(["diff.py", paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITR
 utils.run_command(["diff.py", paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14"], paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o", paths_068["geo"]["diff_deramp"]])
 
 # Save as gmt grd for plotting 
-utils.run_command(["save_gmt.py", paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o", paths_169["geo"]["vel_grd"]])
-utils.run_command(["save_gmt.py", paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o", paths_170["geo"]["vel_grd"]])
-utils.run_command(["save_gmt.py", paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o", paths_068["geo"]["vel_grd"]])
+utils.run_command(["save_gmt.py", paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o",  paths_169["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]])
+utils.run_command(["save_gmt.py", paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o",  paths_170["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]])
+utils.run_command(["save_gmt.py", paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o",  paths_068["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]])
 
+# --- Convert all .grd files to mm (×1000) for each track ---
+for track in (paths_169, paths_170, paths_068):
+    for name, grd_path in track["grd"].items():
+        if grd_path.endswith(".grd"):
+            mm_path = grd_path.replace(".grd", "_mm.grd")
+            utils.run_command([
+                "gmt", "grdmath",
+                grd_path, "1000", "MUL", "=", mm_path
+            ])

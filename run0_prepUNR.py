@@ -61,24 +61,25 @@ out_068           = paths_gps['068_enu']
 out_169           = paths_gps['169_enu']
 out_170           = paths_gps['170_enu']
 
-# Manual exclusion list
+# Manual exclusion list # check 312,
 manual_exclude = [
-    "DUBP", "EBBS", "EBMD", "FLNT", "INV1", "LKVW", "LRA1", "LRA2", "LRA4",
+    "ASHL", "DUBP", "EBBS", "EBMD", "FLNT", "INV1", "LRA1", "LRA2", "LRA4",
     "MCCM", "MNRC", "MONB", "OREO", "OXMT", "P136", "P141", "P144", "P144", 
     "P149", "P150", "P170", "P215", "P221", "P222", "P242", "P274", "P299",
     "P312", "P332", "P340", "P348", "P655", "P656", "P658", "P663", "P666", 
     "P668", "P671", "P673", "P674", "P794", "RAPT", "RBRU", "RDFD", "RDGM", 
-    "RNO1", "SLID", "TRAN", "YBHB",]
+    "RNO1", "SLID", "TRAN", "YBHB", "P175", "P661", "P670", "P669", "CSJB",
+    "P305", "MNDS", "FARB", "P534"]
 
 
 # Don't fix the equipment step for these stations
 skip_equip = [
     "CAP1", "CCSF", "CCSF", "CROW", "CYTE", "FARB", "HCRO", "HOPB", "LKVW",
     "LUTZ", "MCCM", "MODB", "MUSB", "MUSB", "P059", "P096", "P136", "P140",
-    "P143", "P155", "P155", "P159", "P164", "P172", "P191", "P195", "P195",
-    "P207", "P239", "P276", "P286", "P306", "P320", "P322", "P329", "P335",
+    "P143", "P155", "P155", "P159", "P164", "P172", "P195", "P195",
+    "P207", "P239", "P320", "P322", "P329", "P335", "P186", 
     "P336", "P336", "P341", "P362", "P657", "P668", "P668", "P671", "P671",
-    "P672", "P730", "P731", "SACR", "SAOB", "SARG", "SBRB", "STFU",
+    "P672", "P730", "P731", "SACR", "SAOB", "SARG", "SBRB",
 ]
 
 # Missing steps from steps.txt -- Not complete and some have been fixed and now redunant 
