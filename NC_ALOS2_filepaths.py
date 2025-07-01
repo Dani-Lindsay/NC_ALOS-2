@@ -43,10 +43,11 @@ common_paths = {
     },
     "bbox": {"w": "-124.63", "e": "-119.22", "s": "36.17", "n": "42.41"},
     "dist" : 0.004, #~1km in each direction 0.008 = 1km.
-    "lat_step" : str(lat_step), #str(0.000925926*2),# track 068 orginal "-0.0012702942", 0.000925926 = ~100m
-    "lon_step" : str(lon_step) # str(0.000925926*2), # track 068 orginal "0.001449585", 0.000925926 = ~100m
+    "lat_step" : str(0.002), # needs to be 0.002 to match VISR interpolation 
+    "lon_step" : str(0.002), # needs to be 0.002 to match VISR interpolation 
+    "monterey_mask": os.path.join(inputs_dir, "gps_mask_169_068.txt"),
+    "SF_mask": os.path.join(inputs_dir, "gps_mask_170.txt"),
 
-    
 #     "data_dir": data_dir,
 #     "inputs_dir": inputs_dir,
 #     "gps_dir": gps_dir,
@@ -100,37 +101,47 @@ paths_gps = {
 #     "068_LOS_comp": os.path.join(data_dir, "068", "UNR_IGS14_gps_insar_LOS.csv"),
 #     "169_LOS_comp": os.path.join(data_dir, "169", "UNR_IGS14_gps_insar_LOS.csv"),
 #     "170_LOS_comp": os.path.join(data_dir, "170", "UNR_IGS14_gps_insar_LOS.csv"),
-#     "visr":{
-#         "east" : os.path.join(gps_dir, "VISR","visr", "visr_intrp_e_NAN.grd"),
-#         "north" : os.path.join(gps_dir, "VISR", "visr", "visr_intrp_n_NAN.grd"),
+    "visr":{
+        "east" : os.path.join(gps_dir, "VISR","visr", "visr_intrp_e_NAN.grd"),
+        "north" : os.path.join(gps_dir, "VISR", "visr", "visr_intrp_n_NAN.grd"),
 #         "gps_enu" : os.path.join(gps_dir, "VISR", "GPS_resolved_IGS14_Sept24_CASR.txt"),
-#     }
+    }
 }
 
-# decomp = {
-#     "CASR":{
-#         "asc_semi": os.path.join(data_dir, "068_170_CASR", "velocity_asc_semi_up.h5"),
-#         "des_semi": os.path.join(data_dir, "068_170_CASR", "velocity_des_semi_up.h5"),
-#         "insar_only": os.path.join(data_dir, "068_170_CASR", "velocity_insar_only_up.h5"),
-#         "insar_only_east": os.path.join(data_dir, "068_170_CASR", "velocity_insar_only_east.h5"),
-#         "insar_only_grd": os.path.join(data_dir, "068_170_CASR", "velocity_insar_only_up.grd"),
-#         "gps_insar": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_up.h5"),
-#         "gps_insar_east": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_east.h5"),
-#         "gps_insar_east_grd": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_east.grd"),
-#         "gps_insar_north": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_north.h5"),
-#         "gps_insar_north_grd": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_north.grd"),
+decomp = {
+    "CASR":{
+        "asc_semi": os.path.join(data_dir, "068_170_CASR", "velocity_asc_semi_up.h5"),
+        "des_semi": os.path.join(data_dir, "068_170_CASR", "velocity_des_semi_up.h5"),
+        "insar_only_up": os.path.join(data_dir, "068_170_CASR", "velocity_insar_only_up.h5"),
+        "insar_only_east": os.path.join(data_dir, "068_170_CASR", "velocity_insar_only_east.h5"),
+        "gps_insar_up": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_up.h5"),
+        "gps_insar_east": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_east.h5"),
+        "gps_insar_north": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_north.h5"),
 #         "gps_insar_geysers_para": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_geysers_para.h5"),
 #         "gps_insar_geysers_perp": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_geysers_perp.h5"),
 #         "gps_insar_grd": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_up.grd"),
-#         "geo": os.path.join(data_dir, "068_170_CASR", "geo_geometryRadar_170.h5"),
-#         },
-#     "P784": {
+#        "geo": os.path.join(data_dir, "068_170_CASR", "geo_geometryRadar_170.h5"),
+        },
+    "grd":{ 
+        "asc_semi": os.path.join(data_dir, "068_170_CASR", "velocity_asc_semi_up.grd"),
+        "des_semi": os.path.join(data_dir, "068_170_CASR", "velocity_des_semi_up.grd"),
+        "insar_only_up": os.path.join(data_dir, "068_170_CASR", "velocity_insar_only_up.grd"),
+        "insar_only_east": os.path.join(data_dir, "068_170_CASR", "velocity_insar_only_east.grd"),
+        "gps_insar_up": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_up.grd"),
+        "gps_insar_east": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_east.grd"),
+        "gps_insar_north": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_north.grd"),
+#         "gps_insar_geysers_para": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_geysers_para.h5"),
+#         "gps_insar_geysers_perp": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_geysers_perp.h5"),
+#         "gps_insar_grd": os.path.join(data_dir, "068_170_CASR", "velocity_gps_insar_up.grd"),
+#        "geo": os.path.join(data_dir, "068_170_CASR", "geo_geometryRadar_170.grd"),
+        }
+    # "P784": {
 #         "insar_only": os.path.join(data_dir, "068_170_P784", "velocity_insar_only_up.h5"),
 #         "insar_only_grd": os.path.join(data_dir, "068_170_P784", "velocity_insar_only_up.grd"),
 #         "east_grd": os.path.join(data_dir, "068_170_P784", "velocity_insar_only_east.grd"),
 #         "geo": os.path.join(data_dir, "068_170_P784", "geo_geometryRadar_170.h5") 
 #         }
-# }
+}
     
 # # ------------------------
 # # Track 068 Paths
@@ -169,12 +180,15 @@ paths_068 = {
         "geo_velocity_SET_ERA5_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_msk.h5"),
         "geo_velocity_SET_ERA5_demErr_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_msk.h5"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk.h5"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset.h5"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_deramp.h5"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.h5"),
         # Correction Layers
         "diff_SET": os.path.join(data_dir, "068", "CASR", "geo", "diff_SET.h5"),
         "diff_ERA5": os.path.join(data_dir, "068", "CASR", "geo", "diff_ERA5.h5"),
         "diff_demErr": os.path.join(data_dir, "068", "CASR", "geo", "diff_demErr.h5"),
         "diff_ITRF14": os.path.join(data_dir, "068", "CASR", "geo", "diff_ITRF14.h5"),
+        "diff_offset": os.path.join(data_dir, "068", "CASR", "geo", "diff_offset.h5"),
         "diff_deramp": os.path.join(data_dir, "068", "CASR", "geo", "diff_deramp.h5"),
 #         "vel_grd": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.grd"),
     },
@@ -183,12 +197,15 @@ paths_068 = {
         "diff_ERA5": os.path.join(data_dir, "068", "CASR", "geo", "diff_ERA5.grd"),
         "diff_demErr": os.path.join(data_dir, "068", "CASR", "geo", "diff_demErr.grd"),
         "diff_ITRF14": os.path.join(data_dir, "068", "CASR", "geo", "diff_ITRF14.grd"),
+        "diff_offset": os.path.join(data_dir, "068", "CASR", "geo", "diff_offset.grd"),
         "diff_deramp": os.path.join(data_dir, "068", "CASR", "geo", "diff_deramp.grd"),
         "geo_velocity_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_msk.grd"),
         "geo_velocity_SET_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_msk.grd"),
         "geo_velocity_SET_ERA5_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_msk.grd"),
         "geo_velocity_SET_ERA5_demErr_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_msk.grd"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk.grd"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset.grd"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_deramp.grd"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.grd"),
     },
     "grd_mm":{
@@ -196,12 +213,15 @@ paths_068 = {
         "diff_ERA5": os.path.join(data_dir, "068", "CASR", "geo", "diff_ERA5_mm.grd"),
         "diff_demErr": os.path.join(data_dir, "068", "CASR", "geo", "diff_demErr_mm.grd"),
         "diff_ITRF14": os.path.join(data_dir, "068", "CASR", "geo", "diff_ITRF14_mm.grd"),
+        "diff_offset": os.path.join(data_dir, "068", "CASR", "geo", "diff_offset_mm.grd"),
         "diff_deramp": os.path.join(data_dir, "068", "CASR", "geo", "diff_deramp_mm.grd"),
         "geo_velocity_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_msk_mm.grd"),
         "geo_velocity_SET_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_msk_mm.grd"),
         "geo_velocity_SET_ERA5_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_msk_mm.grd"),
         "geo_velocity_SET_ERA5_demErr_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_msk_mm.grd"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_mm.grd"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_mm.grd"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_deramp_mm.grd"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp_mm.grd"),
     },
 #     "P208": {
@@ -307,12 +327,15 @@ paths_169 = {
         "geo_velocity_SET_ERA5_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_msk.h5"),
         "geo_velocity_SET_ERA5_demErr_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_msk.h5"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk.h5"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset.h5"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_deramp.h5"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.h5"),
         # Correction Layers
         "diff_SET": os.path.join(data_dir, "169", "CASR", "geo", "diff_SET.h5"),
         "diff_ERA5": os.path.join(data_dir, "169", "CASR", "geo", "diff_ERA5.h5"),
         "diff_demErr": os.path.join(data_dir, "169", "CASR", "geo", "diff_demErr.h5"),
         "diff_ITRF14": os.path.join(data_dir, "169", "CASR", "geo", "diff_ITRF14.h5"),
+        "diff_offset": os.path.join(data_dir, "169", "CASR", "geo", "diff_offset.h5"),
         "diff_deramp": os.path.join(data_dir, "169", "CASR", "geo", "diff_deramp.h5"),
 #         "vel_grd": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.grd"),
 #         "geo_timeseries": os.path.join(data_dir, "169", "CASR", "geo", "geo_timeseries_SET_ERA5_demErr.h5"),
@@ -323,12 +346,15 @@ paths_169 = {
         "diff_ERA5": os.path.join(data_dir, "169", "CASR", "geo", "diff_ERA5.grd"),
         "diff_demErr": os.path.join(data_dir, "169", "CASR", "geo", "diff_demErr.grd"),
         "diff_ITRF14": os.path.join(data_dir, "169", "CASR", "geo", "diff_ITRF14.grd"),
+        "diff_offset": os.path.join(data_dir, "169", "CASR", "geo", "diff_offset.grd"),
         "diff_deramp": os.path.join(data_dir, "169", "CASR", "geo", "diff_deramp.grd"),
         "geo_velocity_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_msk.grd"),
         "geo_velocity_SET_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_msk.grd"),
         "geo_velocity_SET_ERA5_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_msk.grd"),
         "geo_velocity_SET_ERA5_demErr_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_msk.grd"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk.grd"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset.grd"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_deramp.grd"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.grd"),
     },
     
@@ -337,12 +363,15 @@ paths_169 = {
     "diff_ERA5": os.path.join(data_dir, "169", "CASR", "geo", "diff_ERA5_mm.grd"),
     "diff_demErr": os.path.join(data_dir, "169", "CASR", "geo", "diff_demErr_mm.grd"),
     "diff_ITRF14": os.path.join(data_dir, "169", "CASR", "geo", "diff_ITRF14_mm.grd"),
+    "diff_offset": os.path.join(data_dir, "068", "CASR", "geo", "diff_offset_mm.grd"),
     "diff_deramp": os.path.join(data_dir, "169", "CASR", "geo", "diff_deramp_mm.grd"),
     "geo_velocity_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_msk_mm.grd"),
     "geo_velocity_SET_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_msk_mm.grd"),
     "geo_velocity_SET_ERA5_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_msk_mm.grd"),
     "geo_velocity_SET_ERA5_demErr_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_msk_mm.grd"),
     "geo_velocity_SET_ERA5_demErr_ITRF14_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_mm.grd"),
+    "geo_velocity_SET_ERA5_demErr_ITRF14_offset_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_mm.grd"),
+    "geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_deramp_mm.grd"),
     "geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk": os.path.join(data_dir, "169", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp_mm.grd"),
 },
 #     "downsample": {
@@ -402,12 +431,16 @@ paths_170 = {
         "geo_velocity_SET_ERA5_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_msk.h5"),
         "geo_velocity_SET_ERA5_demErr_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_msk.h5"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk.h5"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset.h5"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_deramp.h5"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.h5"),
+        
         # Correction Layers
         "diff_SET": os.path.join(data_dir, "170", "CASR", "geo", "diff_SET.h5"),
         "diff_ERA5": os.path.join(data_dir, "170", "CASR", "geo", "diff_ERA5.h5"),
         "diff_demErr": os.path.join(data_dir, "170", "CASR", "geo", "diff_demErr.h5"),
         "diff_ITRF14": os.path.join(data_dir, "170", "CASR", "geo", "diff_ITRF14.h5"),
+        "diff_offset": os.path.join(data_dir, "170", "CASR", "geo", "diff_offset.h5"),
         "diff_deramp": os.path.join(data_dir, "170", "CASR", "geo", "diff_deramp.h5"),
 #         "vel_grd": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.grd"),
 #         "geo_timeseries": os.path.join(data_dir, "170", "CASR", "geo", "geo_timeseries_SET_ERA5_demErr.h5"),
@@ -417,12 +450,15 @@ paths_170 = {
         "diff_ERA5": os.path.join(data_dir, "170", "CASR", "geo", "diff_ERA5.grd"),
         "diff_demErr": os.path.join(data_dir, "170", "CASR", "geo", "diff_demErr.grd"),
         "diff_ITRF14": os.path.join(data_dir, "170", "CASR", "geo", "diff_ITRF14.grd"),
+        "diff_offset": os.path.join(data_dir, "170", "CASR", "geo", "diff_offset.grd"),
         "diff_deramp": os.path.join(data_dir, "170", "CASR", "geo", "diff_deramp.grd"),
         "geo_velocity_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_msk.grd"),
         "geo_velocity_SET_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_msk.grd"),
         "geo_velocity_SET_ERA5_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_msk.grd"),
         "geo_velocity_SET_ERA5_demErr_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_msk.grd"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk.grd"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset.grd"),
+        "geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_deramp.grd"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.grd"),
     },
     
@@ -431,12 +467,15 @@ paths_170 = {
     "diff_ERA5": os.path.join(data_dir, "170", "CASR", "geo", "diff_ERA5_mm.grd"),
     "diff_demErr": os.path.join(data_dir, "170", "CASR", "geo", "diff_demErr_mm.grd"),
     "diff_ITRF14": os.path.join(data_dir, "170", "CASR", "geo", "diff_ITRF14_mm.grd"),
+    "diff_offset": os.path.join(data_dir, "068", "CASR", "geo", "diff_offset_mm.grd"),
     "diff_deramp": os.path.join(data_dir, "170", "CASR", "geo", "diff_deramp_mm.grd"),
     "geo_velocity_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_msk_mm.grd"),
     "geo_velocity_SET_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_msk_mm.grd"),
     "geo_velocity_SET_ERA5_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_msk_mm.grd"),
     "geo_velocity_SET_ERA5_demErr_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_msk_mm.grd"),
     "geo_velocity_SET_ERA5_demErr_ITRF14_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_mm.grd"),
+    "geo_velocity_SET_ERA5_demErr_ITRF14_offset_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_mm.grd"),
+    "geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_offset_deramp_mm.grd"),
     "geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk": os.path.join(data_dir, "170", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp_mm.grd"),
 },
     

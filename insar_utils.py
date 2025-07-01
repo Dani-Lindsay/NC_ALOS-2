@@ -361,6 +361,38 @@ def apply_quadratic_deramp_2D(gps_data, insar_data):
 
     return insar_data
 
+def apply_deramp_2D(gps_data, insar_data):
+    """
+    Applies 2D ramp fitting to minimize GPS residuals and removes the ramp from InSAR velocities.
+
+    Parameters:
+    - gps_data: DataFrame with GPS data ['Lon', 'Lat', 'insar_Vel', 'UNR_Vel'].
+    - insar_data: DataFrame with InSAR data ['Lon', 'Lat', 'Vel'].
+
+    Returns:
+    - insar_data: DataFrame with columns ['ramp', 'Vel_deramp'] after removing the ramp.
+    """
+    # Calculate residuals for GPS data
+    gps_data['residual'] = gps_data['LOS_Vel'] - gps_data['insar_Vel']
+
+    # 2D ramp model: a * Lon + b * Lat + c
+    def ramp_model(params, Lon, Lat):
+        return params[0] * Lon + params[1] * Lat + params[2]
+
+    # Residuals function for least squares fitting
+    def residuals(params, Lon, Lat, residual):
+        return ramp_model(params, Lon, Lat) - residual
+
+    # Fit ramp model to GPS residuals
+    result = least_squares(residuals, [0.0, 0.0, 0.0], args=(gps_data['Lon'], gps_data['Lat'], gps_data['residual']))
+    a, b, c = result.x
+
+    # Apply ramp to InSAR data and remove it from velocities
+    insar_data['ramp'] = a * insar_data['Lon'] + b * insar_data['Lat'] + c
+    insar_data['Vel_2Dramp'] = insar_data['Vel'] + insar_data['ramp']
+
+    return insar_data
+
 def write_new_h5(df_col, vel_file_path, shape, suffix):
     """
     Write a new HDF5 file containing a dataset named 'velocity' from the 
@@ -494,6 +526,29 @@ def calculate_distance_to_reference(gps_data, ref_station):
     
     return gps_data
 
+def load_gmt_grid(filename):
+    with nc.Dataset(filename) as ds:
+        # Assume the grid variables are named 'lon', 'lat', and 'z'
+        lon = ds.variables['x'][:]
+        lat = ds.variables['y'][:]
+        grid_data = ds.variables['z'][:]
+    return lon, lat, grid_data
+
+def load_insar_vel_data_as_2Darrays(geo_file, vel_file):
+    with h5py.File(geo_file, 'a') as hf:
+        # Read in incidence Angle
+        inc = np.array(hf["incidenceAngle"][:])
+        azi = np.array(hf["azimuthAngle"][:])
+        lon = np.array(hf["longitude"][:])
+        lat = np.array(hf["latitude"][:])
+    with h5py.File(vel_file, 'a') as hf:
+        vel = np.array(hf["velocity"][:])
+        vel[vel == 0] = np.nan
+
+    # m --> mm 
+    vel = vel
+
+    return lon, lat, vel, azi, inc
 
 # def load_insar_vel_ts_as_dictionary(dic):
 #     """
@@ -587,21 +642,7 @@ def calculate_distance_to_reference(gps_data, ref_station):
 #     }
 
 
-# def load_insar_vel_data_as_2Darrays(geo_file, vel_file):
-#     with h5py.File(geo_file, 'a') as hf:
-#         # Read in incidence Angle
-#         inc = np.array(hf["incidenceAngle"][:])
-#         azi = np.array(hf["azimuthAngle"][:])
-#         lon = np.array(hf["longitude"][:])
-#         lat = np.array(hf["latitude"][:])
-#     with h5py.File(vel_file, 'a') as hf:
-#         vel = np.array(hf["velocity"][:])
-#         vel[vel == 0] = np.nan
 
-#     # m --> mm 
-#     vel = vel
-
-#     return lon, lat, vel, azi, inc
 
 
 
@@ -630,13 +671,7 @@ def calculate_distance_to_reference(gps_data, ref_station):
 
 #     return insar_data
 
-# def load_gmt_grid(filename):
-#     with nc.Dataset(filename) as ds:
-#         # Assume the grid variables are named 'lon', 'lat', and 'z'
-#         lon = ds.variables['x'][:]
-#         lat = ds.variables['y'][:]
-#         grid_data = ds.variables['z'][:]
-#     return lon, lat, grid_data
+
 
 
 
@@ -725,37 +760,7 @@ def calculate_distance_to_reference(gps_data, ref_station):
 #         return np.nan
 #     return np.sqrt(np.nansum(diff**2) / (n_valid - 1))
 
-# def apply_deramp_2D(gps_data, insar_data):
-#     """
-#     Applies 2D ramp fitting to minimize GPS residuals and removes the ramp from InSAR velocities.
 
-#     Parameters:
-#     - gps_data: DataFrame with GPS data ['Lon', 'Lat', 'insar_Vel', 'UNR_Vel'].
-#     - insar_data: DataFrame with InSAR data ['Lon', 'Lat', 'Vel'].
-
-#     Returns:
-#     - insar_data: DataFrame with columns ['ramp', 'Vel_deramp'] after removing the ramp.
-#     """
-#     # Calculate residuals for GPS data
-#     gps_data['residual'] = gps_data['UNR_Vel'] - gps_data['insar_Vel']
-
-#     # 2D ramp model: a * Lon + b * Lat + c
-#     def ramp_model(params, Lon, Lat):
-#         return params[0] * Lon + params[1] * Lat + params[2]
-
-#     # Residuals function for least squares fitting
-#     def residuals(params, Lon, Lat, residual):
-#         return ramp_model(params, Lon, Lat) - residual
-
-#     # Fit ramp model to GPS residuals
-#     result = least_squares(residuals, [0.0, 0.0, 0.0], args=(gps_data['Lon'], gps_data['Lat'], gps_data['residual']))
-#     a, b, c = result.x
-
-#     # Apply ramp to InSAR data and remove it from velocities
-#     insar_data['ramp'] = a * insar_data['Lon'] + b * insar_data['Lat'] + c
-#     insar_data['Vel_2Dramp'] = insar_data['Vel'] + insar_data['ramp']
-
-#     return insar_data
 
 
 

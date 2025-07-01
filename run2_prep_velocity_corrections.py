@@ -60,69 +60,72 @@ def process_track(track):
     # Determine the geo output directory from one of the geo files (assumed to be in the same folder)
     geo_dir = os.path.dirname(geo["geo_geometryRadar"])
 
-    # # --- Timeseries to Velocity Conversion ---
-    # run_command(["timeseries2velocity.py", casr["timeseries"], "-o", casr["velocity"]])
-    # run_command(["timeseries2velocity.py", casr["timeseries_SET"], "-o", casr["velocity_SET"]])
-    # run_command(["timeseries2velocity.py", casr["timeseries_SET_ERA5"], "-o", casr["velocity_SET_ERA5"]])
-    # run_command(["timeseries2velocity.py", casr["timeseries_SET_ERA5_demErr"], "-o", casr["velocity_SET_ERA5_demErr"]])
+    # --- Timeseries to Velocity Conversion ---
+    run_command(["timeseries2velocity.py", casr["timeseries"], "-o", casr["velocity"]])
+    run_command(["timeseries2velocity.py", casr["timeseries_SET"], "-o", casr["velocity_SET"]])
+    run_command(["timeseries2velocity.py", casr["timeseries_SET_ERA5"], "-o", casr["velocity_SET_ERA5"]])
+    run_command(["timeseries2velocity.py", casr["timeseries_SET_ERA5_demErr"], "-o", casr["velocity_SET_ERA5_demErr"]])
 
-    # # --- Geocoding Velocity Files ---
-    # run_command([geocode_py, casr["velocity"], "-l", geo["geometryRadar"],
-    #              "--lalo", lat_step, lon_step,
-    #              "--bbox", s, n, w, e,
-    #              "--outdir", geo_dir])
-    # run_command([geocode_py, casr["velocity_SET"], "-l", geo["geometryRadar"],
-    #              "--lalo", lat_step, lon_step,
-    #              "--bbox", s, n, w, e,
-    #              "--outdir", geo_dir])
-    # run_command([geocode_py, casr["velocity_SET_ERA5"], "-l", geo["geometryRadar"],
-    #              "--lalo", lat_step, lon_step,
-    #              "--bbox", s, n, w, e,
-    #              "--outdir", geo_dir])
-    # run_command([geocode_py, casr["velocity_SET_ERA5_demErr"], "-l", geo["geometryRadar"],
-    #              "--lalo", lat_step, lon_step,
-    #              "--bbox", s, n, w, e,
-    #              "--outdir", geo_dir])
+    # --- Geocoding Velocity Files ---
+    run_command([geocode_py, casr["velocity"], "-l", geo["geometryRadar"],
+                 "--lalo", lat_step, lon_step,
+                 "--bbox", s, n, w, e,
+                 "--outdir", geo_dir])
+    run_command([geocode_py, casr["velocity_SET"], "-l", geo["geometryRadar"],
+                 "--lalo", lat_step, lon_step,
+                 "--bbox", s, n, w, e,
+                 "--outdir", geo_dir])
+    run_command([geocode_py, casr["velocity_SET_ERA5"], "-l", geo["geometryRadar"],
+                 "--lalo", lat_step, lon_step,
+                 "--bbox", s, n, w, e,
+                 "--outdir", geo_dir])
+    run_command([geocode_py, casr["velocity_SET_ERA5_demErr"], "-l", geo["geometryRadar"],
+                 "--lalo", lat_step, lon_step,
+                 "--bbox", s, n, w, e,
+                 "--outdir", geo_dir])
 
-    # # --- Additional Geocoding Commands ---
-    # run_command([geocode_py, geo["geometryRadar"], "incidenceAngle", "-l", geo["geometryRadar"],
-    #              "--lalo", lat_step, lon_step,
-    #              "--bbox", s, n, w, e,
-    #              "--outdir", geo_dir])
-    # run_command([geocode_py, casr["maskTempCoh"], "incidenceAngle", "-l", geo["geometryRadar"],
-    #              "--lalo", lat_step, lon_step,
-    #              "--bbox", s, n, w, e,
-    #              "--outdir", geo_dir])
-    # run_command([geocode_py, casr["waterMask"], "incidenceAngle", "-l", geo["geometryRadar"],
-    #              "--lalo", lat_step, lon_step,
-    #              "--bbox", s, n, w, e,
-    #              "--outdir", geo_dir])
-    # run_command([geocode_py, casr["velocityERA5"], "-l", geo["geometryRadar"],
-    #              "--lalo", lat_step, lon_step,
-    #              "--bbox", s, n, w, e,
-    #              "--outdir", geo_dir])
-    # run_command([geocode_py, casr["demErr"], "-l", geo["geometryRadar"],
-    #              "--lalo", lat_step, lon_step,
-    #              "--bbox", s, n, w, e,
-    #              "--outdir", geo_dir])
+    # --- Additional Geocoding Commands ---
+    run_command([geocode_py, geo["geometryRadar"], "incidenceAngle", "-l", geo["geometryRadar"],
+                 "--lalo", lat_step, lon_step,
+                 "--bbox", s, n, w, e,
+                 "--outdir", geo_dir])
+    run_command([geocode_py, casr["maskTempCoh"], "incidenceAngle", "-l", geo["geometryRadar"],
+                 "--lalo", lat_step, lon_step,
+                 "--bbox", s, n, w, e,
+                 "--outdir", geo_dir])
+    run_command([geocode_py, casr["waterMask"], "incidenceAngle", "-l", geo["geometryRadar"],
+                 "--lalo", lat_step, lon_step,
+                 "--bbox", s, n, w, e,
+                 "--outdir", geo_dir])
+    run_command([geocode_py, casr["velocityERA5"], "-l", geo["geometryRadar"],
+                 "--lalo", lat_step, lon_step,
+                 "--bbox", s, n, w, e,
+                 "--outdir", geo_dir])
+    run_command([geocode_py, casr["demErr"], "-l", geo["geometryRadar"],
+                 "--lalo", lat_step, lon_step,
+                 "--bbox", s, n, w, e,
+                 "--outdir", geo_dir])
     
-    # # --- Plate Motion ---
-    # run_command(["plate_motion.py", "-g", geo["geo_geometryRadar"],
-    #              "-v", geo["geo_velocity_SET_ERA5_demErr"], "--plate", "NorthAmerica"])
+    # --- Plate Motion ---
+    run_command(["plate_motion.py", "-g", geo["geo_geometryRadar"],
+                 "-v", geo["geo_velocity_SET_ERA5_demErr"], "--plate", "NorthAmerica"])
 
-    # # --- Diff Commands ---
-    # run_command(["diff.py", geo["geo_velocity"], geo["geo_velocity_SET"], "-o", geo["diff_SET"]])
-    # run_command(["diff.py", geo["geo_velocity_SET"], geo["geo_velocity_SET_ERA5"], "-o", geo["diff_ERA5"]])
-    # run_command(["diff.py", geo["geo_velocity_SET_ERA5"], geo["geo_velocity_SET_ERA5_demErr"], "-o", geo["diff_demErr"]])
-    # run_command(["diff.py", geo["geo_velocity_SET_ERA5_demErr"], geo["geo_velocity_SET_ERA5_demErr_ITRF14"], "-o", geo["diff_ITRF14"]])
+    # --- Diff Commands ---
+    run_command(["diff.py", geo["geo_velocity"], geo["geo_velocity_SET"], "-o", geo["diff_SET"]])
+    run_command(["diff.py", geo["geo_velocity_SET"], geo["geo_velocity_SET_ERA5"], "-o", geo["diff_ERA5"]])
+    run_command(["diff.py", geo["geo_velocity_SET_ERA5"], geo["geo_velocity_SET_ERA5_demErr"], "-o", geo["diff_demErr"]])
+    run_command(["diff.py", geo["geo_velocity_SET_ERA5_demErr"], geo["geo_velocity_SET_ERA5_demErr_ITRF14"], "-o", geo["diff_ITRF14"]])
 
-    # # --- Mask Commands ---
-    # run_command(["mask.py", geo["geo_velocity"], "-m", geo["geo_maskTempCoh"], "-o", geo["geo_velocity_msk"]])
-    # run_command(["mask.py", geo["geo_velocity_SET"], "-m", geo["geo_maskTempCoh"], "-o", geo["geo_velocity_SET_msk"]])
-    # run_command(["mask.py", geo["geo_velocity_SET_ERA5"], "-m", geo["geo_maskTempCoh"], "-o", geo["geo_velocity_SET_ERA5_msk"]])
-    # run_command(["mask.py", geo["geo_velocity_SET_ERA5_demErr"], "-m", geo["geo_maskTempCoh"], "-o", geo["geo_velocity_SET_ERA5_demErr_msk"]])
-    # run_command(["mask.py", geo["geo_velocity_SET_ERA5_demErr_ITRF14"], "-m", geo["geo_maskTempCoh"], "-o", geo["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]])
-    # run_command(["mask.py", geo["diff_ITRF14"], "-m", geo["geo_waterMask"], "-o", geo["diff_ITRF14"]])
+    # --- Mask Commands ---
+    run_command(["mask.py", geo["geo_velocity"], "-m", geo["geo_maskTempCoh"], "-o", geo["geo_velocity_msk"]])
+    run_command(["mask.py", geo["geo_velocity_SET"], "-m", geo["geo_maskTempCoh"], "-o", geo["geo_velocity_SET_msk"]])
+    run_command(["mask.py", geo["geo_velocity_SET_ERA5"], "-m", geo["geo_maskTempCoh"], "-o", geo["geo_velocity_SET_ERA5_msk"]])
+    run_command(["mask.py", geo["geo_velocity_SET_ERA5_demErr"], "-m", geo["geo_maskTempCoh"], "-o", geo["geo_velocity_SET_ERA5_demErr_msk"]])
+    run_command(["mask.py", geo["geo_velocity_SET_ERA5_demErr_ITRF14"], "-m", geo["geo_maskTempCoh"], "-o", geo["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]])
+    run_command(["mask.py", geo["diff_SET"], "-m", geo["geo_waterMask"], "-o", geo["diff_SET"]])
+    run_command(["mask.py", geo["diff_ERA5"], "-m", geo["geo_waterMask"], "-o", geo["diff_ERA5"]])
+    run_command(["mask.py", geo["diff_demErr"], "-m", geo["geo_waterMask"], "-o", geo["diff_demErr"]])
+    run_command(["mask.py", geo["diff_ITRF14"], "-m", geo["geo_waterMask"], "-o", geo["diff_ITRF14"]])    
     
     # --- Save GMT Commands ---
     run_command(["save_gmt.py", geo["diff_SET"], "-o", grd["diff_SET"]])
@@ -139,7 +142,10 @@ if __name__ == "__main__":
     # Process each track individually. 
     #for track in (paths_068, paths_169, paths_170):
     #    print("\nProcessing track:")
-    process_track(paths_068)
+    process_track(paths_170)
+    process_track(paths_169)
+    #process_track(paths_068)
+
         
 # --- Geocode Central Valley ---
 # resample to same lat lon and bb

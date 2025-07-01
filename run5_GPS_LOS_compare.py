@@ -35,9 +35,9 @@ unit = 1000
 # Load InSAR
 #####################
 
-insar_169 = utils.load_h5_data(paths_169["geo"]["geo_geometryRadar"], paths_169["geo"]["geo_velocity_msk"], "velocity")
-insar_170 = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], paths_170["geo"]["geo_velocity_msk"], "velocity")
-insar_068 = utils.load_h5_data(paths_068["geo"]["geo_geometryRadar"], paths_068["geo"]["geo_velocity_msk"], "velocity")
+insar_169 = utils.load_h5_data(paths_169["geo"]["geo_geometryRadar"], paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "velocity")
+insar_170 = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "velocity")
+insar_068 = utils.load_h5_data(paths_068["geo"]["geo_geometryRadar"], paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "velocity")
 
 insar_169['Vel'] = insar_169['Vel']*unit
 insar_170['Vel'] = insar_170['Vel']*unit
@@ -51,9 +51,9 @@ insar_169['Std'] = insar_169_std['Vel']*unit
 insar_170['Std'] = insar_170_std['Vel']*unit
 insar_068['Std'] = insar_068_std['Vel']*unit
 
-grid_169 = paths_169["grd"]["geo_velocity_msk"]
-grid_170 = paths_170["grd"]["geo_velocity_msk"]
-grid_068 = paths_068["grd"]["geo_velocity_msk"]
+grid_169 = paths_169["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
+grid_170 = paths_170["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
+grid_068 = paths_068["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
 
 #####################
 # Load in GPS and project UNR enu --> los
@@ -297,18 +297,16 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "5.c"), autolabel="d)", share
             projection="X5c/5c",
             pen="1p,gray"
         )
-    fig.plot(y=gps_169_ori['LOS_Vel'], x=gps_169_ori['insar_Vel'], style="c.15c", fill="grey", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     fig.plot(y=gps_169['LOS_Vel'], x=gps_169['insar_Vel'], style="c.15c", fill=gps_169['dist2ref'], cmap=True, region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    #fig.text(text=gps_169["StaID"], y=gps_169['LOS_Vel'], x=gps_169['insar_Vel'], region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     fig.plot(y=[min_val, max_val], x=[min_val, max_val], region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     fig.plot(y=unr_intercept_169+unr_slope_169*xseq, x=xseq, region=[min_val, max_val, min_val, max_val], projection="X5c/5c", pen='dash')
     fig.text(text='RMSE = {:.1f} mm/yr'.format(unr_rmse_169), position="TL", offset="0.5c/-0.2c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     fig.text(text='R² = {:.2f}'.format(unr_r2_169), position="TL", offset="0.5c/-0.6c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    fig.text(text='{} Shift'.format(shift_169), position="TL", offset="0.5c/-1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='{} GNSS'.format(gps_169.shape[0]), position="TL", offset="0.5c/-1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     
-    fig.text(text='RMSE = {:.1f} mm/yr'.format(unr_rmse_169_ori), position="BR", offset="-0.5c/1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    fig.text(text='R² = {:.2f}'.format(unr_r2_169_ori), position="BR", offset="-0.5c/0.6c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    fig.text(text='{} GNSS'.format(gps_169_ori.shape[0]), position="BR", offset="-0.5c/0.2c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='RMSE = {:.1f} mm/yr'.format(unr_rmse_169_c), position="BR", offset="-0.5c/1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='R² = {:.2f}'.format(unr_r2_169_c), position="BR", offset="-0.5c/0.6c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='{} GNSS'.format(gps_169_common.shape[0]), position="BR", offset="-0.5c/0.2c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     
     fig.basemap(region=[min_val, max_val, min_val, max_val], projection="X5c/5c", panel=True)
     for _, row in gps_170.iterrows():
@@ -319,18 +317,17 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "5.c"), autolabel="d)", share
             projection="X5c/5c",
             pen="1p,gray"
         )
-    fig.plot(y=gps_170_ori['LOS_Vel'], x=gps_170_ori['insar_Vel'], style="c.15c", fill="grey", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+
     fig.plot(y=gps_170['LOS_Vel'], x=gps_170['insar_Vel'], style="c.15c", fill=gps_170['dist2ref'], cmap=True, region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     fig.plot(y=[min_val, max_val], x=[min_val, max_val], region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    #fig.text(text=gps_170["StaID"], y=gps_170['LOS_Vel'], x=gps_170['insar_Vel'], region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     fig.plot(y=unr_intercept_170+unr_slope_170*xseq, x=xseq, region=[min_val, max_val, min_val, max_val], projection="X5c/5c", pen='dash')
     fig.text(text='RMSE = {:.1f} mm/yr'.format(unr_rmse_170), position="TL", offset="0.5c/-0.2c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     fig.text(text='R² = {:.2f}'.format(unr_r2_170), position="TL", offset="0.5c/-0.6c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    fig.text(text='{} Shift'.format(shift_170), position="TL", offset="0.5c/-1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='{} GNSS'.format(gps_170.shape[0]), position="TL", offset="0.5c/-1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     
-    fig.text(text='RMSE = {:.1f} mm/yr'.format(unr_rmse_170_ori), position="BR", offset="-0.5c/1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    fig.text(text='R² = {:.2f}'.format(unr_r2_170_ori), position="BR", offset="-0.5c/0.6c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    fig.text(text='{} GNSS'.format(gps_170_ori.shape[0]), position="BR", offset="-0.5c/0.2c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='RMSE = {:.1f} mm/yr'.format(unr_rmse_170_c), position="BR", offset="-0.5c/1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='R² = {:.2f}'.format(unr_r2_170_c), position="BR", offset="-0.5c/0.6c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='{} GNSS'.format(gps_170_common.shape[0]), position="BR", offset="-0.5c/0.2c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     
     fig.basemap(region=[min_val, max_val, min_val, max_val], projection="X5c/5c", panel=True)
     for _, row in gps_068.iterrows():
@@ -341,18 +338,17 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "5.c"), autolabel="d)", share
             projection="X5c/5c",
             pen="1p,gray"
         )
-    fig.plot(y=gps_068_ori['LOS_Vel'], x=gps_068_ori['insar_Vel'], style="c.15c", fill="grey", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+
     fig.plot(y=gps_068['LOS_Vel'], x=gps_068['insar_Vel'], style="c.15c", fill=gps_068['dist2ref'], cmap=True, region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    #fig.text(text=gps_068["StaID"], y=gps_068['LOS_Vel'], x=gps_068['insar_Vel'], offset="0/0.2c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     fig.plot(y=[min_val, max_val], x=[min_val, max_val], region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     fig.plot(y=unr_intercept_068+unr_slope_068*xseq, x=xseq, region=[min_val, max_val, min_val, max_val], projection="X5c/5c", pen='dash')
     fig.text(text='RMSE = {:.1f} mm/yr'.format(unr_rmse_068), position="TL", offset="0.5c/-0.2c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     fig.text(text='R² = {:.2f}'.format(unr_r2_068), position="TL", offset="0.5c/-0.6c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    fig.text(text='{} Shift'.format(shift_068), position="TL", offset="0.5c/-1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='{} GNSS'.format(gps_068.shape[0]), position="TL", offset="0.5c/-1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     
-    fig.text(text='RMSE = {:.1f} mm/yr'.format(unr_rmse_068_ori), position="BR", offset="-0.5c/1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    fig.text(text='R² = {:.2f}'.format(unr_r2_068_ori), position="BR", offset="-0.5c/0.6c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
-    fig.text(text='{} GNSS'.format(gps_068_ori.shape[0]), position="BR", offset="-0.5c/0.2c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='RMSE = {:.1f} mm/yr'.format(unr_rmse_068_c), position="BR", offset="-0.5c/1.0c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='R² = {:.2f}'.format(unr_r2_068_c), position="BR", offset="-0.5c/0.6c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
+    fig.text(text='{} GNSS'.format(gps_068_common.shape[0]), position="BR", offset="-0.5c/0.2c", region=[min_val, max_val, min_val, max_val], projection="X5c/5c")
     
     with pygmt.config(
         FONT_ANNOT_PRIMARY="18p,black", 
@@ -361,8 +357,6 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "5.c"), autolabel="d)", share
         ):
         fig.colorbar(position="JMR+o0.7c/0c+w4.0c/0.4c", frame=["xa+lDistance (km)"])
 
-fig.show()  
-
 fig.shift_origin(yshift="-4.2c")
 
 with fig.subplot(nrows=1, ncols=3, figsize=("15c", "3.c"), autolabel="g)", sharex="b", sharey="l",
@@ -370,24 +364,24 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "3.c"), autolabel="g)", share
     
     pygmt.config(FORMAT_GEO_MAP="ddd.xx", MAP_FRAME_TYPE="plain", FONT=10, FONT_TITLE=11 )
     
-    fig.histogram(data=gps_169['residual'], frame=["WStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="dodgerblue", pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c", panel=True)
-    fig.histogram(data=gps_169_ori['residual'], frame=["WStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="grey", transparency=50, pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c")
+    fig.histogram(data=gps_169['residual'], frame=["WStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="grey", pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c", panel=True)
+    fig.histogram(data=gps_169_common['residual'], frame=["WStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="dodgerblue", transparency=50, pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c")
     #fig.histogram(data=gps_169_common['residual'], frame=["WStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="red", transparency=50, pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c")
     fig.text(text='{:.1f}% <2 mm/yr'.format(res_per_169), position="TR", offset="-0.2c/-0.2c", region=[-15, 15, 0, 25], projection="X5c/3c")
     #fig.plot(y=[0,20], x=[2,2], region=[-15, 15, 0, 25], projection="X5c/3c", pen='0.8p,dash')
     #fig.plot(y=[0,20], x=[-2,-2], region=[-15, 15, 0, 25], projection="X5c/3c", pen='0.8p,dash')
     
-    fig.histogram(data=gps_170['residual'], frame=["wStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="dodgerblue", 
+    fig.histogram(data=gps_170['residual'], frame=["wStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="grey", 
                   pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c",  panel=True)
-    fig.histogram(data=gps_170_ori['residual'], frame=["wStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="grey", transparency=50, pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c")
+    fig.histogram(data=gps_170_common['residual'], frame=["wStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="dodgerblue", transparency=50, pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c")
     #fig.histogram(data=gps_170_common['residual'], frame=["wStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="red", transparency=50, pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c")
     fig.text(text='{:.1f}% <2 mm/yr'.format(res_per_170), position="TR", offset="-0.2c/-0.2c", region=[-15, 15, 0, 25], projection="X5c/3c")
     #fig.plot(y=[0,20], x=[2,2], region=[-15, 15, 0, 25], projection="X5c/3c", pen='0.8p,dash')
     #fig.plot(y=[0,20], x=[-2,-2], region=[-15, 15, 0, 25], projection="X5c/3c", pen='0.8p,dash')
     
-    fig.histogram(data=gps_068['residual'], frame=["wStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="dodgerblue", 
+    fig.histogram(data=gps_068['residual'], frame=["wStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="grey", 
                   pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c",  panel=True)
-    fig.histogram(data=gps_068_ori['residual'], frame=["wStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="dodgerblue", transparency=50, pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c")
+    fig.histogram(data=gps_068_common['residual'], frame=["wStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="dodgerblue", transparency=50, pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c")
     #fig.histogram(data=gps_068_common['residual'], frame=["wStr", "x+lResidual (mm/yr)", "ya+lCounts"], series=0.5, fill="red", transparency=50, pen="1p", histtype=0, region=[-15, 15, 0, 25], projection="X5c/3c")
     fig.text(text='{:.1f}% <2 mm/yr'.format(res_per_068), position="TR", offset="-0.2c/-0.2c", region=[-15, 15, 0, 25], projection="X5c/3c")
     #fig.plot(y=[0,20], x=[2,2], region=[-15, 15, 0, 25], projection="X5c/3c", pen='0.8p,dash')
@@ -437,6 +431,8 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "7.4c"),autolabel="a)", share
     pygmt.makecpt(cmap="vik", series=[-25, 25])
     fig.plot(y=gps_169["Lat"], x=gps_169["Lon"], style="c.1c", fill=gps_169['LOS_Vel'], cmap=True, pen="0.5p,black", region=[fig_region],projection= size)
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", fill="white", transparency=50, region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", region=[fig_region],projection= size)
     
     df = pd.DataFrame(
         data={
@@ -468,6 +464,8 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "7.4c"),autolabel="a)", share
     pygmt.makecpt(cmap="vik", series=[-25, 25])
     fig.plot(y=gps_170["Lat"], x=gps_170["Lon"], style="c.1c", fill=gps_170['LOS_Vel'], cmap=True, pen="0.5p,black", region=[fig_region],projection= size)
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", fill="white", transparency=50, region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", region=[fig_region],projection= size)
     
     df = pd.DataFrame(
         data={
@@ -500,6 +498,8 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "7.4c"),autolabel="a)", share
     pygmt.makecpt(cmap="vik", series=[-25, 25])
     fig.plot(y=gps_068["Lat"], x=gps_068["Lon"], style="c.1c", fill=gps_068['LOS_Vel'], cmap=True, pen="0.5p,black", region=[fig_region],projection= size)
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", fill="white", transparency=50, region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", region=[fig_region],projection= size)
     
     df = pd.DataFrame(
         data={
@@ -522,7 +522,7 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "7.4c"),autolabel="a)", share
         ):
         fig.colorbar(position="JMR+o0.35c/0c+w4.0c/0.4c", frame=["xa+lVelocity (mm/yr)"], projection = size)
         
-fig.savefig(common_paths["fig_dir"]+f'Fig_4_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_msk_June30.png', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f'Fig_4_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_June30.png', transparent=False, crop=True, anti_alias=True, show=False)
 #fig.savefig(fig_dir+f'Fig_4_{ref_station}_InSAR_GNSS_Map_dist{dist}_fullRes_StaticShift_June30.pdf', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()   
 

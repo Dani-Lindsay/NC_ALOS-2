@@ -40,12 +40,14 @@ vel_SET_068_df   = utils.load_h5_data(geo_068, paths_068["geo"]["geo_velocity_SE
 vel_ERA5_068_df  = utils.load_h5_data(geo_068, paths_068["geo"]["geo_velocity_SET_ERA5_msk"], "velocity")
 vel_demErr_068_df = utils.load_h5_data(geo_068, paths_068["geo"]["geo_velocity_SET_ERA5_demErr_msk"], "velocity")
 vel_ITRF14_068_df = utils.load_h5_data(geo_068, paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], "velocity")
+#vel_offset_068_df = utils.load_h5_data(geo_068, paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], "velocity")
 vel_deramp_068_df = utils.load_h5_data(geo_068, paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "velocity")
 
 SET_068_df    = utils.load_h5_data(geo_068, paths_068["geo"]["diff_SET"], "velocity")
 ERA5_068_df   = utils.load_h5_data(geo_068, paths_068["geo"]["diff_ERA5"], "velocity")
 demErr_068_df = utils.load_h5_data(geo_068, paths_068["geo"]["diff_demErr"], "velocity")
 ITRF14_068_df = utils.load_h5_data(geo_068, paths_068["geo"]["diff_ITRF14"], "velocity")
+#offset_068_df = utils.load_h5_data(geo_068, paths_068["geo"]["diff"], "velocity")
 deramp_068_df = utils.load_h5_data(geo_068, paths_068["geo"]["diff_deramp"], "velocity")
 
 vel_068_grd       = paths_068["grd_mm"]["geo_velocity_msk"]
@@ -53,14 +55,15 @@ vel_SET_068_grd   = paths_068["grd_mm"]["geo_velocity_SET_msk"]
 vel_ERA5_068_grd  = paths_068["grd_mm"]["geo_velocity_SET_ERA5_msk"]
 vel_demErr_068_grd = paths_068["grd_mm"]["geo_velocity_SET_ERA5_demErr_msk"]
 vel_ITRF14_068_grd = paths_068["grd_mm"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
+#vel_068_grd = paths_068["grd_mm"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
 vel_deramp_068_grd = paths_068["grd_mm"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
 
 SET_068_grd    = paths_068["grd_mm"]["diff_SET"]
 ERA5_068_grd   = paths_068["grd_mm"]["diff_ERA5"]
 demErr_068_grd = paths_068["grd_mm"]["diff_demErr"]
 ITRF14_068_grd = paths_068["grd_mm"]["diff_ITRF14"]
+#offset_068_grd = paths_068["grd_mm"]["diff"]
 deramp_068_grd = paths_068["grd_mm"]["diff_deramp"]
-
 
 # ------------------------
 # Track 169
@@ -70,12 +73,14 @@ vel_SET_169_df   = utils.load_h5_data(geo_169, paths_169["geo"]["geo_velocity_SE
 vel_ERA5_169_df  = utils.load_h5_data(geo_169, paths_169["geo"]["geo_velocity_SET_ERA5_msk"], "velocity")
 vel_demErr_169_df = utils.load_h5_data(geo_169, paths_169["geo"]["geo_velocity_SET_ERA5_demErr_msk"], "velocity")
 vel_ITRF14_169_df = utils.load_h5_data(geo_169, paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], "velocity")
+#vel_169_df = utils.load_h5_data(geo_169, paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], "velocity")
 vel_deramp_169_df = utils.load_h5_data(geo_169, paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "velocity")
 
 SET_169_df    = utils.load_h5_data(geo_169, paths_169["geo"]["diff_SET"], "velocity")
 ERA5_169_df   = utils.load_h5_data(geo_169, paths_169["geo"]["diff_ERA5"], "velocity")
 demErr_169_df = utils.load_h5_data(geo_169, paths_169["geo"]["diff_demErr"], "velocity")
 ITRF14_169_df = utils.load_h5_data(geo_169, paths_169["geo"]["diff_ITRF14"], "velocity")
+#offset_169_df = utils.load_h5_data(geo_169, paths_169["geo"]["diff"], "velocity")
 deramp_169_df = utils.load_h5_data(geo_169, paths_169["geo"]["diff_deramp"], "velocity")
 
 vel_169_grd        = paths_169["grd_mm"]["geo_velocity_msk"]
@@ -83,12 +88,14 @@ vel_SET_169_grd    = paths_169["grd_mm"]["geo_velocity_SET_msk"]
 vel_ERA5_169_grd   = paths_169["grd_mm"]["geo_velocity_SET_ERA5_msk"]
 vel_demErr_169_grd = paths_169["grd_mm"]["geo_velocity_SET_ERA5_demErr_msk"]
 vel_ITRF14_169_grd = paths_169["grd_mm"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
+#vel_169_grd = paths_169["grd_mm"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
 vel_deramp_169_grd = paths_169["grd_mm"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
 
 SET_169_grd    = paths_169["grd_mm"]["diff_SET"]
 ERA5_169_grd   = paths_169["grd_mm"]["diff_ERA5"]
 demErr_169_grd = paths_169["grd_mm"]["diff_demErr"]
 ITRF14_169_grd = paths_169["grd_mm"]["diff_ITRF14"]
+#offset_169_grd = paths_169["grd_mm"]["diff_offset"]
 deramp_169_grd = paths_169["grd_mm"]["diff_deramp"]
 
 # ------------------------
@@ -99,12 +106,14 @@ vel_SET_170_df   = utils.load_h5_data(geo_170, paths_170["geo"]["geo_velocity_SE
 vel_ERA5_170_df  = utils.load_h5_data(geo_170, paths_170["geo"]["geo_velocity_SET_ERA5_msk"], "velocity")
 vel_demErr_170_df = utils.load_h5_data(geo_170, paths_170["geo"]["geo_velocity_SET_ERA5_demErr_msk"], "velocity")
 vel_ITRF14_170_df = utils.load_h5_data(geo_170, paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], "velocity")
+#vel_170_df = utils.load_h5_data(geo_170, paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], "velocity")
 vel_deramp_170_df = utils.load_h5_data(geo_170, paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "velocity")
 
 SET_170_df    = utils.load_h5_data(geo_170, paths_170["geo"]["diff_SET"], "velocity")
 ERA5_170_df   = utils.load_h5_data(geo_170, paths_170["geo"]["diff_ERA5"], "velocity")
 demErr_170_df = utils.load_h5_data(geo_170, paths_170["geo"]["diff_demErr"], "velocity")
 ITRF14_170_df = utils.load_h5_data(geo_170, paths_170["geo"]["diff_ITRF14"], "velocity")
+#offset_170_df = utils.load_h5_data(geo_170, paths_170["geo"]["diff"], "velocity")
 deramp_170_df = utils.load_h5_data(geo_170, paths_170["geo"]["diff_deramp"], "velocity")
 
 vel_170_grd        = paths_170["grd_mm"]["geo_velocity_msk"]
@@ -112,14 +121,15 @@ vel_SET_170_grd    = paths_170["grd_mm"]["geo_velocity_SET_msk"]
 vel_ERA5_170_grd   = paths_170["grd_mm"]["geo_velocity_SET_ERA5_msk"]
 vel_demErr_170_grd = paths_170["grd_mm"]["geo_velocity_SET_ERA5_demErr_msk"]
 vel_ITRF14_170_grd = paths_170["grd_mm"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
+#vel_170_grd = paths_170["grd_mm"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
 vel_deramp_170_grd = paths_170["grd_mm"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
 
 SET_170_grd    = paths_170["grd_mm"]["diff_SET"]
 ERA5_170_grd   = paths_170["grd_mm"]["diff_ERA5"]
 demErr_170_grd = paths_170["grd_mm"]["diff_demErr"]
 ITRF14_170_grd = paths_170["grd_mm"]["diff_ITRF14"]
+#offset_170_grd = paths_170["grd_mm"]["diff_offset"]
 deramp_170_grd = paths_170["grd_mm"]["diff_deramp"]
-
 
 insar_068_dfs = [
     (vel_068_df, 'vel_068'),
@@ -127,6 +137,7 @@ insar_068_dfs = [
     (vel_ERA5_068_df, 'vel_ERA5_068'),
     (vel_demErr_068_df, 'vel_demErr_068'),
     (vel_ITRF14_068_df, 'vel_ITRF14_068'),
+#    (vel_offset_068_df, 'vel_offset_068'),
     (vel_deramp_068_df, 'vel_deramp_068')]
 
 insar_169_dfs = [
@@ -135,6 +146,7 @@ insar_169_dfs = [
     (vel_ERA5_169_df, 'vel_ERA5_169'),
     (vel_demErr_169_df, 'vel_demErr_169'),
     (vel_ITRF14_169_df, 'vel_ITRF14_169'),
+#    (vel_offset_169_df, 'vel_offset_169'),
     (vel_deramp_169_df, 'vel_deramp_169')]
 
 insar_170_dfs = [
@@ -143,6 +155,7 @@ insar_170_dfs = [
     (vel_ERA5_170_df, 'vel_ERA5_170'),
     (vel_demErr_170_df, 'vel_demErr_170'),
     (vel_ITRF14_170_df, 'vel_ITRF14_170'),
+#    (vel_offset_170_df, 'vel_offset_170'),
     (vel_deramp_170_df, 'vel_deramp_170')]
 
 #####################
@@ -229,7 +242,7 @@ def subplot(vel_grd, diff_grd, rmse, frame_title):
     # inset difference panel
     fig.basemap(    region=[fig_region], projection=sub_size, frame="+t")
     fig.grdimage(   region=[fig_region], projection=sub_size, grid=diff_grd, cmap="plasma", nan_transparent=True)
-    fig.coast(      region=[fig_region], projection=sub_size, shorelines=True, area_thresh=5000, water="white" )
+    fig.coast(      region=[fig_region], projection=sub_size, shorelines=True, area_thresh=5000)
     with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
         fig.colorbar(position="jBL+o0.2c/2c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
         
@@ -286,6 +299,9 @@ with fig.subplot(nrows=3, ncols=6, figsize=("25c", "16.5c"), autolabel=True,shar
     subplot(vel_ITRF14_169_grd, ITRF14_169_grd, results_169_dict['vel_ITRF14_169']['rmse'], "+t- Bulk Plate Motion")
     
     # Row for Track 169 - velocity_SET_ERA5_demErr_ITRF_ramp
+    #subplot(vel_offset_169_grd, offset_169_grd, results_169_dict['vel_offset_169']['rmse'], "+t- Static Offset")
+    
+    # Row for Track 169 - velocity_SET_ERA5_demErr_ITRF_ramp
     subplot(vel_deramp_169_grd, deramp_169_grd, results_169_dict['vel_deramp_169']['rmse'], "+t- Quad. Ramp")
 
     #################################
@@ -318,6 +334,9 @@ with fig.subplot(nrows=3, ncols=6, figsize=("25c", "16.5c"), autolabel=True,shar
     
     # Row for Track 170 - velocity_SET_ERA5_demErr_ITRF
     subplot(vel_ITRF14_170_grd, ITRF14_170_grd, results_170_dict['vel_ITRF14_170']['rmse'], "+t ")
+    
+    # Row for Track 169 - velocity_SET_ERA5_demErr_ITRF_ramp
+    #subplot(vel_offset_170_grd, offset_170_grd, results_170_dict['vel_offset_170']['rmse'], "+t ")
     
     # Row for Track 170 - velocity_SET_ERA5_demErr_ITRF_ramp
     subplot(vel_deramp_170_grd, deramp_170_grd, results_170_dict['vel_deramp_170']['rmse'], "+t ")
@@ -353,8 +372,11 @@ with fig.subplot(nrows=3, ncols=6, figsize=("25c", "16.5c"), autolabel=True,shar
     # Row for Track 068 - velocity_SET_ERA5_demErr_ITRF
     subplot(vel_ITRF14_068_grd, ITRF14_068_grd, results_068_dict['vel_ITRF14_068']['rmse'], "+t ")
     
+    # Row for Track 169 - velocity_SET_ERA5_demErr_ITRF_ramp
+    #subplot(vel_offset_068_grd, offset_068_grd, results_068_dict['vel_offset_068']['rmse'], "+t ")
+    
     # Row for Track 068 - velocity_SET_ERA5_demErr_ITRF_ramp
     subplot(vel_deramp_068_grd, deramp_068_grd, results_068_dict['vel_deramp_068']['rmse'], "+t ")
 
-fig.savefig(common_paths['fig_dir']+f'Fig_5_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_NOStaticShift.png', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+f'Fig_5_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_noOffset.png', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()  
