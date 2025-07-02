@@ -50,7 +50,7 @@ common_paths = {
 
 #     "data_dir": data_dir,
 #     "inputs_dir": inputs_dir,
-#     "gps_dir": gps_dir,
+    "gps_dir": gps_dir,
 
 #     "canals_file": os.path.join(inputs_dir, "ca_canals.txt"),
 #     "Tehama-Colusa_file": os.path.join(inputs_dir, "Tehama-Colusa_canal_cumdisp22.txt"),
@@ -104,7 +104,7 @@ paths_gps = {
     "visr":{
         "east" : os.path.join(gps_dir, "VISR","visr", "visr_intrp_e_NAN.grd"),
         "north" : os.path.join(gps_dir, "VISR", "visr", "visr_intrp_n_NAN.grd"),
-#         "gps_enu" : os.path.join(gps_dir, "VISR", "GPS_resolved_IGS14_Sept24_CASR.txt"),
+        "gps_enu" : os.path.join(gps_dir, "VISR", "GPS_resolved_IGS14_Sept24_CASR.txt"),
     }
 }
 
@@ -256,42 +256,7 @@ paths_068 = {
 # # ------------------------
 
 
-# paths_170_5_28 = {
-#     "CentralValley": {
-#         "geo_geometryRadar": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_geometryRadar.h5"),
-#         "geo_velocity_msk": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_velocity_msk.h5"),
-#         "geo_velocity_msk_grd": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_velocity_msk.grd"),
-#         "geo_velocity_msk_22apr-oct": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_velocity_22apr-oct.h5"),
-#         "geo_velocity_msk_grd_22apr-oct": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_velocity_22apr-oct.grd"),
-#         "geo_timeseries_msk": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_timeseries_SET_ERA5_ramp_demErr_msk.h5"),
-#         "geo_cumdisp_22": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_cumdisp_20221226_20220110.grd"),
-#     },
-#     "EelRiver": {
-#         "geo_geometryRadar": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "geo_geometryRadar.h5"),
-#         "geo_velocity_msk": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "geo_velocity_msk.h5"),
-#         "geo_velocity_msk_grd": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "geo_velocity_msk.grd"),
-#         "geo_velocity_grd": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "geo_velocity.grd"),
-#         "geo_timeseries_msk": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "geo_timeseries_tropHgt_demErr_msk.h5"),
-#         "WY22_grd": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "velocity_WY22.grd"),
-#         "WY23_grd": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "velocity_WY23.grd"),
-#         "WY23-22_grd": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "velocity_WY23_diff_velocity_WY22.grd"),
-#     },
-#     "McKinley": {
-#         "geo_geometryRadar": os.path.join(data_dir, "170_5_28", "McKinley", "geo", "geo_geometryRadar.h5"),
-#         "geo_velocity_msk": os.path.join(data_dir, "170_5_28", "McKinley", "geo", "geo_velocity_msk.h5"),
-#         "geo_velocity_msk_grd": os.path.join(data_dir, "170_5_28", "McKinley", "geo", "geo_velocity_msk.grd"),
-#         "geo_velocity_grd": os.path.join(data_dir, "170_5_28", "McKinley", "geo", "geo_velocity.grd"),
-#         "geo_timeseries_msk": os.path.join(data_dir, "170_5_28", "McKinley", "geo", "geo_timeseries_tropHgt_demErr_msk.h5"),
-#     },
-#     "Graham": {
-#         "geo_geometryRadar": os.path.join(data_dir, "170_5_28", "Graham", "geo", "geo_geometryRadar.h5"),
-#         "geo_velocity_msk": os.path.join(data_dir, "170_5_28", "Graham", "geo", "geo_velocity_msk.h5"),
-#         "geo_velocity_msk_grd": os.path.join(data_dir, "170_5_28", "Graham", "geo", "geo_velocity_msk.grd"),
-#         "geo_velocity_grd": os.path.join(data_dir, "170_5_28", "Graham", "geo", "geo_velocity.grd"),
-#         "geo_timeseries_msk": os.path.join(data_dir, "170_5_28", "Graham", "geo", "geo_timeseries_tropHgt_demErr_msk.h5"),
-#     },
 
-# }
 
 paths_169 = {
     "baselines" : os.path.join(data_dir, "169", "baseline_center.txt"),
@@ -511,11 +476,55 @@ paths_170 = {
 #     }
 }
 
-# paths_115 = {
-#     "CentralValley": {
-#         "geo_geometryRadar": os.path.join(data_dir, "115_CentralVal_21_24", "inputs", "geometryGeo.h5"),
-#         "geo_velocity_msk": os.path.join(data_dir, "115_CentralVal_21_24", "velocity_msk.h5"),
-#         "geo_velocity_msk_grd": os.path.join(data_dir, "115_CentralVal_21_24","velocity_msk.grd"),
-#         "geo_timeseries_msk": os.path.join(data_dir, "115_CentralVal_21_24", "timeseries_SET_ERA5_demErr_msk.h5"),
-#     }
-# }
+paths_170_5_28 = {
+    "CentralValley": {
+        "geo_geometryRadar": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_geometryRadar.h5"),
+        "geo_velocity": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_velocity.h5"),
+        "geo_maskTempCoh": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_maskTempCoh.h5"),
+        "geo_velocity_msk": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_velocity_msk.h5"),
+        "geo_velocity_msk_grd": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_velocity_msk.grd"),
+        "geo_timeseries": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_timeseries_SET_ERA5_ramp_demErr.h5"),
+        "geo_timeseries_msk": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_timeseries_SET_ERA5_ramp_demErr_msk.h5"),
+        #"geo_velocity_msk_22apr-oct": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_velocity_22apr-oct.h5"),
+        #"geo_velocity_msk_grd_22apr-oct": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_velocity_22apr-oct.grd"),
+        
+        #"geo_cumdisp_22": os.path.join(data_dir, "170_5_28", "CentralValley", "geo", "geo_cumdisp_20221226_20220110.grd"),
+    },
+#     "EelRiver": {
+#         "geo_geometryRadar": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "geo_geometryRadar.h5"),
+#         "geo_velocity_msk": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "geo_velocity_msk.h5"),
+#         "geo_velocity_msk_grd": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "geo_velocity_msk.grd"),
+#         "geo_velocity_grd": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "geo_velocity.grd"),
+#         "geo_timeseries_msk": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "geo_timeseries_tropHgt_demErr_msk.h5"),
+#         "WY22_grd": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "velocity_WY22.grd"),
+#         "WY23_grd": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "velocity_WY23.grd"),
+#         "WY23-22_grd": os.path.join(data_dir, "170_5_28", "EelRiver", "geo", "velocity_WY23_diff_velocity_WY22.grd"),
+#     },
+#     "McKinley": {
+#         "geo_geometryRadar": os.path.join(data_dir, "170_5_28", "McKinley", "geo", "geo_geometryRadar.h5"),
+#         "geo_velocity_msk": os.path.join(data_dir, "170_5_28", "McKinley", "geo", "geo_velocity_msk.h5"),
+#         "geo_velocity_msk_grd": os.path.join(data_dir, "170_5_28", "McKinley", "geo", "geo_velocity_msk.grd"),
+#         "geo_velocity_grd": os.path.join(data_dir, "170_5_28", "McKinley", "geo", "geo_velocity.grd"),
+#         "geo_timeseries_msk": os.path.join(data_dir, "170_5_28", "McKinley", "geo", "geo_timeseries_tropHgt_demErr_msk.h5"),
+#     },
+#     "Graham": {
+#         "geo_geometryRadar": os.path.join(data_dir, "170_5_28", "Graham", "geo", "geo_geometryRadar.h5"),
+#         "geo_velocity_msk": os.path.join(data_dir, "170_5_28", "Graham", "geo", "geo_velocity_msk.h5"),
+#         "geo_velocity_msk_grd": os.path.join(data_dir, "170_5_28", "Graham", "geo", "geo_velocity_msk.grd"),
+#         "geo_velocity_grd": os.path.join(data_dir, "170_5_28", "Graham", "geo", "geo_velocity.grd"),
+#         "geo_timeseries_msk": os.path.join(data_dir, "170_5_28", "Graham", "geo", "geo_timeseries_tropHgt_demErr_msk.h5"),
+#     },
+
+}
+
+paths_115 = {
+    "CentralValley": {
+        "geo_geometryRadar": os.path.join(data_dir, "115_CentralVal_21_24", "inputs", "geometryGeo.h5"),
+        "geo_velocity": os.path.join(data_dir, "115_CentralVal_21_24", "velocity.h5"),
+        "geo_maskTempCoh": os.path.join(data_dir, "115_CentralVal_21_24", "maskTempCoh.h5"),
+        "geo_velocity_msk": os.path.join(data_dir, "115_CentralVal_21_24", "velocity_msk.h5"),
+        "geo_velocity_msk_grd": os.path.join(data_dir, "115_CentralVal_21_24","velocity_msk.grd"),
+        "geo_timeseries": os.path.join(data_dir, "115_CentralVal_21_24", "timeseries_SET_ERA5_ramp_demErr.h5"),
+        "geo_timeseries_msk": os.path.join(data_dir, "115_CentralVal_21_24", "timeseries_SET_ERA5_ramp_demErr_msk.h5"),
+    }
+}

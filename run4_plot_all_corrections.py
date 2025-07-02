@@ -378,5 +378,5 @@ with fig.subplot(nrows=3, ncols=6, figsize=("25c", "16.5c"), autolabel=True,shar
     # Row for Track 068 - velocity_SET_ERA5_demErr_ITRF_ramp
     subplot(vel_deramp_068_grd, deramp_068_grd, results_068_dict['vel_deramp_068']['rmse'], "+t ")
 
-fig.savefig(common_paths['fig_dir']+f'Fig_5_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_noOffset.png', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_noOffset.png', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()  

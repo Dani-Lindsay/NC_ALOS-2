@@ -26,7 +26,7 @@ This script takes the MintPy output and does the following:
 #!/usr/bin/env python3
 import os
 import subprocess
-from NC_ALOS2_filepaths import (common_paths, paths_068, paths_169, paths_170)
+from NC_ALOS2_filepaths import (common_paths, paths_068, paths_169, paths_170, paths_170_5_28, paths_115)
 import insar_utils as utils
 
 # ------------------------
@@ -144,9 +144,18 @@ if __name__ == "__main__":
     #    print("\nProcessing track:")
     process_track(paths_170)
     process_track(paths_169)
-    #process_track(paths_068)
+    process_track(paths_068)
+    
+# Mask Central Valley Examples
+run_command(["mask.py", paths_170_5_28["CentralValley"]["geo_velocity"], "-m", paths_170_5_28["CentralValley"]["geo_maskTempCoh"], "-o", paths_170_5_28["CentralValley"]["geo_velocity_msk"]])
+run_command(["mask.py", paths_170_5_28["CentralValley"]["geo_timeseries"], "-m", paths_170_5_28["CentralValley"]["geo_maskTempCoh"], "-o", paths_170_5_28["CentralValley"]["geo_timeseries_msk"]])
+run_command(["save_gmt.py",  paths_170_5_28["CentralValley"]["geo_velocity_msk"], "-o",  paths_170_5_28["CentralValley"]["geo_velocity_msk_grd"]])
 
-        
+# Mask Central Valley Examples
+run_command(["mask.py", paths_115["CentralValley"]["geo_velocity"], "-m", paths_115["CentralValley"]["geo_maskTempCoh"], "-o", paths_115["CentralValley"]["geo_velocity_msk"]])
+run_command(["mask.py", paths_115["CentralValley"]["geo_timeseries"], "-m", paths_115["CentralValley"]["geo_maskTempCoh"], "-o", paths_115["CentralValley"]["geo_timeseries_msk"]])
+run_command(["save_gmt.py",  paths_115["CentralValley"]["geo_velocity_msk"], "-o",  paths_115["CentralValley"]["geo_velocity_msk_grd"]])
+
 # --- Geocode Central Valley ---
 # resample to same lat lon and bb
 

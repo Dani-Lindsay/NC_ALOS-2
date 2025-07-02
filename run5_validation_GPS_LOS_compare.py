@@ -522,8 +522,8 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "7.4c"),autolabel="a)", share
         ):
         fig.colorbar(position="JMR+o0.35c/0c+w4.0c/0.4c", frame=["xa+lVelocity (mm/yr)"], projection = size)
         
-fig.savefig(common_paths["fig_dir"]+f'Fig_4_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_June30.png', transparent=False, crop=True, anti_alias=True, show=False)
-#fig.savefig(fig_dir+f'Fig_4_{ref_station}_InSAR_GNSS_Map_dist{dist}_fullRes_StaticShift_June30.pdf', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk.png', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk.png', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()   
 
 # min_lon=-124.63

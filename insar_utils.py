@@ -550,100 +550,295 @@ def load_insar_vel_data_as_2Darrays(geo_file, vel_file):
 
     return lon, lat, vel, azi, inc
 
-# def load_insar_vel_ts_as_dictionary(dic):
-#     """
-#     Read InSAR geometry, velocity, and timeseries data from provided file paths.
+def load_insar_vel_ts_as_dictionary(dic):
+    """
+    Read InSAR geometry, velocity, and timeseries data from provided file paths.
 
-#     Parameters:
-#     - geo_file: Path to the file containing InSAR geometry data.
-#     - vel_file: Path to the file containing InSAR velocity data.
-#     - ts_file: Path to the file containing InSAR timeseries data.
+    Parameters:
+    - geo_file: Path to the file containing InSAR geometry data.
+    - vel_file: Path to the file containing InSAR velocity data.
+    - ts_file: Path to the file containing InSAR timeseries data.
 
-#     Returns:
-#     A dictionary containing:
-#     - 'lons': Longitudes from the geometry file.
-#     - 'lats': Latitudes from the geometry file.
-#     - 'inc': Incidence angles from the geometry file.
-#     - 'azi': Azimuth angles from the geometry file.
-#     - 'vel': Velocities from the velocity file.
-#     - 'ts': Timeseries data from the timeseries file.
-#     - 'ts_dates': Decimal years for each date in the timeseries.
-#     """
-#     print("Loading %s " % dic["Platform"])
+    Returns:
+    A dictionary containing:
+    - 'lons': Longitudes from the geometry file.
+    - 'lats': Latitudes from the geometry file.
+    - 'inc': Incidence angles from the geometry file.
+    - 'azi': Azimuth angles from the geometry file.
+    - 'vel': Velocities from the velocity file.
+    - 'ts': Timeseries data from the timeseries file.
+    - 'ts_dates': Decimal years for each date in the timeseries.
+    """
+    print("Loading %s " % dic["Platform"])
 
-#     if dic["Platform"] == "ALOS-2":
-#         with h5py.File(dic["geo_file"], 'r') as hfgeo:
-#             print("Loading %s " % dic["geo_file"])
+    if dic["Platform"] == "ALOS-2":
+        with h5py.File(dic["geo_file"], 'r') as hfgeo:
+            print("Loading %s " % dic["geo_file"])
             
-#             lons = np.array(hfgeo["longitude"][:])
-#             lats = np.array(hfgeo["latitude"][:])
-#             inc = np.array(hfgeo["incidenceAngle"][:])
-#             azi = np.array(hfgeo["azimuthAngle"][:])
+            lons = np.array(hfgeo["longitude"][:])
+            lats = np.array(hfgeo["latitude"][:])
+            inc = np.array(hfgeo["incidenceAngle"][:])
+            azi = np.array(hfgeo["azimuthAngle"][:])
             
-#     if dic["Platform"] == "Sentinel-1":
-#         with h5py.File(dic["geo_file"], 'r') as hfgeo:
-#             print("Loading %s " % dic["geo_file"])
-#             inc = np.array(hfgeo["incidenceAngle"][:])
-#             # Get attributes
-#             x_start = hfgeo.attrs['X_FIRST']
-#             y_start = hfgeo.attrs['Y_FIRST']
-#             x_step = hfgeo.attrs['X_STEP']
-#             y_step = hfgeo.attrs['Y_STEP']
-#             length = hfgeo.attrs['LENGTH']
-#             width = hfgeo.attrs['WIDTH']
-#             heading = hfgeo.attrs['HEADING']
-#             azimuth = (float(heading) - 90) * -1 # Convert for right looking
+    if dic["Platform"] == "Sentinel-1":
+        with h5py.File(dic["geo_file"], 'r') as hfgeo:
+            print("Loading %s " % dic["geo_file"])
+            inc = np.array(hfgeo["incidenceAngle"][:])
+            # Get attributes
+            x_start = hfgeo.attrs['X_FIRST']
+            y_start = hfgeo.attrs['Y_FIRST']
+            x_step = hfgeo.attrs['X_STEP']
+            y_step = hfgeo.attrs['Y_STEP']
+            length = hfgeo.attrs['LENGTH']
+            width = hfgeo.attrs['WIDTH']
+            heading = hfgeo.attrs['HEADING']
+            azimuth = (float(heading) - 90) * -1 # Convert for right looking
 
-#             print(f'inc has shape:  {inc.shape}')
-#             print(f'attributes has: {length, width}')
+            print(f'inc has shape:  {inc.shape}')
+            print(f'attributes has: {length, width}')
             
-#             if float(length) != inc.shape[0]:
-#                 print(f'Lats : Length = {length} not equal to inc length {inc.shape[0]}')
+            if float(length) != inc.shape[0]:
+                print(f'Lats : Length = {length} not equal to inc length {inc.shape[0]}')
 
-#             if float(width) != inc.shape[1]:
-#                 print(f'Lons: Width = {width} not equal to inc width {inc.shape[1]}')
+            if float(width) != inc.shape[1]:
+                print(f'Lons: Width = {width} not equal to inc width {inc.shape[1]}')
             
-#             # Make mesh of Eastings and Northings using linspace to ensure correct array size
-#             lon = np.linspace(float(x_start), float(x_start) + float(x_step) * (float(width)-1), int(width))
-#             lat = np.linspace(float(y_start), float(y_start) + float(y_step) * (float(length)-1), int(length))
+            # Make mesh of Eastings and Northings using linspace to ensure correct array size
+            lon = np.linspace(float(x_start), float(x_start) + float(x_step) * (float(width)-1), int(width))
+            lat = np.linspace(float(y_start), float(y_start) + float(y_step) * (float(length)-1), int(length))
 
-#             lons, lats = np.meshgrid(lon, lat)
-#             print(f'linspace lons has shape:  {lons.shape}')
-#             print(f'linsapre lats has shape:  {lats.shape}')
+            lons, lats = np.meshgrid(lon, lat)
+            print(f'linspace lons has shape:  {lons.shape}')
+            print(f'linsapre lats has shape:  {lats.shape}')
 
-#             # Add dataset of azimuthAngle to geometry
-#             azi = np.full((int(length), int(width)), float(azimuth))
+            # Add dataset of azimuthAngle to geometry
+            azi = np.full((int(length), int(width)), float(azimuth))
     
-#     with h5py.File(dic["vel_file"], 'r') as hfvel:
-#         print("Loading %s " % dic["vel_file"])
-#         vel = np.array(hfvel["velocity"][:])
-#         vel = np.array(hfvel["velocity"][:])
-#         vel[vel == 0] = np.nan  # Set zero values to nan
+    with h5py.File(dic["vel_file"], 'r') as hfvel:
+        print("Loading %s " % dic["vel_file"])
+        vel = np.array(hfvel["velocity"][:])
+        vel = np.array(hfvel["velocity"][:])
+        vel[vel == 0] = np.nan  # Set zero values to nan
 
-#     with h5py.File(dic["ts_file"], 'r') as hfvel:
-#         print("Loading %s " % dic["ts_file"])
-#         ts = np.array(hfvel["timeseries"][:])
-#         ts[ts == 0] = np.nan  # Set zero values to nan
-#         ts_dates_bytes = np.array(hfvel["date"][:])  # Assuming dates are stored as bytes
-#         print(f'ts has shape:  {ts.shape}')
+    with h5py.File(dic["ts_file"], 'r') as hfvel:
+        print("Loading %s " % dic["ts_file"])
+        ts = np.array(hfvel["timeseries"][:])
+        ts[ts == 0] = np.nan  # Set zero values to nan
+        ts_dates_bytes = np.array(hfvel["date"][:])  # Assuming dates are stored as bytes
+        print(f'ts has shape:  {ts.shape}')
 
-#     # Convert byte strings of dates to decimal years
-#     ts_dates = [date_to_decimal_year(d.decode('utf-8')) for d in ts_dates_bytes]
+    # Convert byte strings of dates to decimal years
+    ts_dates = [date_to_decimal_year(d.decode('utf-8')) for d in ts_dates_bytes]
     
-#     # Return a dictionary of the data
-#     return {
-#         'lons': lons,
-#         'lats': lats,
-#         'inc': inc,
-#         'azi': azi,
-#         'vel': vel,
-#         'ts': ts,
-#         'ts_dates': ts_dates
-#     }
+    # Return a dictionary of the data
+    return {
+        'lons': lons,
+        'lats': lats,
+        'inc': inc,
+        'azi': azi,
+        'vel': vel,
+        'ts': ts,
+        'ts_dates': ts_dates
+    }
 
+def calculate_gps_timeseries_los(gps_ts, insar_df, track):
+    """
+    Projects a GPS time series onto the InSAR line-of-sight (LOS) direction.
+    
+    Uses the first GPS coordinate to find the nearest InSAR pixel and extracts its
+    constant azimuth and incidence angles, then computes the LOS projection for the
+    entire GPS DataFrame.
 
+    Parameters:
+      gps_ts : pd.DataFrame
+          GPS time series with columns including 'east', 'north', 'up', 'Lat', 'Lon'.
+      insar_df : pd.DataFrame
+          InSAR data with columns ['Lon', 'Lat', 'Inc', 'Az'] (NaNs dropped).
+      track : str
+          Identifier for naming the LOS column (e.g., '170' yields 'LOS_170').
 
+    Returns:
+      pd.DataFrame: A new DataFrame with added columns 'Azi_<track>', 'Inc_<track>', and 'LOS_<track>'.
+    """
+    # Create a copy of the input DataFrame to avoid modifying it in-place
+    new_df = gps_ts.copy()
 
+    # Find nearest InSAR pixel using the first GPS coordinate.
+    ref_lat, ref_lon = new_df.iloc[0]['Lat'], new_df.iloc[0]['Lon']
+    distances = np.sqrt((insar_df['Lon'] - ref_lon)**2 + (insar_df['Lat'] - ref_lat)**2)
+    nearest = distances.idxmin()
+    az_angle, inc_angle = insar_df.loc[nearest, 'Az'], insar_df.loc[nearest, 'Inc']
+    
+    # Add constant azimuth and incidence to the new DataFrame.
+    new_df[f'Azi_{track}'] = az_angle
+    new_df[f'Inc_{track}'] = inc_angle
+    
+    # Compute LOS projection.
+    az_rad, inc_rad = np.deg2rad(az_angle), np.deg2rad(inc_angle)
+    new_df[f'LOS_{track}'] = (
+        - new_df['east'] * np.sin(inc_rad) * np.sin(az_rad) +
+          new_df['north'] * np.sin(inc_rad) * np.cos(az_rad) +
+          new_df['up']    * np.cos(inc_rad)
+    )
+    return new_df
+
+def resample_gps_to_insar_dates(gps_df, insar_dates, window_days=6):
+    """
+    Resamples GPS data to InSAR dates by averaging (or otherwise aggregating)
+    measurements within ±window_days (converted to decimal years) around each InSAR date.
+    All original columns in gps_df are preserved using an appropriate aggregation:
+      - For numeric columns:
+          * For displacement columns ('east', 'north', 'up'), the mean is computed.
+          * For error columns ('sig_e', 'sig_n', 'sig_u'), errors are propagated
+            via sqrt(sum(error^2))/n.
+          * Other numeric columns are averaged.
+      - For non-numeric columns, the first value in the window is taken.
+    
+    Parameters:
+      gps_df : pd.DataFrame
+          GPS data with a decimal year column ('yyyy') and various columns.
+      insar_dates : list or array-like
+          List of InSAR dates (in decimal years) at which to resample the GPS data.
+      window_days : float, optional
+          The half-window in days (default is 6) used for matching GPS dates.
+    
+    Returns:
+      pd.DataFrame: A new DataFrame with one row per InSAR date including all original columns,
+                    plus a new column 'ts_date' holding the InSAR date.
+    """
+    import numpy as np
+    import pandas as pd
+
+    window = window_days / 365.0
+    resampled = []
+
+    # Loop over each InSAR date
+    for d in insar_dates:
+        mask = np.abs(gps_df['yyyy'] - d) <= window
+        subset = gps_df[mask]
+        # Initialize a row dictionary with the InSAR date
+        row = {'ts_date': d}
+        
+        if subset.empty:
+            # No data within the window: assign NaN for numeric cols and None for non-numeric
+            for col in gps_df.columns:
+                if np.issubdtype(gps_df[col].dtype, np.number):
+                    row[col] = np.nan
+                else:
+                    row[col] = None
+        else:
+            n = len(subset)
+            for col in gps_df.columns:
+                if col in ['east', 'north', 'up']:
+                    # Average displacements using nanmean
+                    row[col] = np.nanmean(subset[col])
+                elif col in ['sig_e', 'sig_n', 'sig_u']:
+                    # Propagate error: sqrt(sum(err^2))/n
+                    row[col] = np.sqrt(np.nansum(subset[col]**2)) / n
+                elif np.issubdtype(gps_df[col].dtype, np.number):
+                    # For other numeric columns, use the mean
+                    row[col] = np.nanmean(subset[col])
+                else:
+                    # For non-numeric columns, assume they are constant and take the first value
+                    row[col] = subset[col].iloc[0]
+                    
+        resampled.append(row)
+    
+    return pd.DataFrame(resampled)
+
+def get_ts_lat_lon_dist(insar_dict, target_lat, target_lon, dist):
+    """
+    Extracts the mean (median) InSAR timeseries from pixels within a given distance
+    of a target latitude and longitude, and then removes the overall mean from the timeseries.
+
+    Parameters:
+      insar_dict : dict
+          Dictionary containing InSAR data with keys:
+            - 'ts': 3D numpy array (time, nrows, ncols)
+            - 'lons': 2D numpy array (nrows, ncols)
+            - 'lats': 2D numpy array (nrows, ncols)
+            - 'ts_dates': list or array of dates (e.g., in decimal years)
+      target_lat : float
+          The target latitude.
+      target_lon : float
+          The target longitude.
+      dist : float
+          The distance (in the same units as the lats/lons) defining the ROI as ±dist around target.
+
+    Returns:
+      median_ts : numpy.ndarray
+          The adjusted median timeseries for the ROI (each value has the overall mean subtracted).
+      ts_dates : list or numpy.ndarray
+          The corresponding time stamps from the InSAR data.
+    """
+    # Create a boolean mask for pixels within the ROI.
+    mask = (
+        (insar_dict['lons'] > target_lon - dist) & (insar_dict['lons'] < target_lon + dist) &
+        (insar_dict['lats'] > target_lat - dist) & (insar_dict['lats'] < target_lat + dist)
+    )
+    
+    # Extract the timeseries for the ROI pixels.
+    # insar_dict['ts'] has shape (time, nrows, ncols). Using the mask will flatten the spatial dims.
+    roi_ts = insar_dict['ts'][:, mask]  # Shape: (time, n_pixels)
+    
+    # Compute the median timeseries across the ROI (across pixels) for each time step.
+    median_ts = np.nanmedian(roi_ts, axis=1)
+    
+    # Remove the overall mean from the median timeseries.
+    overall_mean = np.nanmean(median_ts)
+    median_ts_adjusted = median_ts - overall_mean
+    
+    return median_ts_adjusted, insar_dict['ts_dates']
+
+def calculate_rmse_nans(observed, predicted):
+    """
+    Compute RMSE between observed and predicted values while ignoring NaNs.
+    RMSE = sqrt(sum((observed - predicted)^2) / (n_valid - 1))
+    """
+    diff = observed - predicted
+    valid = ~np.isnan(diff)
+    n_valid = np.sum(valid)
+    if n_valid <= 1:
+        return np.nan
+    return np.sqrt(np.nansum(diff**2) / (n_valid - 1))
+
+def get_start_end_points(lon_ori, lat_ori,  az, dist):
+    start_lat, start_lon, start_z = geopy.distance.distance(kilometers=-dist).destination((lat_ori, lon_ori), bearing=az)
+    end_lat, end_lon, end_z = geopy.distance.distance(kilometers=dist).destination((lat_ori, lon_ori), bearing=az)
+    return start_lon, start_lat, end_lon, end_lat
+
+def extract_profiles(xyz_dataframe, centre_lon, centre_lat, azi, dist, width, dist_bins):
+    """
+    Extracts profile data from a specified grid file given starting coordinates, azimuth, distance, and width.
+
+    Parameters:
+    - xyz df: The df from which to extract data.
+    - start_lon, start_lat, end_lat, end_lon: Longitude and latitude of the starting point.
+    - width: Width in km of the profile.
+
+    Returns:
+    - DataFrame containing the profile data.
+    """
+    
+    # Project data to extract the profile
+    points = pygmt.project(data=xyz_dataframe, center=[centre_lon, centre_lat], length=[-dist, dist], width=[-width, width], azimuth=azi, unit=True)
+    points.columns = ['x', 'y', 'z', 'p', 'q', 'r', 's']
+
+    # Prepare the DataFrame to return
+    mean_points = pd.DataFrame(dist_bins, columns=['distance'])
+
+    for i, d_bin in enumerate(dist_bins):
+        points.loc[points['p'].between(d_bin-0.125, d_bin+0.125, 'both'), 'dist'] = d_bin
+        subset = points [(points.dist == d_bin)]
+        subset = subset.dropna()
+        mean_points.loc[i, "longitude"] = np.nanmedian(subset.x)
+        mean_points.loc[i, "latitude"] = np.nanmedian(subset.y)
+        mean_points.loc[i, "z"] = np.nanmedian(subset.z)
+        mean_points.loc[i, "p"] = d_bin
+    
+    mean = mean_points["z"].mean()
+    
+    return points, mean_points, mean
 
 
 # def load_h5_generalData_df(geo_file, target_file, dataset):
@@ -699,47 +894,7 @@ def load_insar_vel_data_as_2Darrays(geo_file, vel_file):
 
 
 
-# def calculate_gps_timeseries_los(gps_ts, insar_df, track):
-#     """
-#     Projects a GPS time series onto the InSAR line-of-sight (LOS) direction.
-    
-#     Uses the first GPS coordinate to find the nearest InSAR pixel and extracts its
-#     constant azimuth and incidence angles, then computes the LOS projection for the
-#     entire GPS DataFrame.
 
-#     Parameters:
-#       gps_ts : pd.DataFrame
-#           GPS time series with columns including 'east', 'north', 'up', 'Lat', 'Lon'.
-#       insar_df : pd.DataFrame
-#           InSAR data with columns ['Lon', 'Lat', 'Inc', 'Az'] (NaNs dropped).
-#       track : str
-#           Identifier for naming the LOS column (e.g., '170' yields 'LOS_170').
-
-#     Returns:
-#       pd.DataFrame: A new DataFrame with added columns 'Azi_<track>', 'Inc_<track>', and 'LOS_<track>'.
-#     """
-#     # Create a copy of the input DataFrame to avoid modifying it in-place
-#     new_df = gps_ts.copy()
-
-#     # Find nearest InSAR pixel using the first GPS coordinate.
-#     ref_lat, ref_lon = new_df.iloc[0]['Lat'], new_df.iloc[0]['Lon']
-#     distances = np.sqrt((insar_df['Lon'] - ref_lon)**2 + (insar_df['Lat'] - ref_lat)**2)
-#     nearest = distances.idxmin()
-#     az_angle, inc_angle = insar_df.loc[nearest, 'Az'], insar_df.loc[nearest, 'Inc']
-    
-#     # Add constant azimuth and incidence to the new DataFrame.
-#     new_df[f'Azi_{track}'] = az_angle
-#     new_df[f'Inc_{track}'] = inc_angle
-    
-#     # Compute LOS projection.
-#     az_rad, inc_rad = np.deg2rad(az_angle), np.deg2rad(inc_angle)
-#     new_df[f'LOS_{track}'] = (
-#         - new_df['east'] * np.sin(inc_rad) * np.sin(az_rad) +
-#           new_df['north'] * np.sin(inc_rad) * np.cos(az_rad) +
-#           new_df['up']    * np.cos(inc_rad)
-#     )
-    
-#     return new_df
 
 # def calculate_rmse_r2_and_linear_fit(observed, predicted):
 #     rmse = np.sqrt(np.sum((observed - predicted)**2) / (observed.size - 1))
@@ -748,17 +903,6 @@ def load_insar_vel_data_as_2Darrays(geo_file, vel_file):
 #     #print(f'RMSE: {np.round(rmse,2)}, r2: {np.round(r2,2)}')
 #     return rmse, r2, slope, intercept
 
-# def calculate_rmse_nans(observed, predicted):
-#     """
-#     Compute RMSE between observed and predicted values while ignoring NaNs.
-#     RMSE = sqrt(sum((observed - predicted)^2) / (n_valid - 1))
-#     """
-#     diff = observed - predicted
-#     valid = ~np.isnan(diff)
-#     n_valid = np.sum(valid)
-#     if n_valid <= 1:
-#         return np.nan
-#     return np.sqrt(np.nansum(diff**2) / (n_valid - 1))
 
 
 
@@ -771,153 +915,13 @@ def load_insar_vel_data_as_2Darrays(geo_file, vel_file):
 
 
 
-# def resample_gps_to_insar_dates(gps_df, insar_dates, window_days=6):
-#     """
-#     Resamples GPS data to InSAR dates by averaging (or otherwise aggregating)
-#     measurements within ±window_days (converted to decimal years) around each InSAR date.
-#     All original columns in gps_df are preserved using an appropriate aggregation:
-#       - For numeric columns:
-#           * For displacement columns ('east', 'north', 'up'), the mean is computed.
-#           * For error columns ('sig_e', 'sig_n', 'sig_u'), errors are propagated
-#             via sqrt(sum(error^2))/n.
-#           * Other numeric columns are averaged.
-#       - For non-numeric columns, the first value in the window is taken.
-    
-#     Parameters:
-#       gps_df : pd.DataFrame
-#           GPS data with a decimal year column ('yyyy') and various columns.
-#       insar_dates : list or array-like
-#           List of InSAR dates (in decimal years) at which to resample the GPS data.
-#       window_days : float, optional
-#           The half-window in days (default is 6) used for matching GPS dates.
-    
-#     Returns:
-#       pd.DataFrame: A new DataFrame with one row per InSAR date including all original columns,
-#                     plus a new column 'ts_date' holding the InSAR date.
-#     """
-#     import numpy as np
-#     import pandas as pd
-
-#     window = window_days / 365.0
-#     resampled = []
-
-#     # Loop over each InSAR date
-#     for d in insar_dates:
-#         mask = np.abs(gps_df['yyyy'] - d) <= window
-#         subset = gps_df[mask]
-#         # Initialize a row dictionary with the InSAR date
-#         row = {'ts_date': d}
-        
-#         if subset.empty:
-#             # No data within the window: assign NaN for numeric cols and None for non-numeric
-#             for col in gps_df.columns:
-#                 if np.issubdtype(gps_df[col].dtype, np.number):
-#                     row[col] = np.nan
-#                 else:
-#                     row[col] = None
-#         else:
-#             n = len(subset)
-#             for col in gps_df.columns:
-#                 if col in ['east', 'north', 'up']:
-#                     # Average displacements using nanmean
-#                     row[col] = np.nanmean(subset[col])
-#                 elif col in ['sig_e', 'sig_n', 'sig_u']:
-#                     # Propagate error: sqrt(sum(err^2))/n
-#                     row[col] = np.sqrt(np.nansum(subset[col]**2)) / n
-#                 elif np.issubdtype(gps_df[col].dtype, np.number):
-#                     # For other numeric columns, use the mean
-#                     row[col] = np.nanmean(subset[col])
-#                 else:
-#                     # For non-numeric columns, assume they are constant and take the first value
-#                     row[col] = subset[col].iloc[0]
-                    
-#         resampled.append(row)
-    
-#     return pd.DataFrame(resampled)
 
 
 
-# def get_start_end_points(lon_ori, lat_ori,  az, dist):
-#     start_lat, start_lon, start_z = geopy.distance.distance(kilometers=-dist).destination((lat_ori, lon_ori), bearing=az)
-#     end_lat, end_lon, end_z = geopy.distance.distance(kilometers=dist).destination((lat_ori, lon_ori), bearing=az)
-#     return start_lon, start_lat, end_lon, end_lat
 
-# def extract_profiles(xyz_dataframe, centre_lon, centre_lat, azi, dist, width, dist_bins):
-#     """
-#     Extracts profile data from a specified grid file given starting coordinates, azimuth, distance, and width.
 
-#     Parameters:
-#     - xyz df: The df from which to extract data.
-#     - start_lon, start_lat, end_lat, end_lon: Longitude and latitude of the starting point.
-#     - width: Width in km of the profile.
 
-#     Returns:
-#     - DataFrame containing the profile data.
-#     """
-    
-#     # Project data to extract the profile
-#     points = pygmt.project(data=xyz_dataframe, center=[centre_lon, centre_lat], length=[-dist, dist], width=[-width, width], azimuth=azi, unit=True)
-#     points.columns = ['x', 'y', 'z', 'p', 'q', 'r', 's']
 
-#     # Prepare the DataFrame to return
-#     mean_points = pd.DataFrame(dist_bins, columns=['distance'])
-
-#     for i, d_bin in enumerate(dist_bins):
-#         points.loc[points['p'].between(d_bin-0.125, d_bin+0.125, 'both'), 'dist'] = d_bin
-#         subset = points [(points.dist == d_bin)]
-#         subset = subset.dropna()
-#         mean_points.loc[i, "longitude"] = np.nanmedian(subset.x)
-#         mean_points.loc[i, "latitude"] = np.nanmedian(subset.y)
-#         mean_points.loc[i, "z"] = np.nanmedian(subset.z)
-#         mean_points.loc[i, "p"] = d_bin
-    
-#     mean = mean_points["z"].mean()
-    
-#     return points, mean_points, mean
-
-# def get_ts_lat_lon_dist(insar_dict, target_lat, target_lon, dist):
-#     """
-#     Extracts the mean (median) InSAR timeseries from pixels within a given distance
-#     of a target latitude and longitude, and then removes the overall mean from the timeseries.
-
-#     Parameters:
-#       insar_dict : dict
-#           Dictionary containing InSAR data with keys:
-#             - 'ts': 3D numpy array (time, nrows, ncols)
-#             - 'lons': 2D numpy array (nrows, ncols)
-#             - 'lats': 2D numpy array (nrows, ncols)
-#             - 'ts_dates': list or array of dates (e.g., in decimal years)
-#       target_lat : float
-#           The target latitude.
-#       target_lon : float
-#           The target longitude.
-#       dist : float
-#           The distance (in the same units as the lats/lons) defining the ROI as ±dist around target.
-
-#     Returns:
-#       median_ts : numpy.ndarray
-#           The adjusted median timeseries for the ROI (each value has the overall mean subtracted).
-#       ts_dates : list or numpy.ndarray
-#           The corresponding time stamps from the InSAR data.
-#     """
-#     # Create a boolean mask for pixels within the ROI.
-#     mask = (
-#         (insar_dict['lons'] > target_lon - dist) & (insar_dict['lons'] < target_lon + dist) &
-#         (insar_dict['lats'] > target_lat - dist) & (insar_dict['lats'] < target_lat + dist)
-#     )
-    
-#     # Extract the timeseries for the ROI pixels.
-#     # insar_dict['ts'] has shape (time, nrows, ncols). Using the mask will flatten the spatial dims.
-#     roi_ts = insar_dict['ts'][:, mask]  # Shape: (time, n_pixels)
-    
-#     # Compute the median timeseries across the ROI (across pixels) for each time step.
-#     median_ts = np.nanmedian(roi_ts, axis=1)
-    
-#     # Remove the overall mean from the median timeseries.
-#     overall_mean = np.nanmean(median_ts)
-#     median_ts_adjusted = median_ts - overall_mean
-    
-#     return median_ts_adjusted, insar_dict['ts_dates']
 
 
     

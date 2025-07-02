@@ -10,6 +10,7 @@ import insar_utils as utils
 from NC_ALOS2_filepaths import (paths_gps, paths_068, paths_169, paths_170, common_paths, decomp)
 import numpy as np
 import pygmt 
+import pandas as pd 
 
 dist = common_paths["dist"]
 ref_station = common_paths["ref_station"]
@@ -43,6 +44,7 @@ insar_gps_up = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], decomp[
 #####################
 
 gps_df = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
+
 
 #####################
 # Find average InSAR velocity for each GPS point 
@@ -226,7 +228,7 @@ with fig.subplot(nrows=2, ncols=4, figsize=("15c", "12.0c"), autolabel="e)",shar
         fig.colorbar(position="jCL+o3.7c/0c+w4c/0.4c", frame=["xa+lVelocity (mm/yr)", "y"], projection = size)
     
     fig.basemap(region=[fig_region], projection=size, panel=True, frame=["WSrt", "xa", "ya"])
-    pygmt.makecpt(cmap="buda", series=[ -5, 5, 1])
+    pygmt.makecpt(cmap="roma", series=[ -5, 5, 1])
     fig.plot(x=asc_up["Lon"], y=asc_up["Lat"], fill=asc_up["residuals"], pen="black", cmap=True, style=res_style,  region=[fig_region],projection= size)
     fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
     fig.coast(area_thresh=5000, borders=1, shorelines=True, region=[fig_region], projection=size, )
@@ -242,25 +244,25 @@ with fig.subplot(nrows=2, ncols=4, figsize=("15c", "12.0c"), autolabel="e)",shar
     angle = 90)
     
     fig.basemap(region=[fig_region], projection=size, panel=True, frame=["wSrt", "xa", "ya"])
-    pygmt.makecpt(cmap="buda", series=[ -5, 5, 1])
+    pygmt.makecpt(cmap="roma", series=[ -5, 5, 1])
     fig.plot(x=des_up["Lon"], y=des_up["Lat"], fill=des_up["residuals"], pen="black", cmap=True, style=res_style,  region=[fig_region],projection= size)
     fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
     fig.coast(area_thresh=5000, borders=1, shorelines=True, region=[fig_region], projection=size, )
     fig.text(text=f'{rmse_des_up:.2f} mm/yr', position="BL", offset="0.2c/0.2c", region=[fig_region], projection=size)    
     
     fig.basemap(region=[fig_region], projection=size, panel=True, frame=["wSrt", "xa", "ya"])
-    pygmt.makecpt(cmap="buda", series=[ -5, 5, 1])
+    pygmt.makecpt(cmap="roma", series=[ -5, 5, 1])
     fig.plot(x=insar_up["Lon"], y=insar_up["Lat"], fill=insar_up["residuals"], pen="black", cmap=True, style=res_style,  region=[fig_region],projection= size)
     fig.text(text=f'{rmse_insar_up:.2f} mm/yr', position="BL", offset="0.2c/0.2c", region=[fig_region], projection=size)
     fig.coast(area_thresh=5000, borders=1,  shorelines=True, region=[fig_region], projection=size,)
     
     fig.basemap(region=[fig_region], projection=size, panel=True, frame=["wSrt", "xa", "ya"])
-    pygmt.makecpt(cmap="buda", series=[ -5, 5, 1])
+    pygmt.makecpt(cmap="roma", series=[ -5, 5, 1])
     fig.plot(x=insar_gps_up["Lon"], y=insar_gps_up["Lat"], fill=insar_gps_up["residuals"], pen="black", cmap=True, style=res_style, region=[fig_region],projection= size)
     fig.text(text=f'{rmse_insar_gps_up:.2f} mm/yr', position="BL", offset="0.2c/0.2c", region=[fig_region], projection=size)
     fig.coast(area_thresh=5000, borders=1,   shorelines=True, region=[fig_region], projection=size,)
     
-    pygmt.makecpt(cmap="buda", series=[ -5, 5, 1])
+    pygmt.makecpt(cmap="roma", series=[ -5, 5, 1])
     with pygmt.config(
         FONT_ANNOT_PRIMARY="18p,black", 
         FONT_ANNOT_SECONDARY="18p,black",
@@ -268,6 +270,6 @@ with fig.subplot(nrows=2, ncols=4, figsize=("15c", "12.0c"), autolabel="e)",shar
         ):
         fig.colorbar(position="jCL+o3.7c/0.0c+w4.0c/0.4c", frame=["xa+lResidual (mm/yr)", "y"], projection = size)
         
-fig.savefig(common_paths['fig_dir']+'Fig_3_3D_results_170_068.png', transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths['fig_dir']+'Fig_3_3D_results_170_068.pdf', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+'Fig_4_3D_results_170_068.png', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+'Fig_4_3D_results_170_068.pdf', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()

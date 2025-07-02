@@ -5,13 +5,11 @@ Created on Sun Mar 16 20:46:37 2025
 
 @author: daniellelindsay
 """
-import os
-import subprocess
+
 from NC_ALOS2_filepaths import (common_paths, paths_068, paths_169, paths_170, paths_gps, decomp)
 import insar_utils as utils
 import numpy as np                # Matrix calculations
 import pandas as pd               # Pandas for data
-import pygmt
 import h5py
 
 distance_threshold = common_paths["dist"]
