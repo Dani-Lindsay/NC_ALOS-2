@@ -841,32 +841,105 @@ def extract_profiles(xyz_dataframe, centre_lon, centre_lat, azi, dist, width, di
     return points, mean_points, mean
 
 
-# def load_h5_generalData_df(geo_file, target_file, dataset):
-#     with h5py.File(geo_file, 'a') as hf:
-#         # Read in incidence Angle
-#         inc = np.array(hf["incidenceAngle"][:])
-#         az = np.array(hf["azimuthAngle"][:])
-#         lon = np.array(hf["longitude"][:])
-#         lat = np.array(hf["latitude"][:])
+def load_h5_generalData_df(geo_file, target_file, dataset):
+    with h5py.File(geo_file, 'a') as hf:
+        # Read in incidence Angle
+        inc = np.array(hf["incidenceAngle"][:])
+        az = np.array(hf["azimuthAngle"][:])
+        lon = np.array(hf["longitude"][:])
+        lat = np.array(hf["latitude"][:])
 
-#     with h5py.File(target_file, 'a') as hf:
-#         data = np.array(hf[dataset][:])
-#         data[data == 0] = np.nan
+    with h5py.File(target_file, 'a') as hf:
+        data = np.array(hf[dataset][:])
+        data[data == 0] = np.nan
 
-#     # Reshape to 1D arrays
-#     length = data.size
-#     az = az.reshape(length, 1)
-#     inc = inc.reshape(length, 1)
-#     lons = lon.reshape(length, 1)
-#     lats = lat.reshape(length, 1)
-#     data = data.reshape(length, 1)
+    # Reshape to 1D arrays
+    length = data.size
+    az = az.reshape(length, 1)
+    inc = inc.reshape(length, 1)
+    lons = lon.reshape(length, 1)
+    lats = lat.reshape(length, 1)
+    data = data.reshape(length, 1)
 
-#     insar_data = pd.DataFrame(np.concatenate([lons, lats, data, az, inc], axis=1), columns=['Lon', 'Lat', dataset, 'Az', 'Inc'])
-#     insar_data = insar_data.dropna()
+    insar_data = pd.DataFrame(np.concatenate([lons, lats, data, az, inc], axis=1), columns=['Lon', 'Lat', dataset, 'Az', 'Inc'])
+    insar_data = insar_data.dropna()
 
-#     return insar_data
+    return insar_data
 
+def find_indices_within_radius(lons, lats, point_lon, point_lat, radius):
+    """Find indices of grid points within a specified radius of a given lon/lat."""
+    # Calculate the squared distance from every point in the grid
+    dist_sq = (lons - point_lon)**2 + (lats - point_lat)**2
+    # Find indices where distance is within the specified radius squared
+    within_radius = dist_sq <= radius**2
+    return np.where(within_radius)
 
+def extract_averaged_time_series(data, lons, lats, points, radius):
+    """Extract and average time series data for a list of points within a specified radius."""
+    ts_list = []
+    for lon, lat in points:
+        idx_y, idx_x = find_indices_within_radius(lons, lats, lon, lat, radius)
+        # Extract the time series data and compute the mean across all points within the radius
+        if idx_y.size > 0:  # Check if there are any points within radius
+            mean_ts = np.nanmean(data[:, idx_y, idx_x], axis=1)
+            mean_ts = mean_ts - mean_ts[0]
+        else:
+            mean_ts = np.full(data.shape[0], np.nan)  # Return NaN series if no points within radius
+        ts_list.append(mean_ts)
+        print(ts_list)
+    return ts_list
+
+def extract_incidence_at_points(incidence, lons, lats, points, radius):
+    """
+    For each (lon, lat) in points, find all grid cells within 'radius'
+    and return the mean incidence angle. If no cells fall within radius,
+    return NaN for that point.
+    """
+    inc_list = []
+    for lon_pt, lat_pt in points:
+        iy, ix = find_indices_within_radius(lons, lats, lon_pt, lat_pt, radius)
+        if iy.size > 0:
+            mean_inc = np.nanmean(incidence[iy, ix])
+        else:
+            mean_inc = np.nan
+        inc_list.append(mean_inc)
+    return inc_list
+
+def compute_velocity(dates, values, start, stop):
+    """
+    Fit a straight line to ‘values’ vs. ‘dates’ between start and stop,
+    automatically ignoring any NaNs, and return (velocity, σ_velocity).
+
+    Parameters
+    ----------
+    dates : array-like of float
+        Decimal-year timestamps.
+    values : array-like of float
+        Displacements (same length as dates).
+    start, stop : float
+        Decimal-year window over which to fit.
+
+    Returns
+    -------
+    slope : float
+        Best-fit rate (units of values per year).
+    stderr : float
+        Standard error of the slope.
+    """
+    # convert to arrays
+    t = np.asarray(dates, dtype=float)
+    d = np.asarray(values, dtype=float)
+
+    # mask to window and non-NaN
+    m = (t >= start) & (t <= stop) & ~np.isnan(d)
+    if m.sum() < 2:
+        raise ValueError(f"Not enough valid points in [{start}, {stop}]")
+
+    x = t[m]
+    y = d[m]
+
+    res = linregress(x, y)
+    return res.slope, res.stderr
 
 
 
@@ -926,38 +999,4 @@ def extract_profiles(xyz_dataframe, centre_lon, centre_lat, azi, dist, width, di
 
     
 
-# def compute_velocity(dates, values, start, stop):
-#     """
-#     Fit a straight line to ‘values’ vs. ‘dates’ between start and stop,
-#     automatically ignoring any NaNs, and return (velocity, σ_velocity).
 
-#     Parameters
-#     ----------
-#     dates : array-like of float
-#         Decimal-year timestamps.
-#     values : array-like of float
-#         Displacements (same length as dates).
-#     start, stop : float
-#         Decimal-year window over which to fit.
-
-#     Returns
-#     -------
-#     slope : float
-#         Best-fit rate (units of values per year).
-#     stderr : float
-#         Standard error of the slope.
-#     """
-#     # convert to arrays
-#     t = np.asarray(dates, dtype=float)
-#     d = np.asarray(values, dtype=float)
-
-#     # mask to window and non-NaN
-#     m = (t >= start) & (t <= stop) & ~np.isnan(d)
-#     if m.sum() < 2:
-#         raise ValueError(f"Not enough valid points in [{start}, {stop}]")
-
-#     x = t[m]
-#     y = d[m]
-
-#     res = linregress(x, y)
-#     return res.slope, res.stderr

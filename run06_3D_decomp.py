@@ -19,100 +19,6 @@ ref_lon = common_paths["ref_lon"]
 
 unit = 1000
 
-
-###########################
-# Load GNSS data
-###########################
-
-# Define column names and read the GPS ENU file using pandas
-columns = ['Lon', 'Lat', 'Ve', 'Vn', 'Vu', 'Std_e', 'Std_n', 'Std_u', 'StaID']
-#gps_df = pd.read_csv(paths_gps["visr"]["gps_enu"], delim_whitespace=True, comment='#', names=columns)
-gps_df = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
-
-# Read GPS grid files for north and east displacements along with the coordinate arrays
-gnss_lon_1d, gnss_lat_1d, gnss_north = utils.load_gmt_grid(paths_gps["visr"]["north"])
-_, _, gnss_east = utils.load_gmt_grid(paths_gps["visr"]["east"])
-
-# Compute step sizes from the 1D coordinate arrays
-lon_step = gnss_lon_1d[1] - gnss_lon_1d[0]
-lat_step = gnss_lat_1d[1] - gnss_lat_1d[0]
-
-# Extend the 1D coordinate arrays by appending one extra value (last value + step size)
-gnss_lon_1d_ext = np.append(gnss_lon_1d, gnss_lon_1d[-1] + lon_step)
-gnss_lat_1d_ext = np.append(gnss_lat_1d, gnss_lat_1d[-1] + lat_step)
-
-# Create a 2D meshgrid from the extended coordinate arrays
-gnss_lon, gnss_lat_ext = np.meshgrid(gnss_lon_1d_ext, gnss_lat_1d_ext)
-
-# Flip the latitude axis of the coordinate meshgrid for proper orientation
-gnss_lat = np.flipud(gnss_lat_ext)
-
-# Flip the displacement arrays (north and east) as well
-gnss_north_flipped = np.flipud(gnss_north)
-gnss_east_flipped = np.flipud(gnss_east)
-
-# Extend the displacement arrays by repeating the final column and row
-# Step 1: Add an extra column by horizontally stacking the last column
-gnss_east_ext = np.hstack([gnss_east_flipped, gnss_east_flipped[:, -1][:, np.newaxis]])
-gnss_north_ext = np.hstack([gnss_north_flipped, gnss_north_flipped[:, -1][:, np.newaxis]])
-
-# Step 2: Add an extra row by vertically stacking the last row
-gnss_east = np.vstack([gnss_east_ext, gnss_east_ext[-1, :]])
-gnss_north = np.vstack([gnss_north_ext, gnss_north_ext[-1, :]])
-
-###########################
-# Load InSAR Data 
-###########################
-
-des_lon, des_lat, des_vel, des_azi, des_inc = utils.load_insar_vel_data_as_2Darrays(
-    paths_170["geo"]["geo_geometryRadar"], 
-    paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
-)
-
-asc_lon, asc_lat, asc_vel, asc_azi, asc_inc = utils.load_insar_vel_data_as_2Darrays(
-    paths_068["geo"]["geo_geometryRadar"], 
-    paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
-)
-
-des_vel = des_vel * unit
-asc_vel = asc_vel * unit
-
-# Assume asc_lon is a 2D array with shape (ny, nx)
-ny, nx = asc_lon.shape
-rows, cols = np.indices((ny, nx))
-
-# Convert all arrays into a DataFrame, including location data (longitude and latitude)
-data = pd.DataFrame({
-    'asc_lon': asc_lon.ravel(),
-    'asc_lat': asc_lat.ravel(),
-    'des_lon': des_lon.ravel(),
-    'des_lat': des_lat.ravel(),
-    'asc_inc': asc_inc.ravel(),
-    'des_inc': des_inc.ravel(),
-    'asc_azi': asc_azi.ravel(),
-    'des_azi': des_azi.ravel(),
-    'asc_vel': asc_vel.ravel(),
-    'des_vel': des_vel.ravel(),
-    'gnss_east': gnss_east.ravel(),
-    'gnss_north': gnss_north.ravel(),
-    'gnss_lon': gnss_lon.ravel(),  # Add GNSS longitude
-    'gnss_lat': gnss_lat.ravel()   # Add GNSS latitude
-})
-
-orig_shape = asc_lon.shape  # e.g., (ny, nx)
-
-ny, nx = asc_lon.shape
-rows, cols = np.indices((ny, nx))
-data['row'] = rows.ravel()
-data['col'] = cols.ravel()
-
-# Drop rows where 'asc_vel', 'des_vel', or 'gnss_east' contain NaN values
-data = data.dropna(subset=['asc_vel', 'des_vel', 'gnss_east'])
-
-# Optionally reset the index
-data.reset_index(drop=True, inplace=True)
-
-
 ##########################3
 # Method 1: Project GNSS to LOS and subtract. 
 ##########################3
@@ -251,6 +157,133 @@ def calculate_column_averages(gps_data, insar_data, dist, columns_to_average):
 
     return gps_data
 
+def write_new_h5_with_indices(df, col_name, outfile, shape, suffix):
+    """
+    Write a new HDF5 file from scratch containing a dataset named 'velocity'
+    by reassembling the original 2D array using preserved 'row' and 'col' columns
+    from the DataFrame. Cells corresponding to dropped rows will remain as NaN.
+    
+    Parameters:
+      df: DataFrame that contains the column col_name along with 'row' and 'col' fields.
+      col_name: The name of the DataFrame column to be saved.
+      outfile: The output file path for the new HDF5 file.
+      shape: The original 2D shape (tuple) of the data.
+      suffix: A suffix string (for record-keeping; not used in file naming here).
+    
+    Returns:
+      outfile: The new HDF5 file path.
+    """
+    # Create a full array filled with NaNs
+    full_array = np.full(shape, np.nan)
+    
+    # Fill in the values using the preserved 'row' and 'col' indices
+    for _, row in df.iterrows():
+        r = int(row['row'])
+        c = int(row['col'])
+        full_array[r, c] = row[col_name]
+    
+    # Write the full array to a new HDF5 file from scratch
+    with h5py.File(outfile, 'w') as hf:
+        hf.create_dataset("velocity", data=full_array)
+    
+    return outfile
+
+###########################
+# Load GNSS data
+###########################
+
+# Define column names and read the GPS ENU file using pandas
+columns = ['Lon', 'Lat', 'Ve', 'Vn', 'Vu', 'Std_e', 'Std_n', 'Std_u', 'StaID']
+#gps_df = pd.read_csv(paths_gps["visr"]["gps_enu"], delim_whitespace=True, comment='#', names=columns)
+gps_df = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
+
+# Read GPS grid files for north and east displacements along with the coordinate arrays
+gnss_lon_1d, gnss_lat_1d, gnss_north = utils.load_gmt_grid(paths_gps["visr"]["north"])
+_, _, gnss_east = utils.load_gmt_grid(paths_gps["visr"]["east"])
+
+# Compute step sizes from the 1D coordinate arrays
+lon_step = gnss_lon_1d[1] - gnss_lon_1d[0]
+lat_step = gnss_lat_1d[1] - gnss_lat_1d[0]
+
+# Extend the 1D coordinate arrays by appending one extra value (last value + step size)
+gnss_lon_1d_ext = np.append(gnss_lon_1d, gnss_lon_1d[-1] + lon_step)
+gnss_lat_1d_ext = np.append(gnss_lat_1d, gnss_lat_1d[-1] + lat_step)
+
+# Create a 2D meshgrid from the extended coordinate arrays
+gnss_lon, gnss_lat_ext = np.meshgrid(gnss_lon_1d_ext, gnss_lat_1d_ext)
+
+# Flip the latitude axis of the coordinate meshgrid for proper orientation
+gnss_lat = np.flipud(gnss_lat_ext)
+
+# Flip the displacement arrays (north and east) as well
+gnss_north_flipped = np.flipud(gnss_north)
+gnss_east_flipped = np.flipud(gnss_east)
+
+# Extend the displacement arrays by repeating the final column and row
+# Step 1: Add an extra column by horizontally stacking the last column
+gnss_east_ext = np.hstack([gnss_east_flipped, gnss_east_flipped[:, -1][:, np.newaxis]])
+gnss_north_ext = np.hstack([gnss_north_flipped, gnss_north_flipped[:, -1][:, np.newaxis]])
+
+# Step 2: Add an extra row by vertically stacking the last row
+gnss_east = np.vstack([gnss_east_ext, gnss_east_ext[-1, :]])
+gnss_north = np.vstack([gnss_north_ext, gnss_north_ext[-1, :]])
+
+###########################
+# Load InSAR Data 
+###########################
+
+des_lon, des_lat, des_vel, des_azi, des_inc = utils.load_insar_vel_data_as_2Darrays(
+    paths_170["geo"]["geo_geometryRadar"], 
+    paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
+)
+
+asc_lon, asc_lat, asc_vel, asc_azi, asc_inc = utils.load_insar_vel_data_as_2Darrays(
+    paths_068["geo"]["geo_geometryRadar"], 
+    paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
+)
+
+des_vel = des_vel * unit
+asc_vel = asc_vel * unit
+
+# Assume asc_lon is a 2D array with shape (ny, nx)
+ny, nx = asc_lon.shape
+rows, cols = np.indices((ny, nx))
+
+# Convert all arrays into a DataFrame, including location data (longitude and latitude)
+data = pd.DataFrame({
+    'asc_lon': asc_lon.ravel(),
+    'asc_lat': asc_lat.ravel(),
+    'des_lon': des_lon.ravel(),
+    'des_lat': des_lat.ravel(),
+    'asc_inc': asc_inc.ravel(),
+    'des_inc': des_inc.ravel(),
+    'asc_azi': asc_azi.ravel(),
+    'des_azi': des_azi.ravel(),
+    'asc_vel': asc_vel.ravel(),
+    'des_vel': des_vel.ravel(),
+    'gnss_east': gnss_east.ravel(),
+    'gnss_north': gnss_north.ravel(),
+    'gnss_lon': gnss_lon.ravel(),  # Add GNSS longitude
+    'gnss_lat': gnss_lat.ravel()   # Add GNSS latitude
+})
+
+orig_shape = asc_lon.shape  # e.g., (ny, nx)
+
+ny, nx = asc_lon.shape
+rows, cols = np.indices((ny, nx))
+data['row'] = rows.ravel()
+data['col'] = cols.ravel()
+
+# Drop rows where 'asc_vel', 'des_vel', or 'gnss_east' contain NaN values
+data = data.dropna(subset=['asc_vel', 'des_vel', 'gnss_east'])
+
+# Optionally reset the index
+data.reset_index(drop=True, inplace=True)
+
+##########################3
+# Project GNSS to LOS 
+##########################3
+
 # Project east and north velocities to LOS
 data["des_gpsLOS"] = project_gps2los(data["des_azi"], data["des_inc"], data["gnss_east"], data["gnss_north"])
 data["asc_gpsLOS"] = project_gps2los(data["asc_azi"], data["asc_inc"], data["gnss_east"], data["gnss_north"])
@@ -332,36 +365,7 @@ print("RMSE and R² results for each column:")
 for col, metrics in results_dict.items():
     print(f"{col}: RMSE = {metrics['rmse']:.2f}, R² = {metrics['r2']:.2f}, Slope = {metrics['slope']:.2f}, Intercept = {metrics['intercept']:.2f}")
 
-def write_new_h5_with_indices(df, col_name, outfile, shape, suffix):
-    """
-    Write a new HDF5 file from scratch containing a dataset named 'velocity'
-    by reassembling the original 2D array using preserved 'row' and 'col' columns
-    from the DataFrame. Cells corresponding to dropped rows will remain as NaN.
-    
-    Parameters:
-      df: DataFrame that contains the column col_name along with 'row' and 'col' fields.
-      col_name: The name of the DataFrame column to be saved.
-      outfile: The output file path for the new HDF5 file.
-      shape: The original 2D shape (tuple) of the data.
-      suffix: A suffix string (for record-keeping; not used in file naming here).
-    
-    Returns:
-      outfile: The new HDF5 file path.
-    """
-    # Create a full array filled with NaNs
-    full_array = np.full(shape, np.nan)
-    
-    # Fill in the values using the preserved 'row' and 'col' indices
-    for _, row in df.iterrows():
-        r = int(row['row'])
-        c = int(row['col'])
-        full_array[r, c] = row[col_name]
-    
-    # Write the full array to a new HDF5 file from scratch
-    with h5py.File(outfile, 'w') as hf:
-        hf.create_dataset("velocity", data=full_array)
-    
-    return outfile
+
 
 # Save the desired columns as new HDF5 files
 #df, col_name, outfile, shape, suffix
@@ -430,28 +434,106 @@ for name, grd_path in decomp["CASR"].items():
 
         #utils.run_command(["gmt", "grdmath", grd_path, "1000", "MUL", "=", mm_path])
 
-            
-            
-# # Set your profile azimuth in degrees (east of north)
-# theta_deg = 45.0  # change this to any angle you like
-# theta = np.deg2rad(theta_deg)
+##########################3
+# Repeat for MLV Examples 
+##########################3
 
-# data['vel_para'] = data['aden_east'] * np.sin(theta) + data['aden_north'] * np.cos(theta)
-# data['vel_perp'] = data['aden_east'] * np.cos(theta) - data['aden_north'] * np.sin(theta)
+ref_station = "P784"
+
+###########################
+# Load InSAR Data 
+###########################
+
+des_lon, des_lat, des_vel, des_azi, des_inc = utils.load_insar_vel_data_as_2Darrays(
+    paths_170["P784"]["geo_geometryRadar"], 
+    paths_170["P784"]["geo_velocity_msk"]
+)
+
+asc_lon, asc_lat, asc_vel, asc_azi, asc_inc = utils.load_insar_vel_data_as_2Darrays(
+    paths_068["P784"]["geo_geometryRadar"], 
+    paths_068["P784"]["geo_velocity_msk"]
+)
+
+des_vel = des_vel * unit
+asc_vel = asc_vel * unit
+
+# Assume asc_lon is a 2D array with shape (ny, nx)
+ny, nx = asc_lon.shape
+rows, cols = np.indices((ny, nx))
+
+# Convert all arrays into a DataFrame, including location data (longitude and latitude)
+data = pd.DataFrame({
+    'asc_lon': asc_lon.ravel(),
+    'asc_lat': asc_lat.ravel(),
+    'des_lon': des_lon.ravel(),
+    'des_lat': des_lat.ravel(),
+    'asc_inc': asc_inc.ravel(),
+    'des_inc': des_inc.ravel(),
+    'asc_azi': asc_azi.ravel(),
+    'des_azi': des_azi.ravel(),
+    'asc_vel': asc_vel.ravel(),
+    'des_vel': des_vel.ravel(),
+})
+
+orig_shape = asc_lon.shape  # e.g., (ny, nx)
+
+ny, nx = asc_lon.shape
+rows, cols = np.indices((ny, nx))
+data['row'] = rows.ravel()
+data['col'] = cols.ravel()
+
+# Drop rows where 'asc_vel', 'des_vel', or 'gnss_east' contain NaN values
+data = data.dropna(subset=['asc_vel', 'des_vel', ])
+
+# Optionally reset the index
+data.reset_index(drop=True, inplace=True)
 
 
-# outfile_gps_insar = write_new_h5_with_indices(data, 'vel_para',
-#                                               decomp["CASR"]["gps_insar_geysers_para"],
-#                                               orig_shape, "gps_insar_geysers_para")
-# outfile_gps_insar = write_new_h5_with_indices(data, 'vel_perp',
-#                                               decomp["CASR"]["gps_insar_geysers_perp"],
-#                                               orig_shape, "gps_insar_geysers_perp")
+##########################3
+# Method 2 & 3: Invert asc. des, east, up. 
+##########################3
+
+# Chunk size (number of rows to process at once)
+chunk_size = 5000
+
+# Split the DataFrame into chunks and process each chunk separately
+num_chunks = len(data) // chunk_size + 1  # Calculate the number of chunks
+for chunk_idx in range(num_chunks):
+    # Determine the start and end indices for the current chunk
+    start_idx = chunk_idx * chunk_size
+    end_idx = min((chunk_idx + 1) * chunk_size, len(data))
+
+    # Process the chunk of the DataFrame
+    print(f"Processing chunk {chunk_idx + 1}/{num_chunks}, rows {start_idx} to {end_idx}")
+    
+    data_chunk = data.iloc[start_idx:end_idx].copy()  # Get the current chunk of data
+
+    # Apply the first inversion (asc and des solving for East and Up)
+    data_chunk[['ad_east', 'ad_up']] = data_chunk.apply(invert_single_point_ad2eu, axis=1)
+
+    # Store the results back in the original DataFrame
+    data.loc[start_idx:end_idx-1, ['ad_east', 'ad_up']] = data_chunk[['ad_east', 'ad_up']]
+
+
+# Save as new hdf5
+outfile_insar_only = write_new_h5_with_indices(data, 'ad_up',
+                                               decomp["P784"]["insar_only_up"],
+                                               orig_shape, "insar_only")
+outfile_insar_only = write_new_h5_with_indices(data, 'ad_east',
+                                               decomp["P784"]["insar_only_east"],
+                                               orig_shape, "insar_only_east")
+
+# Add attributes 
+src_file = paths_170["P784"]["geo_velocity_msk"]
+
+with h5py.File(src_file, "r") as src, h5py.File(decomp["P784"]["insar_only_up"], "a") as dest:
+    for key, value in src.attrs.items():
+        dest.attrs[key] = value
         
-# with h5py.File(src_file, "r") as src, h5py.File(decomp["CASR"]["gps_insar_geysers_para"], "a") as dest:
-#     for key, value in src.attrs.items():
-#         dest.attrs[key] = value
+with h5py.File(src_file, "r") as src, h5py.File(decomp["P784"]["insar_only_east"], "a") as dest:
+    for key, value in src.attrs.items():
+        dest.attrs[key] = value
 
-# with h5py.File(src_file, "r") as src, h5py.File(decomp["CASR"]["gps_insar_geysers_perp"], "a") as dest:
-#     for key, value in src.attrs.items():
-#         dest.attrs[key] = value
-
+# Save as gmt
+utils.run_command(["save_gmt.py", decomp["P784"]["insar_only_up"],   "-o",  decomp["P784"]["insar_only_up_grd"]])
+utils.run_command(["save_gmt.py", decomp["P784"]["insar_only_east"], "-o",  decomp["P784"]["insar_only_east_grd"]])

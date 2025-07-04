@@ -116,11 +116,6 @@ gps_169 = utils.calculate_average_insar_velocity(gps_169, insar_169, dist)
 gps_170 = utils.calculate_average_insar_velocity(gps_170, insar_170, dist)
 gps_068 = utils.calculate_average_insar_velocity(gps_068, insar_068, dist)
 
-# # Mask regions with unwrapping errors. 
-# gps_169 = mask_inside_polygons(gps_169, polygon_glob=common_paths["monterey_mask"], sep=r'\s+')
-# gps_170 = mask_inside_polygons(gps_170, polygon_glob=common_paths["SF_mask"], sep=r'\s+')
-# gps_068 = mask_inside_polygons(gps_068, polygon_glob=common_paths["monterey_mask"], sep=r'\s+')
-
 # Project GPS ENU velocities to InSAR LOS
 gps_169 = utils.calculate_gps_los(gps_169, insar_169)
 gps_170 = utils.calculate_gps_los(gps_170, insar_170)
@@ -130,6 +125,60 @@ gps_068 = utils.calculate_gps_los(gps_068, insar_068)
 insar_169["Vel_ori"] = insar_169["Vel"]
 insar_170["Vel_ori"] = insar_170["Vel"]
 insar_068["Vel_ori"] = insar_068["Vel"]
+
+# ------------------------
+# Deramp InSAR (Quadratic Ramp Removal)
+# ------------------------
+insar_169 = utils.apply_quadratic_deramp_2D(gps_169, insar_169)
+insar_170 = utils.apply_quadratic_deramp_2D(gps_170, insar_170)
+insar_068 = utils.apply_quadratic_deramp_2D(gps_068, insar_068)
+
+#Update InSAR velocities to the deramped values
+insar_169["Vel"] = insar_169["Vel_quadramp"]
+insar_170["Vel"] = insar_170["Vel_quadramp"]
+insar_068["Vel"] = insar_068["Vel_quadramp"]
+
+
+# Velocities are scaled by 1/1000 (e.g., converting from mm/yr to m/yr for consistency).
+utils.write_new_h5(insar_169["Vel"]/unit, paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], shape169, "deramp")
+utils.write_new_h5(insar_170["Vel"]/unit, paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], shape170, "deramp")
+utils.write_new_h5(insar_068["Vel"]/unit, paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], shape068, "deramp")
+
+# --- Prep vel files ---    
+# Calculate diff.h5
+utils.run_command(["diff.py", paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o", paths_169["geo"]["diff_deramp"]])
+utils.run_command(["diff.py", paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o", paths_170["geo"]["diff_deramp"]])
+utils.run_command(["diff.py", paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o", paths_068["geo"]["diff_deramp"]])
+
+# Calculate diff.h5 for overlapping regions
+utils.run_command(["diff.py", paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"],  paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o", paths_169["geo"]["diff_169_170"]])
+
+# Save as gmt grd for plotting 
+utils.run_command(["save_gmt.py", paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o",  paths_169["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]])
+utils.run_command(["save_gmt.py", paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o",  paths_170["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]])
+utils.run_command(["save_gmt.py", paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o",  paths_068["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]])
+
+# Save as gmt grd for plotting 
+utils.run_command(["save_gmt.py", paths_169["geo"]["diff_deramp"], "-o",  paths_169["grd"]["diff_deramp"]])
+utils.run_command(["save_gmt.py", paths_170["geo"]["diff_deramp"], "-o",  paths_170["grd"]["diff_deramp"]])
+utils.run_command(["save_gmt.py", paths_068["geo"]["diff_deramp"], "-o",  paths_068["grd"]["diff_deramp"]])
+
+utils.run_command(["save_gmt.py", paths_169["geo"]["diff_169_170"], "-o",  paths_169["grd"]["diff_169_170"]])
+
+
+        
+# --- Convert all .grd files to mm (×1000) for each track ---
+for track in (paths_169, paths_170, paths_068):
+    for name, grd_path in track["grd"].items():
+        if grd_path.endswith(".grd"):
+            mm_path = grd_path.replace(".grd", "_mm.grd")
+            utils.run_command([
+                "gmt", "grdmath",
+                grd_path, "1000", "MUL", "=", mm_path
+            ])
+            
+
+        
 
 # # ------------------------
 # # Remove static shift 
@@ -167,18 +216,6 @@ insar_068["Vel_ori"] = insar_068["Vel"]
 # utils.run_command(["save_gmt.py", paths_068["geo"]["diff_offset"], "-o",  paths_068["grd"]["diff_offset"]])
 
 
-# ------------------------
-# Deramp InSAR (Quadratic Ramp Removal)
-# ------------------------
-insar_169 = utils.apply_quadratic_deramp_2D(gps_169, insar_169)
-insar_170 = utils.apply_quadratic_deramp_2D(gps_170, insar_170)
-insar_068 = utils.apply_quadratic_deramp_2D(gps_068, insar_068)
-
-#Update InSAR velocities to the deramped values
-insar_169["Vel"] = insar_169["Vel_quadramp"]
-insar_170["Vel"] = insar_170["Vel_quadramp"]
-insar_068["Vel"] = insar_068["Vel_quadramp"]
-
 # insar_169 = utils.apply_deramp_2D(gps_169, insar_169)
 # insar_170 = utils.apply_deramp_2D(gps_170, insar_170)
 # insar_068 = utils.apply_deramp_2D(gps_068, insar_068)
@@ -207,34 +244,7 @@ insar_068["Vel"] = insar_068["Vel_quadramp"]
 # utils.run_command(["save_gmt.py", paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk"], "-o",  paths_170["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk"]])
 # utils.run_command(["save_gmt.py", paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk"], "-o",  paths_068["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_offset_deramp_msk"]])
 
-# Velocities are scaled by 1/1000 (e.g., converting from mm/yr to m/yr for consistency).
-utils.write_new_h5(insar_169["Vel"]/unit, paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], shape169, "deramp")
-utils.write_new_h5(insar_170["Vel"]/unit, paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], shape170, "deramp")
-utils.write_new_h5(insar_068["Vel"]/unit, paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], shape068, "deramp")
-
-# --- Prep vel files ---    
-# Calculate diff.h5
-utils.run_command(["diff.py", paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o", paths_169["geo"]["diff_deramp"]])
-utils.run_command(["diff.py", paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o", paths_170["geo"]["diff_deramp"]])
-utils.run_command(["diff.py", paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o", paths_068["geo"]["diff_deramp"]])
-
-# Save as gmt grd for plotting 
-utils.run_command(["save_gmt.py", paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o",  paths_169["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]])
-utils.run_command(["save_gmt.py", paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o",  paths_170["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]])
-utils.run_command(["save_gmt.py", paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], "-o",  paths_068["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]])
-
-
-# Save as gmt grd for plotting 
-utils.run_command(["save_gmt.py", paths_169["geo"]["diff_deramp"], "-o",  paths_169["grd"]["diff_deramp"]])
-utils.run_command(["save_gmt.py", paths_170["geo"]["diff_deramp"], "-o",  paths_170["grd"]["diff_deramp"]])
-utils.run_command(["save_gmt.py", paths_068["geo"]["diff_deramp"], "-o",  paths_068["grd"]["diff_deramp"]])
-        
-# --- Convert all .grd files to mm (×1000) for each track ---
-for track in (paths_169, paths_170, paths_068):
-    for name, grd_path in track["grd"].items():
-        if grd_path.endswith(".grd"):
-            mm_path = grd_path.replace(".grd", "_mm.grd")
-            utils.run_command([
-                "gmt", "grdmath",
-                grd_path, "1000", "MUL", "=", mm_path
-            ])
+# # Mask regions with unwrapping errors. 
+# gps_169 = mask_inside_polygons(gps_169, polygon_glob=common_paths["monterey_mask"], sep=r'\s+')
+# gps_170 = mask_inside_polygons(gps_170, polygon_glob=common_paths["SF_mask"], sep=r'\s+')
+# gps_068 = mask_inside_polygons(gps_068, polygon_glob=common_paths["monterey_mask"], sep=r'\s+')

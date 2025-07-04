@@ -138,89 +138,89 @@ def process_track(track):
     run_command(["save_gmt.py", geo["geo_velocity_SET_ERA5_demErr_msk"], "-o", grd["geo_velocity_SET_ERA5_demErr_msk"]])
     run_command(["save_gmt.py", geo["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], "-o", grd["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]])
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
     # Process each track individually. 
     #for track in (paths_068, paths_169, paths_170):
     #    print("\nProcessing track:")
-    process_track(paths_170)
-    process_track(paths_169)
-    process_track(paths_068)
+    # process_track(paths_170)
+    # process_track(paths_169)
+    # process_track(paths_068)
     
 # Mask Central Valley Examples
-run_command(["mask.py", paths_170_5_28["CentralValley"]["geo_velocity"], "-m", paths_170_5_28["CentralValley"]["geo_maskTempCoh"], "-o", paths_170_5_28["CentralValley"]["geo_velocity_msk"]])
-run_command(["mask.py", paths_170_5_28["CentralValley"]["geo_timeseries"], "-m", paths_170_5_28["CentralValley"]["geo_maskTempCoh"], "-o", paths_170_5_28["CentralValley"]["geo_timeseries_msk"]])
-run_command(["save_gmt.py",  paths_170_5_28["CentralValley"]["geo_velocity_msk"], "-o",  paths_170_5_28["CentralValley"]["geo_velocity_msk_grd"]])
+temp_coh = str(0.7)  
+run_command(["mask.py",     paths_170_5_28["CentralValley"]["geo_velocity"],    "-m", paths_170_5_28["CentralValley"]["geo_TempCoh"], "--vmin", temp_coh, "-o", paths_170_5_28["CentralValley"]["geo_velocity_msk"]])
+run_command(["mask.py",     paths_170_5_28["CentralValley"]["geo_timeseries"],  "-m", paths_170_5_28["CentralValley"]["geo_TempCoh"], "--vmin", temp_coh, "-o", paths_170_5_28["CentralValley"]["geo_timeseries_msk"]])
+run_command(["save_gmt.py", paths_170_5_28["CentralValley"]["geo_velocity"],    "-o", paths_170_5_28["CentralValley"]["geo_velocity_grd"]])
+run_command(["save_gmt.py", paths_170_5_28["CentralValley"]["geo_velocity_msk"],"-o", paths_170_5_28["CentralValley"]["geo_velocity_msk_grd"]])
 
 # Mask Central Valley Examples
-run_command(["mask.py", paths_115["CentralValley"]["geo_velocity"], "-m", paths_115["CentralValley"]["geo_maskTempCoh"], "-o", paths_115["CentralValley"]["geo_velocity_msk"]])
-run_command(["mask.py", paths_115["CentralValley"]["geo_timeseries"], "-m", paths_115["CentralValley"]["geo_maskTempCoh"], "-o", paths_115["CentralValley"]["geo_timeseries_msk"]])
-run_command(["save_gmt.py",  paths_115["CentralValley"]["geo_velocity_msk"], "-o",  paths_115["CentralValley"]["geo_velocity_msk_grd"]])
+temp_coh = str(0.7)
+run_command(["mask.py",     paths_115["CentralValley"]["geo_velocity"],     "-m", paths_115["CentralValley"]["geo_TempCoh"],"--vmin", temp_coh, "-o", paths_115["CentralValley"]["geo_velocity_msk"]])
+run_command(["mask.py",     paths_115["CentralValley"]["geo_timeseries"],   "-m", paths_115["CentralValley"]["geo_TempCoh"],"--vmin", temp_coh, "-o", paths_115["CentralValley"]["geo_timeseries_msk"]])
+run_command(["save_gmt.py", paths_115["CentralValley"]["geo_velocity"],     "-o", paths_115["CentralValley"]["geo_velocity_grd"]])
+run_command(["save_gmt.py", paths_115["CentralValley"]["geo_velocity_msk"], "-o", paths_115["CentralValley"]["geo_velocity_msk_grd"]])
 
 # --- Geocode Central Valley ---
 # resample to same lat lon and bb
+cv_s, cv_n, cv_w, cv_e = '38.5','39.8','-122.75','-121.7'
 
-# run_command([geocode_py, paths_170["CASR"]["timeseries_SET_ERA5_demErr"], "-l", paths_170["geo"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", s, n, w, e, "--outdir", paths_170["geo"]["geo_timeseries"]])
+lat_step, lon_step = str(lat_step), str(lon_step)
+run_command([geocode_py, paths_068["P208"]["velocity"], "-l", paths_068["P208"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_068["P208"]["geo"]])
+run_command([geocode_py, paths_170["P208"]["velocity"], "-l", paths_170["P208"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_170["P208"]["geo"]])
 
-# cv_s, cv_n, cv_w, cv_e = '38.5','39.8','-122.75','-121.7'
-# run_command([geocode_py, paths_068["P208"]["velocity"], "-l", paths_068["P208"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_068["P208"]["geo"]])
-# run_command([geocode_py, paths_170["P208"]["velocity"], "-l", paths_170["P208"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_170["P208"]["geo"]])
+run_command([geocode_py, paths_068["P208"]["maskTempCoh"], "-l", paths_068["P208"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_068["P208"]["geo"]])
+run_command([geocode_py, paths_170["P208"]["maskTempCoh"], "-l", paths_170["P208"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_170["P208"]["geo"]])
 
-# run_command([geocode_py, paths_068["P208"]["maskTempCoh"], "-l", paths_068["P208"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_068["P208"]["geo"]])
-# run_command([geocode_py, paths_170["P208"]["maskTempCoh"], "-l", paths_170["P208"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_170["P208"]["geo"]])
+run_command([geocode_py, paths_068["P208"]["geometryRadar"], "-l", paths_068["P208"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_068["P208"]["geo"]])
+run_command([geocode_py, paths_170["P208"]["geometryRadar"], "-l", paths_170["P208"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_170["P208"]["geo"]])
 
-# run_command([geocode_py, paths_068["P208"]["geometryRadar"], "-l", paths_068["P208"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_068["P208"]["geo"]])
-# run_command([geocode_py, paths_170["P208"]["geometryRadar"], "-l", paths_170["P208"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_170["P208"]["geo"]])
+run_command(["mask.py", paths_068["P208"]["geo_velocity"], "-m", paths_068["P208"]["geo_maskTempCoh"]])
+run_command(["mask.py", paths_170["P208"]["geo_velocity"], "-m", paths_170["P208"]["geo_maskTempCoh"]])
 
-# run_command(["mask.py", paths_068["P208"]["geo_velocity"], "-m", paths_068["P208"]["geo_maskTempCoh"]])
-# run_command(["mask.py", paths_170["P208"]["geo_velocity"], "-m", paths_170["P208"]["geo_maskTempCoh"]])
-
-# run_command(["save_gmt.py", paths_068["P208"]["geo_velocity_msk"], "-o", paths_068["P208"]["vel_grd"]])
-# run_command(["save_gmt.py", paths_170["P208"]["geo_velocity_msk"], "-o", paths_170["P208"]["vel_grd"]])
-
-# --- Geocode Downsample ---
+run_command(["save_gmt.py", paths_068["P208"]["geo_velocity_msk"], "-o", paths_068["P208"]["vel_grd"]])
+run_command(["save_gmt.py", paths_170["P208"]["geo_velocity_msk"], "-o", paths_170["P208"]["vel_grd"]])
 
 
-# cv_s, cv_n, cv_w, cv_e = '37.0','42.41','-124.0','-121.0'
-# lat_step = '0.008'
-# lon_step = '0.008'
-    
-# run_command([geocode_py, paths_169["CASR"]["velocity_SET_ERA5_demErr"], "-l", paths_169["geo"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_169["downsample"]["geo"]])
-# run_command([geocode_py, paths_170["CASR"]["velocity_SET_ERA5_demErr"], "-l", paths_170["geo"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_170["downsample"]["geo"]])
-# run_command([geocode_py, paths_068["CASR"]["velocity_SET_ERA5_demErr"], "-l", paths_068["geo"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_068["downsample"]["geo"]])
+mlv_s, mlv_n, mlv_w, mlv_e = '41.14', '41.90', '-122.5', '-121.2'
 
-# run_command([geocode_py, paths_169["CASR"]["maskTempCoh"], "-l", paths_169["geo"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_169["downsample"]["geo"]])
-# run_command([geocode_py, paths_170["CASR"]["maskTempCoh"], "-l", paths_170["geo"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_170["downsample"]["geo"]])
-# run_command([geocode_py, paths_068["CASR"]["maskTempCoh"], "-l", paths_068["geo"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_068["downsample"]["geo"]])
+#lat_step, lon_step = str(lat_step), str(lon_step)
+run_command([geocode_py, paths_068["P784"]["velocity"], "-l", paths_068["P784"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", mlv_s, mlv_n, mlv_w, mlv_e, "--outdir", paths_068["P784"]["geo"]])
+run_command([geocode_py, paths_170["P784"]["velocity"], "-l", paths_170["P784"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", mlv_s, mlv_n, mlv_w, mlv_e, "--outdir", paths_170["P784"]["geo"]])
 
-# run_command([geocode_py, paths_169["geo"]["geometryRadar"], "-l", paths_169["geo"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_169["downsample"]["geo"]])
-# run_command([geocode_py, paths_170["geo"]["geometryRadar"], "-l", paths_170["geo"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_170["downsample"]["geo"]])
-# run_command([geocode_py, paths_068["geo"]["geometryRadar"], "-l", paths_068["geo"]["geometryRadar"], 
-#              "--lalo", lat_step, lon_step, "--bbox", cv_s, cv_n, cv_w, cv_e, "--outdir", paths_068["downsample"]["geo"]])
+run_command([geocode_py, paths_068["P784"]["maskTempCoh"], "-l", paths_068["P784"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", mlv_s, mlv_n, mlv_w, mlv_e, "--outdir", paths_068["P784"]["geo"]])
+run_command([geocode_py, paths_170["P784"]["maskTempCoh"], "-l", paths_170["P784"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", mlv_s, mlv_n, mlv_w, mlv_e, "--outdir", paths_170["P784"]["geo"]])
 
+run_command([geocode_py, paths_068["P784"]["geometryRadar"], "-l", paths_068["P784"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", mlv_s, mlv_n, mlv_w, mlv_e, "--outdir", paths_068["P784"]["geo"]])
+run_command([geocode_py, paths_170["P784"]["geometryRadar"], "-l", paths_170["P784"]["geometryRadar"], 
+             "--lalo", lat_step, lon_step, "--bbox", mlv_s, mlv_n, mlv_w, mlv_e, "--outdir", paths_170["P784"]["geo"]])
 
-#  # --- Plate Motion ---
-# run_command(["plate_motion.py", "-g", paths_169["downsample"]["geo_geometryRadar"], "-v", paths_169["downsample"]["geo_velocity_SET_ERA5_demErr"], "--plate", "NorthAmerica"])
-# run_command(["plate_motion.py", "-g", paths_170["downsample"]["geo_geometryRadar"], "-v", paths_170["downsample"]["geo_velocity_SET_ERA5_demErr"], "--plate", "NorthAmerica"])
-# run_command(["plate_motion.py", "-g", paths_068["downsample"]["geo_geometryRadar"], "-v", paths_068["downsample"]["geo_velocity_SET_ERA5_demErr"], "--plate", "NorthAmerica"])
+run_command(["mask.py", paths_068["P784"]["geo_velocity"], "-m", paths_068["P784"]["geo_maskTempCoh"], "-o", paths_068["P784"]["geo_velocity_msk"]])
+run_command(["mask.py", paths_170["P784"]["geo_velocity"], "-m", paths_170["P784"]["geo_maskTempCoh"], "-o", paths_170["P784"]["geo_velocity_msk"]])
 
-# run_command(["mask.py", paths_169["downsample"]["geo_velocity_SET_ERA5_demErr_ITRF14"], "-m", paths_169["downsample"]["geo_maskTempCoh"]])
-# run_command(["mask.py", paths_170["downsample"]["geo_velocity_SET_ERA5_demErr_ITRF14"], "-m", paths_170["downsample"]["geo_maskTempCoh"]])
-# run_command(["mask.py", paths_068["downsample"]["geo_velocity_SET_ERA5_demErr_ITRF14"], "-m", paths_068["downsample"]["geo_maskTempCoh"]])
+run_command(["save_gmt.py", paths_068["P784"]["geo_velocity_msk"], "-o", paths_068["P784"]["vel_grd"]])
+run_command(["save_gmt.py", paths_170["P784"]["geo_velocity_msk"], "-o", paths_170["P784"]["vel_grd"]])
 
-#run_command(["save_gmt.py", paths_169["downsample"]["geo_velocity_msk"], "-o", paths_169["downsample"]["vel_grd"]])
-#run_command(["save_gmt.py", paths_170["downsample"]["geo_velocity_msk"], "-o", paths_170["downsample"]["vel_grd"]])
+# Mask 170 for geysers
+#run_command(["mask.py", paths_170["geo"]["geo_timeseries"], "-m", paths_170["geo"]["geo_maskTempCoh"], "-o", paths_170["geo"]["geo_timeseries_msk"]])
+
+# Mask and save ls as gmt 
+temp_coh = str(0.6)  
+run_command(["mask.py", paths_170_5_28["EelRiver"]["geo_velocity"],   "-m", paths_170_5_28["EelRiver"]["geo_TempCoh"], "--vmin", temp_coh,"-o", paths_170_5_28["EelRiver"]["geo_velocity_msk"]])
+run_command(["mask.py", paths_170_5_28["EelRiver"]["geo_timeseries"], "-m", paths_170_5_28["EelRiver"]["geo_TempCoh"], "--vmin", temp_coh,"-o", paths_170_5_28["EelRiver"]["geo_timeseries_msk"]])
+
+run_command(["mask.py", paths_170_5_28["Graham"]["geo_velocity"],     "-m", paths_170_5_28["Graham"]["geo_TempCoh"], "--vmin", temp_coh, "-o", paths_170_5_28["Graham"]["geo_velocity_msk"]])
+run_command(["mask.py", paths_170_5_28["Graham"]["geo_timeseries"],   "-m", paths_170_5_28["Graham"]["geo_TempCoh"], "--vmin", temp_coh, "-o", paths_170_5_28["Graham"]["geo_timeseries_msk"]])
+
+run_command(["save_gmt.py", paths_170_5_28["EelRiver"]["geo_velocity_msk"], "-o", paths_170_5_28["EelRiver"]["geo_velocity_msk_grd"]])
+run_command(["save_gmt.py", paths_170_5_28["Graham"]["geo_velocity_msk"],   "-o", paths_170_5_28["Graham"]["geo_velocity_msk_grd"]])
