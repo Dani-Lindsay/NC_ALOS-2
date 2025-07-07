@@ -120,11 +120,12 @@ paths_068 = {
         "geo_velocity_SET_ERA5_demErr_ITRF14_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk.h5"),
         "geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.h5"),
         # Correction Layers
-        "diff_SET": os.path.join(data_dir, "068", "CASR", "geo", "diff_SET.h5"),
-        "diff_ERA5": os.path.join(data_dir, "068", "CASR", "geo", "diff_ERA5.h5"),
+        "diff_SET"   : os.path.join(data_dir, "068", "CASR", "geo", "diff_SET.h5"),
+        "diff_ERA5"  : os.path.join(data_dir, "068", "CASR", "geo", "diff_ERA5.h5"),
         "diff_demErr": os.path.join(data_dir, "068", "CASR", "geo", "diff_demErr.h5"),
         "diff_ITRF14": os.path.join(data_dir, "068", "CASR", "geo", "diff_ITRF14.h5"),
         "diff_deramp": os.path.join(data_dir, "068", "CASR", "geo", "diff_deramp.h5"),
+        "ITRF_enu"   : os.path.join(data_dir, "068", "CASR", "geo", "ITRF14enu.h5"),
 #         "vel_grd": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.grd"),
     },
     "grd":{
@@ -227,6 +228,7 @@ paths_169 = {
         "diff_ITRF14":  os.path.join(data_dir, "169", "CASR", "geo", "diff_ITRF14.h5"),
         "diff_deramp":  os.path.join(data_dir, "169", "CASR", "geo", "diff_deramp.h5"),
         "diff_169_170": os.path.join(data_dir, "169", "CASR", "geo", "diff_169_170.h5"),
+        "ITRF_enu"   :  os.path.join(data_dir, "068", "CASR", "geo", "ITRF14enu.h5"),
     },
     
     "grd":{
@@ -306,6 +308,7 @@ paths_170 = {
         "diff_demErr": os.path.join(data_dir, "170", "CASR", "geo", "diff_demErr.h5"),
         "diff_ITRF14": os.path.join(data_dir, "170", "CASR", "geo", "diff_ITRF14.h5"),
         "diff_deramp": os.path.join(data_dir, "170", "CASR", "geo", "diff_deramp.h5"),
+        "ITRF_enu"   : os.path.join(data_dir, "068", "CASR", "geo", "ITRF14enu.h5"),
     },
     "grd":{
         "diff_SET": os.path.join(data_dir, "170", "CASR", "geo", "diff_SET.grd"),

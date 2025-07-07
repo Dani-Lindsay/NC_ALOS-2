@@ -31,59 +31,6 @@ des170_dic = {"ORBIT_DIRECTION": "descending", "PATH": "170", "Frames": "2800_28
 asc068_dic  = {"ORBIT_DIRECTION": "ascending",  "PATH": "068", "Frames": "0800_0750",
               "Heading": -13.078884587112812, "Platform": "ALOS-2", "Sensor": "a2"}
 
-
-import pandas as pd
-import numpy as np
-from shapely.geometry import Point, Polygon
-import glob
-
-
-def mask_inside_polygons(
-    df,
-    polygon_glob,       # e.g. "polygons/*.txt"
-    lon_col="Lon",
-    lat_col="Lat",
-    id_cols=None,       # columns to leave untouched
-    mask_cols=None,     # columns to set to NaN when inside
-    **read_kwargs       # passed to pd.read_csv for your polygon files
-):
-    """
-    For each text file matching polygon_glob, read lon/lat pairs into a Polygon,
-    then set df[mask_cols] = NaN for any row whose point lies within that polygon.
-    """
-    # default: leave ID + location columns alone, mask everything else
-    if id_cols is None:
-        id_cols = [lon_col, lat_col, "StaID"]
-    if mask_cols is None:
-        mask_cols = [c for c in df.columns if c not in id_cols]
-    
-    # make a copy so we don’t overwrite original unless you want to
-    out = df.copy()
-    
-    for fn in glob.glob(polygon_glob):
-        # assume each line in fn is: lon lat (whitespace or comma separated)
-        poly_pts = pd.read_csv(fn, header=None, names=[lon_col, lat_col], **read_kwargs)
-        poly = Polygon(poly_pts[[lon_col, lat_col]].values)
-        
-        # build boolean mask of points inside
-        inside = out.apply(
-            lambda row: poly.contains(Point(row[lon_col], row[lat_col])),
-            axis=1
-        )
-        # set the masked columns to NaN
-        out.loc[inside, mask_cols] = np.nan
-    out = out.dropna()
-    
-    return out
-
-
-# ------------------------
-# Load GPS Data
-# ------------------------
-gps_169 = utils.load_UNR_gps(paths_gps["169_enu"], ref_station)
-gps_170 = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
-gps_068 = utils.load_UNR_gps(paths_gps["068_enu"], ref_station)
-
 # ------------------------
 # Set InSAR File Paths from the dictionaries
 # ------------------------
@@ -95,6 +42,24 @@ geo_file_068 = paths_068["geo"]["geo_geometryRadar"]
 vel_file_169 = paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
 vel_file_170 = paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
 vel_file_068 = paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
+
+itrf_enu_169 = paths_169["geo"]["ITRF_enu"]
+itrf_enu_170 = paths_170["geo"]["ITRF_enu"]
+itrf_enu_068 = paths_068["geo"]["ITRF_enu"]
+
+# ------------------------
+# Load GPS Data
+# ------------------------
+gps_169 = utils.load_UNR_gps(paths_gps["169_enu"], ref_station)
+gps_170 = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
+gps_068 = utils.load_UNR_gps(paths_gps["068_enu"], ref_station)
+
+# ------------------------
+# Correct Plate Motion
+# ------------------------
+gps_169 = utils.gps_correction_plate_motion(geo_file_169, itrf_enu_169, gps_169, "CASR", unit)
+gps_170 = utils.gps_correction_plate_motion(geo_file_170, itrf_enu_170, gps_170, "CASR", unit)
+gps_068 = utils.gps_correction_plate_motion(geo_file_068, itrf_enu_068, gps_068, "CASR", unit)
 
 # ------------------------
 # Load InSAR Data
