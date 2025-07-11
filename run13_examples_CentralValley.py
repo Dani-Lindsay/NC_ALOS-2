@@ -40,6 +40,7 @@ canal_dist = 13
 
 #38.8994° N, 120.9147° W
 
+ref_station, ref_lon, ref_lat = "P208", -122.3039,  39.1093
 
 Art_la, Art_lo = 39.6242, -122.1954
 Art_la, Art_lo = 39.697254, -122.195851
@@ -134,7 +135,7 @@ def compute_cumulative_displacement(dates, values, start, stop, return_error=Fal
 # cv GPS
 columns = ['Lon', 'Lat', 'Ve', 'Vn', 'Vu', 'Std_e', 'Std_n', 'Std_u', 'StaID']
 gps_df = pd.read_csv(paths_gps['visr']['gps_enu'] ,delim_whitespace=True, comment='#', names=columns)
-Vu_ref, Ve_ref, Vn_ref = gps_df.loc[gps_df['StaID'] == 'P784', ['Vu', 'Ve', 'Vn']].values[0]
+Vu_ref, Ve_ref, Vn_ref = gps_df.loc[gps_df['StaID'] == 'P208', ['Vu', 'Ve', 'Vn']].values[0]
 gps_df[['Vu', 'Ve', 'Vn']] = gps_df[['Vu', 'Ve', 'Vn']] - [Vu_ref, Ve_ref, Vn_ref]
 cv_gps_df = gps_df
 
@@ -347,6 +348,9 @@ with fig.subplot(nrows=1, ncols=2, figsize=("9.2c", "9.6c"), autolabel="a)",shar
     fig.text(text="c)", x=points_CV[0][0], y=points_CV[0][1], justify="BR", offset="-0.2c/-0.1c", font="10p,Helvetica,black", projection=sub_map_size)
     fig.text(text="d)", x=points_CV[1][0], y=points_CV[1][1], justify="BR", offset="-0.2c/-0.1c", font="10p,Helvetica,black", projection=sub_map_size)
     
+    fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", projection=sub_map_size)
+    fig.text(text=ref_station, y=ref_lat, x=ref_lon, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size, fill="white", transparency=50)
+    fig.text(text=ref_station, y=ref_lat, x=ref_lon, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size)
     #fig.legend(position="JBL+jBL+o0.2c", box="+gwhite+p1p")
     
     
@@ -370,6 +374,8 @@ with fig.subplot(nrows=1, ncols=2, figsize=("9.2c", "9.6c"), autolabel="a)",shar
     fig.text(text="X'", x=canal_cropped1['Lon'].iloc[-1], y=canal_cropped1['Lat'].iloc[-1],justify="TL", offset="0.1c/-0.1c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size)
     fig.text(text="Y",  x=canal_cropped2['Lon'].iloc[0],  y=canal_cropped2['Lat'].iloc[0], justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size)
     fig.text(text="Y'", x=canal_cropped2['Lon'].iloc[-1], y=canal_cropped2['Lat'].iloc[-1],justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size)
+    
+    fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", projection=sub_map_size)
     
     fig.plot(data=common_paths["Tehama-Colusa_file"], pen="1p,dodgerblue2", region=cv_region, projection= sub_map_size) #, label="Tehama-Colusa")
     for fault_file in common_paths["fault_files"]:

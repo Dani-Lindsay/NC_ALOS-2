@@ -17,10 +17,6 @@ lat_step = common_paths["lat_step"]
 lon_step = common_paths["lon_step"]
 
 ref_station = common_paths["ref_station"]
-ref_lat = common_paths["ref_lat"]
-ref_lon = common_paths["ref_lon"]
-
-
 
 #fig_region="-122.5/-121.0/41.0/42.0" 
 
@@ -38,6 +34,10 @@ up_grd = decomp["grd"]["gps_insar_up"]
 
 # gey GPS
 gps_df = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
+
+# Set lat and lon for plotting from the gps file. 
+ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
+ref_lon = gps_df.loc[gps_df["StaID"] == ref_station, "Lon"].values
 
 ###########################
 # Plot 
@@ -58,18 +58,18 @@ pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain", FONT=12, FONT_TITLE
 fig.basemap(region=NC_fig_region, projection= size,frame=["WSrt", "xa", "ya"],)
 fig.grdimage(grid=NC_grid, projection=size, frame=["lbrt", "xa", "ya"], cmap='wiki-france.cpt', shading=NC_dgrid, transparency=40)
 pygmt.makecpt(cmap="vik", series=[-25, 25])
-fig.grdimage(grid=north_grd, cmap=True, nan_transparent=True)
+fig.grdimage(grid=north_grd, cmap=True, nan_transparent=True, region=NC_fig_region, projection= size)
 # Plot Faults
 for fault_file in common_paths["fault_files"]:
-    fig.plot(data=fault_file, pen="0.5p,black", transparency=50)
+    fig.plot(data=fault_file, pen="0.5p,black", transparency=50, region=NC_fig_region, projection= size)
     
-fig.coast(shorelines=True,projection= size, frame = ["+tNorth Velocity"])
+fig.coast(shorelines=True, frame = ["+tNorth Velocity"], region=NC_fig_region, projection= size)
 
-fig.text(text="a)", position="TL", offset="0.1c/-0.1c", justify="TL")
-fig.plot(x=gps_df["Lon"], y=gps_df["Lat"],  style="c.2c", fill=gps_df["Vn"], pen="0.8p,black", cmap=True)
+fig.text(text="a)", position="TL", offset="0.1c/-0.1c", justify="TL", region=NC_fig_region, projection= size)
+fig.plot(x=gps_df["Lon"], y=gps_df["Lat"],  style="c.2c", fill=gps_df["Vn"], pen="0.8p,black", cmap=True, region=NC_fig_region, projection= size)
+#fig.plot(y=ref_lat, x=ref_lon, style="s.3c", fill="black", pen="0.8p,black", region=NC_fig_region, projection= size)
 
-
-station_ids = ["PTSG", ]
+station_ids = [ "P187", "P186", "P269", "P167", "P345",  "WINT", "P181"  ]
 # Loop over desired station IDs and add text labels
 for sta in station_ids:
     row = gps_df[gps_df["StaID"] == sta]
@@ -80,10 +80,10 @@ for sta in station_ids:
     lon = row["Lon"].values[0]
     lat = row["Lat"].values[0]
     # Adjust offset as needed: here 0.1c to the right and 0.1c up
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/-0.5c+v", justify="LM", fill="white", transparency=50)
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/-0.5c+v", justify="LM")
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM", fill="white", transparency=50)
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM")
 
-station_ids = ["P161", "P156", "P163", "P159",]
+station_ids = ["P177",     "SBRB",]
 # Loop over desired station IDs and add text labels
 for sta in station_ids:
     row = gps_df[gps_df["StaID"] == sta]
@@ -94,11 +94,10 @@ for sta in station_ids:
     lon = row["Lon"].values[0]
     lat = row["Lat"].values[0]
     # Adjust offset as needed: here 0.1c to the right and 0.1c up
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="1c/1c+v", justify="LM", fill="white", transparency=50)
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="1c/1c+v", justify="LM")
-    
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.0c+v", justify="RM", fill="white", transparency=50)
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.0c+v", justify="RM")
 
-station_ids = ["CASR"]
+station_ids = ["CCSF",]
 # Loop over desired station IDs and add text labels
 for sta in station_ids:
     row = gps_df[gps_df["StaID"] == sta]
@@ -109,8 +108,10 @@ for sta in station_ids:
     lon = row["Lon"].values[0]
     lat = row["Lat"].values[0]
     # Adjust offset as needed: here 0.1c to the right and 0.1c up
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-1c/-1c+v", justify="RM", fill="white", transparency=50)
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-1c/-1c+v", justify="RM")
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/0.25c+v", justify="RM", fill="white", transparency=50)
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/0.25c+v", justify="RM")
+
+
 
 with pygmt.config(
         FONT_ANNOT_PRIMARY="18p,black", 
@@ -125,17 +126,45 @@ fig.shift_origin(xshift="7.5c")
 fig.basemap(region=NC_fig_region, projection= size,frame=["wSrt", "xa", "ya"],)
 fig.grdimage(grid=NC_grid, projection=size, frame=["lbrt", "xa", "ya"], cmap='wiki-france.cpt', shading=NC_dgrid, transparency=40)
 pygmt.makecpt(cmap="vik", series=[-25, 25])
-fig.grdimage(grid=east_grd, cmap=True, nan_transparent=True)
+fig.grdimage(grid=east_grd, cmap=True, nan_transparent=True, region=NC_fig_region, projection= size)
 # Plot Faults
 for fault_file in common_paths["fault_files"]:
-    fig.plot(data=fault_file, pen="0.5p,black", transparency=50)
+    fig.plot(data=fault_file, pen="0.5p,black", transparency=50, region=NC_fig_region, projection= size)
 
-fig.text(text="b)", position="TL", offset="0.1c/-0.1c", justify="TL")
-fig.coast(shorelines=True,projection= size, frame = ["+tEast Velocity"])
-fig.plot(x=gps_df["Lon"], y=gps_df["Lat"],  style="c.2c", fill=gps_df["Ve"], pen="0.8p,black", cmap=True)
+fig.text(text="b)", position="TL", offset="0.1c/-0.1c", justify="TL", region=NC_fig_region, projection= size)
+fig.coast(shorelines=True, frame = ["+tEast Velocity"], region=NC_fig_region, projection= size)
+fig.plot(x=gps_df["Lon"], y=gps_df["Lat"],  style="c.2c", fill=gps_df["Ve"], pen="0.8p,black", cmap=True, region=NC_fig_region, projection= size)
+#fig.plot(y=ref_lat, x=ref_lon, style="s.3c", fill="black", pen="0.8p,black", region=NC_fig_region, projection= size)
+
+station_ids = ["P272","P162", "P165", "P219", "P059", "P193","P058", "P344", "TRND", "P336","P313", "P158",]# Loop over desired station IDs and add text labels
+for sta in station_ids:
+    row = gps_df[gps_df["StaID"] == sta]
+    if row.empty:
+        # Optionally warn if station not found
+        print(f"Warning: station {sta} not found in gps_df")
+        continue
+    lon = row["Lon"].values[0]
+    lat = row["Lat"].values[0]
+    # Adjust offset as needed: here 0.1c to the right and 0.1c up
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM", fill="white", transparency=50)
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM")
+
+station_ids = []
+# Loop over desired station IDs and add text labels
+for sta in station_ids:
+    row = gps_df[gps_df["StaID"] == sta]
+    if row.empty:
+        # Optionally warn if station not found
+        print(f"Warning: station {sta} not found in gps_df")
+        continue
+    lon = row["Lon"].values[0]
+    lat = row["Lat"].values[0]
+    # Adjust offset as needed: here 0.1c to the right and 0.1c up
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.5c+v", justify="RM", fill="white", transparency=50)
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.5c+v", justify="RM")
 
 
-    
+
 with pygmt.config(
         FONT_ANNOT_PRIMARY="18p,black", 
         FONT_ANNOT_SECONDARY="18p,black",
@@ -150,16 +179,26 @@ fig.shift_origin(xshift="7.5c")
 fig.basemap(region=NC_fig_region, projection= size,frame=["wSrt", "xa", "ya"],)
 fig.grdimage(grid=NC_grid, projection=size, frame=["lbrt", "xa", "ya"], cmap='wiki-france.cpt', shading=NC_dgrid, transparency=40)
 pygmt.makecpt(cmap="vik", series=[-12.5, 12.5])
-fig.grdimage(grid=up_grd, cmap=True, nan_transparent=True)
+fig.grdimage(grid=up_grd, cmap=True, nan_transparent=True, region=NC_fig_region, projection= size)
 # Plot Faults
 for fault_file in common_paths["fault_files"]:
-    fig.plot(data=fault_file, pen="0.5p,black", transparency=50)
+    fig.plot(data=fault_file, pen="0.5p,black", transparency=50, region=NC_fig_region, projection= size)
 
-fig.coast(shorelines=True,projection= size, frame = ["+tUp Velocity"])
-fig.plot(x=gps_df["Lon"], y=gps_df["Lat"],  style="c.2c", fill=gps_df["Vu"], pen="0.8p,black", cmap=True)
+fig.coast(shorelines=True, frame = ["+tUp Velocity"], region=NC_fig_region, projection= size)
+fig.plot(x=gps_df["Lon"], y=gps_df["Lat"],  style="c.2c", fill=gps_df["Vu"], pen="0.8p,black", cmap=True, region=NC_fig_region, projection= size)
+#fig.plot(y=ref_lat, x=ref_lon, style="s.3c", fill="black", pen="0.8p,black", region=NC_fig_region, projection= size)
 
-fig.text(text="c)", position="TL", offset="0.1c/-0.1c", justify="TL")
-    
+fig.text(text="c)", position="TL", offset="0.1c/-0.1c", justify="TL", region=NC_fig_region, projection= size)
+
+sf_min_lon = -122.7
+sf_max_lon = -122.0
+sf_min_lat = 37.5
+sf_max_lat = 38.0
+
+fig.plot(x = [sf_min_lon, sf_min_lon, sf_max_lon, sf_max_lon, sf_min_lon], 
+         y = [sf_min_lat, sf_max_lat, sf_max_lat, sf_min_lat, sf_min_lat], 
+         pen="0.8p,black,--", transparency=0)
+
 with pygmt.config(
         FONT_ANNOT_PRIMARY="18p,black", 
         FONT_ANNOT_SECONDARY="18p,black",
@@ -167,6 +206,6 @@ with pygmt.config(
         ):
     fig.colorbar(position="jBL+o0.4c/0.4c+w4c/0.4c", frame=["xaf", "y+lmm/yr"],)
     
-fig.savefig(common_paths["fig_dir"]+"Fig_8_East_North_Up_170_068_GNSS_INSAR.png", transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths["fig_dir"]+"Fig_8_East_North_Up_170_068_GNSS_INSAR.pdf", transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f"Fig_8_{ref_station}_East_North_Up_170_068_GNSS_INSAR.png", transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f"Fig_8_{ref_station}_East_North_Up_170_068_GNSS_INSAR.pdf", transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()  

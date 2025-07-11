@@ -182,6 +182,8 @@ with fig.subplot(nrows=2, ncols=1, figsize=("6c", "9.35c"), autolabel="a)",share
     fig.text(text="Shasta", x=shasta_lon, y=shasta_lat, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black", region=mlv_region, projection= sub_map_size, fill="white", transparency=50)
     fig.text(text="Shasta", x=shasta_lon, y=shasta_lat, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black", region=mlv_region, projection= sub_map_size)
     fig.plot(x=shasta_lon, y=shasta_lat,  style="t.25c", fill="black", pen="0.8p,black", region=mlv_region, projection= sub_map_size)
+    fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=mlv_region, projection= sub_map_size)
+    
     
     for fault_file in common_paths["fault_files"]:
         fig.plot(data=fault_file, pen="0.5p,black", transparency=50, region=mlv_region, projection= sub_map_size)

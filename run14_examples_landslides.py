@@ -17,22 +17,26 @@ lon_step = common_paths["lon_step"]
 
 # Start and end in decimal years
 t0 = 2021.5  
-te = 2024.4  
+te = 2024.3  
 
 landslide_poly_file = common_paths["wcSlides"]
 
 eq1 = 2021.9685
 eq2 = 2022.9685
 
-dist = 0.005
+dist = 0.004
 
 unit = 100
 
 # Define the radius within which you want to average the data (in degrees)
 radius = dist  # Approximately 1 km if near the equator
 
+#fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", projection=sub_map_size)
+#fig.text(text=ref_station, y=ref_lat, x=ref_lon, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size, fill="white", transparency=50)
+#fig.text(text=ref_station, y=ref_lat, x=ref_lon, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size)
 
-
+eel_lat, eel_lon = 40.08125, -123.4565
+gra_lat, gra_lon = 40.72454, -123.81898
 
 ########################################
 ### InSAR Timeseries
@@ -64,7 +68,7 @@ insar_Gr = utils.load_insar_vel_ts_as_dictionary(dic_Gr)
 points_Ee = [(-123.47859, 40.06566), (-123.46672, 40.06880)] # -123.48453, 40.06314, -123.47859, 40.06566, -123.47774, 40.06503
 points_Gr = [(-123.839620, 40.701837), (-123.861337, 40.694509)] # (-123.852107, 40.723637),
 
-
+#points_Gr = [( 40.69284, -123.82379), (-123.861337, 40.694509)]
 # Assuming 'des2_lons' and 'des2_lats' are 2D arrays of longitude and latitude values
 # and 'des2_ts' is the 3D time series data array
 
@@ -134,8 +138,9 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="a)", sh
         # Label the marker with offset 0.5 cm to the right
         fig.text(text=lbl, x=lon, y=lat, justify="RM", offset="0.5c/0c", font="10p,Helvetica,black", 
                  region=region, projection=fig_size)
-        
-    fig.basemap(frame=["WSrt", "xa0.1", "ya0.1"], map_scale="jTR+w5k+o0.3/0.3c", projection=fig_size)
+    
+    fig.plot(y=gra_lat, x=gra_lon, style="s.15c", fill="black", pen="0.8p,black", region=region, projection=fig_size)
+    fig.basemap(frame=["WSrt", "xa0.1", "ya0.1"], map_scale="jBR+w5k+o0.3/0.5c", projection=fig_size)
     
     fig.basemap(frame=["wSrt", "xa0.1", "ya0.1"], region=region, projection=fig_size, panel=True)
     pygmt.makecpt(cmap="vik", series=[-0.1+0.035, 0.1+0.035])
@@ -162,6 +167,7 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="a)", sh
         pygmt.makecpt(cmap="vik", series=[-10, 10])
         fig.colorbar(position="jBL+o0.5c/0.5c+w3c/0.4c", frame=["xa", "y+lcm/yr"], projection=fig_size)
             
+    fig.plot(y=gra_lat, x=gra_lon, style="s.15c", fill="black", pen="0.8p,black", region=region, projection=fig_size)
     fig.basemap(frame=["wSrt", "xa0.1", "ya0.1"], map_scale="jBR+w5k+o0.3/0.5c", projection=fig_size)
     
 fig.shift_origin(xshift="w+1c")
@@ -175,8 +181,8 @@ with fig.subplot(nrows=2, ncols=1, figsize=("8.5c", "6.4c"), autolabel="c)", sha
                  margins=["0.05c", "0.05c"],
 ):
  
-    y_text = -22
-    region_ts = [t0-0.1, te+0.1, -0.25*100, 0.05*100]
+    y_text = -24
+    region_ts = [t0-0.1, te+0.1, -0.27*100, 0.05*100]
     fig.basemap(frame=["lstE", "xaf+lDate", "ya+lLOS (cm)"], region=region_ts, projection="X?", panel=True)
     fig.plot(x=[2021.9167, 2021.9167,  2022.1667,  2022.1667, 2021.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)
     fig.plot(x=[2022.9167, 2022.9167,  2023.1667,  2023.1667, 2022.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)
@@ -190,11 +196,11 @@ with fig.subplot(nrows=2, ncols=1, figsize=("8.5c", "6.4c"), autolabel="c)", sha
     fig.text(text=f"{vel_Gr_c_23:.1f} ± {err_Gr_c_23:.1f} cm/yr", x=(vel_t3+vel_t4)/2, y=y_text, font="8p,Helvetica,black", offset="0c/0.2c")
     
     fig.plot(x=insar_Gr["ts_dates"], y=time_series_Gr[0]*unit, style="c0.1c", fill="dodgerblue4") #, label = "A2") #, label="%s A2 InSAR baseline" % tar_station)
-    fig.text(text="M6.4", x=eq1, y=-10, justify="LM", offset="0.1c/0.0c",)
-    fig.text(text="M6.4", x=eq2, y=-10, justify="LM", offset="0.1c/0.0c",)
+    fig.text(text="M6.4", x=eq1, y=-15, justify="LM", offset="0.1c/0.0c",)
+    fig.text(text="M6.4", x=eq2, y=-15, justify="LM", offset="0.1c/0.0c",)
     
 
-    region_ts = [t0-0.1, te+0.1, -0.05*100, 0.3*100]
+    region_ts = [t0-0.1, te+0.1, -0.06*100, 0.26*100]
     fig.basemap(frame=["lStE", "xaf", "ya+lLOS (cm)"], region=region_ts, projection="X?", panel=True)
     fig.plot(x=[2021.9167, 2021.9167,  2022.1667,  2022.1667, 2021.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)
     fig.plot(x=[2022.9167, 2022.9167,  2023.1667,  2023.1667, 2022.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)
@@ -233,18 +239,21 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="e)", sh
     labels = ["g)", "h)"]
     for (lon, lat), lbl in zip(points_Ee, labels):
         # Plot marker at (lon, lat)
-        fig.plot(x=lon, y=lat, style="c.2c", pen="0.8p,blacl", projection=fig_size)
+        fig.plot(x=lon, y=lat, style="c.2c", pen="0.8p,black", projection=fig_size)
     
         # Label the marker with offset 0.5 cm to the right
         fig.text(text=lbl, x=lon, y=lat, justify="RM", offset="0.5c/0c", font="10p,Helvetica,black", 
                  region=region, projection=fig_size)
-
-    fig.basemap(frame=["WSrt", "xa0.1", "ya0.1"], map_scale="jTR+w2k+o0.3/0.3c", projection=fig_size)
+    
+    fig.plot(y=eel_lat, x=eel_lon, style="s.15c", fill="black", pen="0.8p,black", region=region, projection=fig_size)
+    fig.basemap(frame=["WSrt", "xa0.1", "ya0.1"], map_scale="jBR+w2k+o0.3/0.5c", projection=fig_size)
     
     fig.basemap(frame=["wSrt", "xa0.1", "ya0.1"], region=region, projection=fig_size, panel=True)
     pygmt.makecpt(cmap="vik", series=[-0.1, 0.1])
     fig.grdimage(grid=paths_170_5_28['EelRiver']['geo_velocity_msk_grd'], cmap=True, region=region, projection=fig_size)
     fig.plot(data=landslide_poly_file, pen="1.0p,white", projection=fig_size)
+    
+    
     
     fig.text(region=region, projection=fig_size, text="Boulder Creek", position="TC",offset ="0.0/-0.2c") 
     
@@ -265,6 +274,8 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="e)", sh
              ):
         pygmt.makecpt(cmap="vik", series=[-10, 10])
         fig.colorbar(position="jBL+o0.5c/0.5c+w3c/0.4c", frame=["xa", "y+lcm/yr"], projection=fig_size)
+        
+    fig.plot(y=eel_lat, x=eel_lon, style="s.15c", fill="black", pen="0.8p,black", region=region, projection=fig_size)
 
     fig.basemap(frame=["wSrt", "xa0.1", "ya0.1"], map_scale="jBR+w2k+o0.3/0.5c", projection=fig_size)
     
@@ -296,7 +307,7 @@ with fig.subplot(nrows=2, ncols=1, figsize=("8.5c", "6.4c"), autolabel="g)", sha
     fig.plot(x=insar_Ee["ts_dates"], y=time_series_Ee[0]*unit, style="c0.1c", fill="dodgerblue4") #, label = "A2") #, label="%s A2 InSAR baseline" % tar_station)
     
     y_text = -18
-    region_ts = [t0-0.1, te+0.1, -20, 5]
+    region_ts = [t0-0.1, te+0.1, -20, 3]
     fig.basemap(frame=["lStE", "xaf", "ya+lLOS (cm)"], region=region_ts, projection="X?", panel=True)
     fig.plot(x=[2021.9167, 2021.9167,  2022.1667,  2022.1667, 2021.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)
     fig.plot(x=[2022.9167, 2022.9167,  2023.1667,  2023.1667, 2022.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)

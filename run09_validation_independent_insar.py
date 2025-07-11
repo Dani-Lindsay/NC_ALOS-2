@@ -6,7 +6,7 @@ Created on Thu Jul  3 11:55:15 2025
 @author: daniellelindsay
 """
 
-from NC_ALOS2_filepaths import (common_paths, paths_068, paths_169, paths_170, paths_170_5_28, paths_115)
+from NC_ALOS2_filepaths import (common_paths, paths_068, paths_169, paths_170, paths_170_5_28, paths_115, paths_gps)
 import insar_utils as utils
 import pygmt
 import pandas as pd
@@ -17,11 +17,10 @@ unit = 100
 # set your bin size in cm/yr
 #bin_size = 0.01
 
-ref_station = common_paths["ref_station"]
+#ref_station = common_paths["ref_station"]
 
 ref_station = "P208"
-ref_lat = common_paths["ref_lat"]
-ref_lon = common_paths["ref_lon"]
+
 
 asc_des_min_lat = 38.9 - 0.1
 asc_des_max_lat = 39.1 + 0.1
@@ -62,6 +61,11 @@ def prepare_heatmap_xyz(df, x_col, y_col, bin_size=0.1):
         .sort_values('count')
     )
 
+
+gps_df = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
+# Set lat and lon for plotting from the gps file. 
+ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
+ref_lon = gps_df.loc[gps_df["StaID"] == ref_station, "Lon"].values
 
 ##############################
 # Prepare asc and des comparison 

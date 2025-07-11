@@ -32,6 +32,7 @@ import insar_utils as utils
 # ------------------------
 # Parameters
 # ------------------------
+ref_station       = common_paths['ref_station']
 
 w = common_paths['bbox']['w']
 e = common_paths['bbox']['e']
@@ -54,7 +55,7 @@ def process_track(track):
     Given a track dictionary with keys "CASR" and "geo", run the processing commands:
     timeseries-to-velocity conversion, geocoding, plate motion, diff, and mask.
     """
-    casr = track["CASR"]
+    casr = track[ref_station]
     geo = track["geo"]
     grd = track["grd"]
     # Determine the geo output directory from one of the geo files (assumed to be in the same folder)
@@ -97,14 +98,14 @@ def process_track(track):
                  "--lalo", lat_step, lon_step,
                  "--bbox", s, n, w, e,
                  "--outdir", geo_dir])
-    run_command([geocode_py, casr["velocityERA5"], "-l", geo["geometryRadar"],
-                 "--lalo", lat_step, lon_step,
-                 "--bbox", s, n, w, e,
-                 "--outdir", geo_dir])
-    run_command([geocode_py, casr["demErr"], "-l", geo["geometryRadar"],
-                 "--lalo", lat_step, lon_step,
-                 "--bbox", s, n, w, e,
-                 "--outdir", geo_dir])
+    #run_command([geocode_py, casr["velocityERA5"], "-l", geo["geometryRadar"],
+    #             "--lalo", lat_step, lon_step,
+    #             "--bbox", s, n, w, e,
+    #             "--outdir", geo_dir])
+    #run_command([geocode_py, casr["demErr"], "-l", geo["geometryRadar"],
+    #             "--lalo", lat_step, lon_step,
+    #             "--bbox", s, n, w, e,
+    #             "--outdir", geo_dir])
     
     # --- Plate Motion ---
     run_command(["plate_motion.py", "-g", geo["geo_geometryRadar"],
@@ -125,7 +126,7 @@ def process_track(track):
     run_command(["mask.py", geo["diff_SET"], "-m", geo["geo_waterMask"], "-o", geo["diff_SET"]])
     run_command(["mask.py", geo["diff_ERA5"], "-m", geo["geo_waterMask"], "-o", geo["diff_ERA5"]])
     run_command(["mask.py", geo["diff_demErr"], "-m", geo["geo_waterMask"], "-o", geo["diff_demErr"]])
-    run_command(["mask.py", geo["diff_ITRF14"], "-m", geo["geo_waterMask"], "-o", geo["diff_ITRF14"]])    
+    run_command(["mask.py", geo["diff_ITRF14"], "-m", geo["geo_waterMask"], "-o", geo["diff_ITRF14"]])  
     
     # --- Save GMT Commands ---
     run_command(["save_gmt.py", geo["diff_SET"], "-o", grd["diff_SET"]])
@@ -138,13 +139,15 @@ def process_track(track):
     run_command(["save_gmt.py", geo["geo_velocity_SET_ERA5_demErr_msk"], "-o", grd["geo_velocity_SET_ERA5_demErr_msk"]])
     run_command(["save_gmt.py", geo["geo_velocity_SET_ERA5_demErr_ITRF14_msk"], "-o", grd["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]])
 
-#if __name__ == "__main__":
-    # Process each track individually. 
-    #for track in (paths_068, paths_169, paths_170):
-    #    print("\nProcessing track:")
-    # process_track(paths_170)
-    # process_track(paths_169)
-    # process_track(paths_068)
+# if __name__ == "__main__":
+#     Process each track individually. 
+#     for track in (paths_068, paths_169, paths_170):
+#        print("\nProcessing track:")
+
+process_track(paths_170)
+process_track(paths_169)
+process_track(paths_068)
+
     
 # Mask Central Valley Examples
 temp_coh = str(0.7)  

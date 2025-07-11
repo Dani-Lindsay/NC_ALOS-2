@@ -1001,8 +1001,6 @@ def gps_correction_plate_motion(geo_file: str,
     idx_ref = np.nanargmin(d2_ref)
     e_ref, n_ref, u_ref = east[idx_ref], north[idx_ref], up[idx_ref]
     
-
-
     # 4) apply correction to each GPS site
     out = gps_df.copy()
     Ve_corr, Vn_corr, Vu_corr = [], [], []
@@ -1016,9 +1014,9 @@ def gps_correction_plate_motion(geo_file: str,
         rel_n = north[idx] - n_ref
         rel_u = up[idx]    - u_ref
 
-        Ve_corr.append(row['Ve'] - rel_e)
-        Vn_corr.append(row['Vn'] - rel_n)
-        Vu_corr.append(row['Vu'] - rel_u)
+        Ve_corr.append(row['Ve'] + rel_e)
+        Vn_corr.append(row['Vn'] + rel_n)
+        Vu_corr.append(row['Vu'] + rel_u)
 
     out['Ve'] = Ve_corr
     out['Vn'] = Vn_corr

@@ -27,7 +27,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 from urllib.request import urlretrieve
 
-from NC_ALOS2_filepaths import (paths_gps, paths_068, paths_169, paths_170)
+from NC_ALOS2_filepaths import (paths_gps, paths_068, paths_169, paths_170, common_paths)
 import insar_utils as utils
 
 # ---------------------------------------------------------------------------
@@ -60,6 +60,7 @@ sta_list_170      = paths_gps['170_StaList']
 out_068           = paths_gps['068_enu']
 out_169           = paths_gps['169_enu']
 out_170           = paths_gps['170_enu']
+ref_station       = common_paths['ref_station']
 
 # Manual exclusion list # check 312,
 manual_exclude = [
@@ -69,7 +70,8 @@ manual_exclude = [
     "P312", "P332", "P340", "P348", "P655", "P656", "P658", "P663", "P666", 
     "P668", "P671", "P673", "P674", "P794", "RAPT", "RBRU", "RDFD", "RDGM", 
     "RNO1", "SLID", "TRAN", "YBHB", "P175", "P661", "P670", "P669", "CSJB",
-    "P305", "MNDS", "FARB", "P534"]
+    "P305", "MNDS", "FARB", "P534", "P313", "P336", "P219"
+    "P231", "CAMT", "P171" ] # These three on Monterey peninsulae where we have unwrapping errors. 
 
 
 # Don't fix the equipment step for these stations
@@ -483,9 +485,9 @@ if __name__ == '__main__':
     dload_site_list(steps_URL, Steps_file)
     
     # Get start and end dates directly from the InSAR tracks
-    s68, e68, d068, d168 = get_start_end_dates(paths_068['CASR']['timeseries'])
-    s169, e169, d169, d269 = get_start_end_dates(paths_169['CASR']['timeseries'])
-    s170, e170, d170, d370 = get_start_end_dates(paths_170['CASR']['timeseries'])
+    s68, e68, d068, d168 = get_start_end_dates(paths_068[ref_station]['timeseries'])
+    s169, e169, d169, d269 = get_start_end_dates(paths_169[ref_station]['timeseries'])
+    s170, e170, d170, d370 = get_start_end_dates(paths_170[ref_station]['timeseries'])
     
     # Calculate minimum data length based on start and end dates
     ml68  = compute_min_data_len(d068, d168, data_threshold)

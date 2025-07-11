@@ -14,8 +14,6 @@ import pandas as pd
 
 dist = common_paths["dist"]
 ref_station = common_paths["ref_station"]
-ref_lat = common_paths["ref_lat"]
-ref_lon = common_paths["ref_lon"]
 
 # Input files 
 asc_068_grd = paths_068["grd_mm"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
@@ -34,17 +32,19 @@ insar_gps_up_grd = decomp["grd"]["gps_insar_up"]
 # Load InSAR
 #####################
 
-asc_up_df = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], decomp["CASR"]["asc_semi"], "velocity")
-des_up_df = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], decomp["CASR"]["des_semi"], "velocity")
-insar_up_df = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], decomp["CASR"]["insar_only_up"], "velocity")
-insar_gps_up = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], decomp["CASR"]["gps_insar_up"], "velocity")
+asc_up_df = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], decomp[ref_station]["asc_semi"], "velocity")
+des_up_df = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], decomp[ref_station]["des_semi"], "velocity")
+insar_up_df = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], decomp[ref_station]["insar_only_up"], "velocity")
+insar_gps_up = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], decomp[ref_station]["gps_insar_up"], "velocity")
 
 #####################
 # Load in GPS and project UNR enu --> los
 #####################
 
 gps_df = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
-
+# Set lat and lon for plotting from the gps file. 
+ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
+ref_lon = gps_df.loc[gps_df["StaID"] == ref_station, "Lon"].values
 
 #####################
 # Find average InSAR velocity for each GPS point 
@@ -60,6 +60,14 @@ des_up["residuals"] = des_up['Vu'] - des_up['insar_Vel']
 insar_up["residuals"] = insar_up['Vu'] - insar_up['insar_Vel']
 insar_gps_up["residuals"] = insar_gps_up['Vu'] - insar_gps_up['insar_Vel']
 
+insar_gps_up_sf = insar_gps_up[
+    (insar_gps_up["Lon"] > -122.7) &
+    (insar_gps_up["Lon"] < -122.0) &
+    (insar_gps_up["Lat"] > 37.5) &
+    (insar_gps_up["Lat"] < 38.0)
+]
+
+
 #####################
 # Calculate rmse, r2 and linear fit
 #####################
@@ -67,6 +75,7 @@ rmse_asc_up, r2_asc_up, slope_asc_up, intercept_asc_up = utils.calculate_rmse_r2
 rmse_des_up, r2_des_up, slope_des_up, intercept_des_up = utils.calculate_rmse_r2_and_linear_fit(des_up['Vu'], des_up['insar_Vel'])
 rmse_insar_up, r2_insar_up, slope_insar_up, intercept_insar_up = utils.calculate_rmse_r2_and_linear_fit(insar_up['Vu'], insar_up['insar_Vel'])
 rmse_insar_gps_up, r2_insar_gps_up, slope_insar_gps_up, intercept_insar_gps_up = utils.calculate_rmse_r2_and_linear_fit(insar_gps_up['Vu'], insar_gps_up['insar_Vel'])
+rmse_insar_gps_up_sf, r2_insar_gps_up_sf, slope_insar_gps_up_sf, intercept_insar_gps_up_sf = utils.calculate_rmse_r2_and_linear_fit(insar_gps_up_sf['Vu'], insar_gps_up_sf['insar_Vel'])
 
 # ------------------------
 # Print 2D‐ramp validation metrics and residual‐percent
@@ -121,7 +130,6 @@ with fig.subplot(nrows=2, ncols=2, figsize=("7.5c", "12.0c"), autolabel=True,sha
     
     fig.basemap(    region=[fig_region], projection=size, panel=True, frame=["Wsrt", "xa", "ya"])
     fig.grdimage(   region=[fig_region], projection=size, grid=asc_068_grd, cmap=True, nan_transparent=True)
-    fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
     fig.coast(area_thresh=5000, borders=1,  shorelines=True, region=[fig_region], projection=size, )
     fig.text(text="Ascending", position="BL", offset="0.2c/0.2c", justify="BL", fill="white", region=[fig_region], projection=size)
     with pygmt.config(FONT_ANNOT_PRIMARY="16p,black", FONT_ANNOT_SECONDARY="16p,black", FONT_LABEL="16p,black"):
@@ -147,7 +155,6 @@ with fig.subplot(nrows=2, ncols=2, figsize=("7.5c", "12.0c"), autolabel=True,sha
     
     fig.basemap(region=[fig_region], projection=size, panel=True, frame=["wsrt", "xa", "ya"])
     fig.grdimage(   region=[fig_region], projection=size, grid=des_170_grd, cmap=True, nan_transparent=True)
-    fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
     fig.coast(area_thresh=5000, borders=1, shorelines=True, region=[fig_region], projection=size, )
     fig.text(text="Descending", position="BL", offset="0.2c/0.2c", justify="BL",  fill="white", region=[fig_region], projection=size)
     with pygmt.config(FONT_ANNOT_PRIMARY="16p,black", FONT_ANNOT_SECONDARY="16p,black", FONT_LABEL="16p,black"):
@@ -155,8 +162,6 @@ with fig.subplot(nrows=2, ncols=2, figsize=("7.5c", "12.0c"), autolabel=True,sha
         
     fig.basemap(region=[fig_region], projection=size, panel=True, frame=["WSrt", "xa", "ya"])
     fig.grdimage(   region=[fig_region], projection=size, grid=north_grd, cmap=True, nan_transparent=True)
-    
-    fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
     fig.coast(area_thresh=5000, borders=1,   shorelines=True, region=[fig_region], projection=size, )
     fig.text(text="Interp. North", position="BL", offset="0.2c/0.2c", justify="BL",  fill="white", region=[fig_region], projection=size)
     with pygmt.config(FONT_ANNOT_PRIMARY="16p,black", FONT_ANNOT_SECONDARY="16p,black", FONT_LABEL="16p,black"):
@@ -173,7 +178,6 @@ with fig.subplot(nrows=2, ncols=2, figsize=("7.5c", "12.0c"), autolabel=True,sha
     
     fig.basemap(region=[fig_region], projection=size, panel=True, frame=["wSrt", "xa", "ya"])
     fig.grdimage(   region=[fig_region], projection=size, grid=east_grd, cmap=True, nan_transparent=True)
-    fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
     fig.coast(area_thresh=5000, borders=1,   shorelines=True, region=[fig_region], projection=size,)
     fig.text(text="Interp. East", position="BL", offset="0.2c/0.2c", justify="BL",  fill="white", region=[fig_region], projection=size)
     with pygmt.config(FONT_ANNOT_PRIMARY="16p,black", FONT_ANNOT_SECONDARY="16p,black", FONT_LABEL="16p,black"):
@@ -189,8 +193,6 @@ with fig.subplot(nrows=2, ncols=4, figsize=("15c", "12.0c"), autolabel="e)",shar
     fig.basemap(region=[fig_region], projection=size, panel=True, frame=["Wsrt", "xa", "ya"])
     fig.grdimage(   region=[fig_region], projection=size, grid=asc_up_grd, cmap=True, nan_transparent=True)
     fig.plot(x=des_up["Lon"], y=des_up["Lat"], fill=des_up["Vu"], pen="black", cmap=True, style=res_style,  region=[fig_region],projection= size)
-    fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
-    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", region=[fig_region],projection= size)
     fig.coast(area_thresh=5000, borders=1,  shorelines=True, region=[fig_region], projection=size, frame = ["+tSemi-vertical Asc."])
     
     fig.text(
@@ -205,19 +207,19 @@ with fig.subplot(nrows=2, ncols=4, figsize=("15c", "12.0c"), autolabel="e)",shar
     fig.basemap(    region=[fig_region], projection=size, panel=True, frame=["wsrt", "xa", "ya"])
     fig.grdimage(   region=[fig_region], projection=size, grid=des_up_grd, cmap=True, nan_transparent=True)
     fig.plot(x=des_up["Lon"], y=des_up["Lat"], fill=des_up["Vu"], pen="black", cmap=True, style=res_style,  region=[fig_region],projection= size)
-    fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
+    
     fig.coast(area_thresh=5000, borders=1, shorelines=True, region=[fig_region], projection=size, frame = ["+tSemi-vertical Des."])
         
     fig.basemap(    region=[fig_region], projection=size, panel=True, frame=["wsrt", "xa", "ya"])
     fig.grdimage(   region=[fig_region], projection=size, grid=insar_up_grd, cmap=True, nan_transparent=True)
     fig.plot(x=des_up["Lon"], y=des_up["Lat"], fill=des_up["Vu"], pen="black", cmap=True, style=res_style,  region=[fig_region],projection= size)
-    fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
+    
     fig.coast(area_thresh=5000, borders=1,   shorelines=True, region=[fig_region], projection=size, frame = ["+tInSAR-only"])
     
     fig.basemap(region=[fig_region], projection=size, panel=True, frame=["wsrt", "xa", "ya"])
     fig.grdimage(   region=[fig_region], projection=size, grid=insar_gps_up_grd, cmap=True, nan_transparent=True)
     fig.plot(x=des_up["Lon"], y=des_up["Lat"], fill=des_up["Vu"], pen="black", cmap=True, style=res_style,  region=[fig_region],projection= size)
-    fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
+    
     fig.coast(area_thresh=5000, borders=1,   shorelines=True, region=[fig_region], projection=size, frame = ["+tInSAR+GNSS"])
 
     with pygmt.config(
@@ -230,7 +232,6 @@ with fig.subplot(nrows=2, ncols=4, figsize=("15c", "12.0c"), autolabel="e)",shar
     fig.basemap(region=[fig_region], projection=size, panel=True, frame=["WSrt", "xa", "ya"])
     pygmt.makecpt(cmap="roma", series=[ -5, 5, 1])
     fig.plot(x=asc_up["Lon"], y=asc_up["Lat"], fill=asc_up["residuals"], pen="black", cmap=True, style=res_style,  region=[fig_region],projection= size)
-    fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
     fig.coast(area_thresh=5000, borders=1, shorelines=True, region=[fig_region], projection=size, )
     fig.text(text=f'{rmse_asc_up:.2f} mm/yr', position="BL", offset="0.2c/0.2c", region=[fig_region], projection=size)
     
@@ -246,7 +247,6 @@ with fig.subplot(nrows=2, ncols=4, figsize=("15c", "12.0c"), autolabel="e)",shar
     fig.basemap(region=[fig_region], projection=size, panel=True, frame=["wSrt", "xa", "ya"])
     pygmt.makecpt(cmap="roma", series=[ -5, 5, 1])
     fig.plot(x=des_up["Lon"], y=des_up["Lat"], fill=des_up["residuals"], pen="black", cmap=True, style=res_style,  region=[fig_region],projection= size)
-    fig.plot(x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
     fig.coast(area_thresh=5000, borders=1, shorelines=True, region=[fig_region], projection=size, )
     fig.text(text=f'{rmse_des_up:.2f} mm/yr', position="BL", offset="0.2c/0.2c", region=[fig_region], projection=size)    
     
@@ -270,6 +270,6 @@ with fig.subplot(nrows=2, ncols=4, figsize=("15c", "12.0c"), autolabel="e)",shar
         ):
         fig.colorbar(position="jCL+o3.7c/0.0c+w4.0c/0.4c", frame=["xa+lResidual (mm/yr)", "y"], projection = size)
         
-fig.savefig(common_paths['fig_dir']+'Fig_4_3D_results_170_068.png', transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths['fig_dir']+'Fig_4_3D_results_170_068.pdf', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+f'Fig_4_{ref_station}_3D_results_170_068.png', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+f'Fig_4_{ref_station}_3D_results_170_068.pdf', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()

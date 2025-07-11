@@ -14,8 +14,6 @@ import h5py
 
 distance_threshold = common_paths["dist"]
 ref_station = common_paths["ref_station"]
-ref_lat = common_paths["ref_lat"]
-ref_lon = common_paths["ref_lon"]
 
 unit = 1000
 
@@ -197,6 +195,10 @@ columns = ['Lon', 'Lat', 'Ve', 'Vn', 'Vu', 'Std_e', 'Std_n', 'Std_u', 'StaID']
 #gps_df = pd.read_csv(paths_gps["visr"]["gps_enu"], delim_whitespace=True, comment='#', names=columns)
 gps_df = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
 
+# Set lat and lon for plotting from the gps file. 
+ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
+ref_lon = gps_df.loc[gps_df["StaID"] == ref_station, "Lon"].values
+
 # Read GPS grid files for north and east displacements along with the coordinate arrays
 gnss_lon_1d, gnss_lat_1d, gnss_north = utils.load_gmt_grid(paths_gps["visr"]["north"])
 _, _, gnss_east = utils.load_gmt_grid(paths_gps["visr"]["east"])
@@ -267,6 +269,23 @@ data = pd.DataFrame({
     'gnss_lat': gnss_lat.ravel()   # Add GNSS latitude
 })
 
+# assuming ref_lat and ref_lon each contain exactly one value:
+ref_lat_val = float(ref_lat[0])   # or ref_lat.item()
+ref_lon_val = float(ref_lon[0])   # or ref_lon.item()
+
+# find the index in data whose (gnss_lon,gnss_lat) is closest to (ref_lon,ref_lat)
+dist2 = (data["gnss_lon"] - ref_lon_val)**2 + (data["gnss_lat"] - ref_lat_val)**2
+idx0  = dist2.idxmin()
+
+# pull out the east/north at that nearest point
+e_ref = data.loc[idx0, "gnss_east"]
+n_ref = data.loc[idx0, "gnss_north"]
+
+# subtract so that the nearest point goes to zero
+data["gnss_east"]  -= e_ref
+data["gnss_north"] -= n_ref
+
+# Save original shape values. 
 orig_shape = asc_lon.shape  # e.g., (ny, nx)
 
 ny, nx = asc_lon.shape
@@ -370,27 +389,27 @@ for col, metrics in results_dict.items():
 # Save the desired columns as new HDF5 files
 #df, col_name, outfile, shape, suffix
 outfile_asc_semi = write_new_h5_with_indices(data, 'asc_sudo_Up',
-                                             decomp["CASR"]["asc_semi"],
+                                             decomp[ref_station]["asc_semi"],
                                              orig_shape, "asc_semi")
 outfile_des_semi = write_new_h5_with_indices(data, 'des_sudo_Up',
-                                             decomp["CASR"]["des_semi"],
+                                             decomp[ref_station]["des_semi"],
                                              orig_shape, "des_semi")
 
 outfile_insar_only = write_new_h5_with_indices(data, 'ad_up',
-                                               decomp["CASR"]["insar_only_up"],
+                                               decomp[ref_station]["insar_only_up"],
                                                orig_shape, "insar_only")
 outfile_insar_only = write_new_h5_with_indices(data, 'ad_east',
-                                               decomp["CASR"]["insar_only_east"],
+                                               decomp[ref_station]["insar_only_east"],
                                                orig_shape, "insar_only_east")
 
 outfile_gps_insar = write_new_h5_with_indices(data, 'aden_up',
-                                              decomp["CASR"]["gps_insar_up"],
+                                              decomp[ref_station]["gps_insar_up"],
                                               orig_shape, "gps_insar")
 outfile_gps_insar = write_new_h5_with_indices(data, 'aden_east',
-                                              decomp["CASR"]["gps_insar_east"],
+                                              decomp[ref_station]["gps_insar_east"],
                                               orig_shape, "gps_insar_east")
 outfile_gps_insar = write_new_h5_with_indices(data, 'aden_north',
-                                              decomp["CASR"]["gps_insar_north"],
+                                              decomp[ref_station]["gps_insar_north"],
                                               orig_shape, "gps_insar_north")
 
 
@@ -398,39 +417,39 @@ outfile_gps_insar = write_new_h5_with_indices(data, 'aden_north',
 
 src_file = paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
 
-with h5py.File(src_file, "r") as src, h5py.File(decomp["CASR"]["asc_semi"], "a") as dest:
+with h5py.File(src_file, "r") as src, h5py.File(decomp[ref_station]["asc_semi"], "a") as dest:
     for key, value in src.attrs.items():
         dest.attrs[key] = value
 
-with h5py.File(src_file, "r") as src, h5py.File(decomp["CASR"]["des_semi"], "a") as dest:
+with h5py.File(src_file, "r") as src, h5py.File(decomp[ref_station]["des_semi"], "a") as dest:
     for key, value in src.attrs.items():
         dest.attrs[key] = value
 
-with h5py.File(src_file, "r") as src, h5py.File(decomp["CASR"]["insar_only_up"], "a") as dest:
+with h5py.File(src_file, "r") as src, h5py.File(decomp[ref_station]["insar_only_up"], "a") as dest:
     for key, value in src.attrs.items():
         dest.attrs[key] = value
         
-with h5py.File(src_file, "r") as src, h5py.File(decomp["CASR"]["insar_only_east"], "a") as dest:
+with h5py.File(src_file, "r") as src, h5py.File(decomp[ref_station]["insar_only_east"], "a") as dest:
     for key, value in src.attrs.items():
         dest.attrs[key] = value
 
-with h5py.File(src_file, "r") as src, h5py.File(decomp["CASR"]["gps_insar_up"], "a") as dest:
+with h5py.File(src_file, "r") as src, h5py.File(decomp[ref_station]["gps_insar_up"], "a") as dest:
     for key, value in src.attrs.items():
         dest.attrs[key] = value
         
-with h5py.File(src_file, "r") as src, h5py.File(decomp["CASR"]["gps_insar_east"], "a") as dest:
+with h5py.File(src_file, "r") as src, h5py.File(decomp[ref_station]["gps_insar_east"], "a") as dest:
     for key, value in src.attrs.items():
         dest.attrs[key] = value
         
-with h5py.File(src_file, "r") as src, h5py.File(decomp["CASR"]["gps_insar_north"], "a") as dest:
+with h5py.File(src_file, "r") as src, h5py.File(decomp[ref_station]["gps_insar_north"], "a") as dest:
     for key, value in src.attrs.items():
         dest.attrs[key] = value
 
 
 # --- Convert all .grd files to mm (×1000) for each track ---
-for name, grd_path in decomp["CASR"].items():
+for name, grd_path in decomp[ref_station].items():
     if grd_path.endswith(".h5"):
-        utils.run_command(["save_gmt.py", decomp["CASR"][name], "-o",  decomp["grd"][name]])
+        utils.run_command(["save_gmt.py", decomp[ref_station][name], "-o",  decomp["grd"][name]])
 
         #utils.run_command(["gmt", "grdmath", grd_path, "1000", "MUL", "=", mm_path])
 

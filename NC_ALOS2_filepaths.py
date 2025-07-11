@@ -43,7 +43,7 @@ common_paths = {
         "169_170_overlap": os.path.join(inputs_dir, "Frame_169_170_overlap.txt"),
     },
     "bbox": {"w": "-124.63", "e": "-119.22", "s": "36.17", "n": "42.41"},
-    "dist" : 0.004, #~1km in each direction 0.008 = 1km.
+    "dist" : 0.004, #Region overwhich to average velocities ~1km in each direction 0.008 = 1km.
     "lat_step" : str(0.002), # needs to be 0.002 to match VISR interpolation 
     "lon_step" : str(0.002), # needs to be 0.002 to match VISR interpolation 
     "MLV_level":        os.path.join(inputs_dir, "MLV_level_path.txt"),
@@ -72,10 +72,13 @@ paths_gps = {
     "068_enu":      os.path.join(data_dir, "068", "UNR_IGS14_gps.csv"),
     "169_enu":      os.path.join(data_dir, "169", "UNR_IGS14_gps.csv"),
     "170_enu":      os.path.join(data_dir, "170", "UNR_IGS14_gps.csv"),
+    "068_LOS_comp":      os.path.join(data_dir, "068", "UNR_IGS14_gps_LOS_InSAR.csv"),
+    "169_LOS_comp":      os.path.join(data_dir, "169", "UNR_IGS14_gps_LOS_InSAR.csv"),
+    "170_LOS_comp":      os.path.join(data_dir, "170", "UNR_IGS14_gps_LOS_InSAR.csv"),
     "visr":{
         "east" :    os.path.join(gps_dir, "VISR","visr", "visr_intrp_e_NAN.grd"),
         "north" :   os.path.join(gps_dir, "VISR", "visr", "visr_intrp_n_NAN.grd"),
-#        "gps_enu" : os.path.join(gps_dir, "VISR", "GPS_resolved_IGS14_Sept24_CASR.txt"),
+        "gps_enu" : os.path.join(gps_dir, "VISR", "GPS_resolved_IGS14_Sept24_CASR.txt"),
     }
 }
 
