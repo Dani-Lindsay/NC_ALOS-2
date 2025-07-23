@@ -1014,9 +1014,9 @@ def gps_correction_plate_motion(geo_file: str,
         rel_n = north[idx] - n_ref
         rel_u = up[idx]    - u_ref
 
-        Ve_corr.append(row['Ve'] + rel_e)
-        Vn_corr.append(row['Vn'] + rel_n)
-        Vu_corr.append(row['Vu'] + rel_u)
+        Ve_corr.append(row['Ve'] - rel_e)
+        Vn_corr.append(row['Vn'] - rel_n)
+        Vu_corr.append(row['Vu'] - rel_u)
 
     out['Ve'] = Ve_corr
     out['Vn'] = Vn_corr
