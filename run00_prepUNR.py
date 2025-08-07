@@ -57,9 +57,9 @@ fig_dir           = paths_gps['Fig_Dir']
 sta_list_068      = paths_gps['068_StaList']
 sta_list_169      = paths_gps['169_StaList']
 sta_list_170      = paths_gps['170_StaList']
-out_068           = paths_gps['068_enu']
-out_169           = paths_gps['169_enu']
-out_170           = paths_gps['170_enu']
+out_068           = paths_gps['068_enu_ISG14']
+out_169           = paths_gps['169_enu_ISG14']
+out_170           = paths_gps['170_enu_ISG14']
 ref_station       = common_paths['ref_station']
 
 # Manual exclusion list # check 312,

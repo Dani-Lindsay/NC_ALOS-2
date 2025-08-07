@@ -131,6 +131,18 @@ df = pd.DataFrame(
         "SITE": ["", ""],
         })
 
+
+eq_21_lon = -124.298
+eq_21_lat = 40.390
+eq_21_m = 6.2 
+eq_22_lat = 40.525
+eq_22_lon = -124.423
+eq_22_m = 6.4
+
+fig.plot(x=eq_21_lon, y=eq_21_lat, style="a0.4c", pen="0.6p,black", fill="goldenrod")
+fig.plot(x=eq_22_lon, y=eq_22_lat, style="a0.4 c", pen="0.6p,black", fill="dodgerblue2")
+
+
 fig.velo(data=df, pen="1p,black", uncertaintyfill="lightblue1", line=True, spec="e0.035/0.39/18", vector="0.3c+p1p+e+gblack",)
 fig.text(text=["JF(NA)","PA(NA)"], x=df.x, y=df.y, justify="TC",offset ="0/-0.2c",  font="12p,black")
  
@@ -307,5 +319,3 @@ fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.png", crop=True, anti_alias=
 fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.pdf", crop=True, anti_alias=True, show=False)
 
 fig.show()
-
-

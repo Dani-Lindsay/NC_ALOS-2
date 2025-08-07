@@ -10,7 +10,7 @@ import glob
 import os
 import insar_utils as utils
 
-fig_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Figures/"
+fig_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Figures_07_25/"
 data_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Data_Zenodo"
 gps_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Data_Zenodo/GPS"
 inputs_dir = os.path.join(data_dir, "Inputs")
@@ -65,13 +65,17 @@ paths_gps = {
     "Fig_Dir":      os.path.join(gps_dir, "Figures"),
     "DataHoldings": os.path.join(gps_dir, "DataHoldings.txt"),
     "Steps":        os.path.join(gps_dir, "steps.txt"),
-    "UNRdaily_Dir": os.path.join(gps_dir, "UNR_DailySolutions"),
+    "UNRdaily_Dir": os.path.join(gps_dir, "ISG14"),
+    "NA_Dir":       os.path.join(gps_dir, "NA"),
     "068_StaList":  os.path.join(data_dir, "068", "StationList.txt"),
     "169_StaList":  os.path.join(data_dir, "169", "StationList.txt"),
     "170_StaList":  os.path.join(data_dir, "170", "StationList.txt"),
-    "068_enu":      os.path.join(data_dir, "068", "UNR_IGS14_gps.csv"),
-    "169_enu":      os.path.join(data_dir, "169", "UNR_IGS14_gps.csv"),
-    "170_enu":      os.path.join(data_dir, "170", "UNR_IGS14_gps.csv"),
+    "068_enu_ISG14":      os.path.join(data_dir, "068", "UNR_IGS14_gps.csv"),
+    "169_enu_ISG14":      os.path.join(data_dir, "169", "UNR_IGS14_gps.csv"),
+    "170_enu_ISG14":      os.path.join(data_dir, "170", "UNR_IGS14_gps.csv"),
+    "068_enu_NA":      os.path.join(data_dir, "068", "UNR_NZ_gps.csv"),
+    "169_enu_NA":      os.path.join(data_dir, "169", "UNR_NA_gps.csv"),
+    "170_enu_NA":      os.path.join(data_dir, "170", "UNR_NA_gps.csv"),
     "068_LOS_comp":      os.path.join(data_dir, "068", "UNR_IGS14_gps_LOS_InSAR.csv"),
     "169_LOS_comp":      os.path.join(data_dir, "169", "UNR_IGS14_gps_LOS_InSAR.csv"),
     "170_LOS_comp":      os.path.join(data_dir, "170", "UNR_IGS14_gps_LOS_InSAR.csv"),

@@ -33,7 +33,7 @@ north_grd = decomp["grd"]["gps_insar_north"]
 up_grd = decomp["grd"]["gps_insar_up"]
 
 # gey GPS
-gps_df = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
+gps_df = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
 
 # Set lat and lon for plotting from the gps file. 
 ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
@@ -67,51 +67,8 @@ fig.coast(shorelines=True, frame = ["+tNorth Velocity"], region=NC_fig_region, p
 
 fig.text(text="a)", position="TL", offset="0.1c/-0.1c", justify="TL", region=NC_fig_region, projection= size)
 fig.plot(x=gps_df["Lon"], y=gps_df["Lat"],  style="c.2c", fill=gps_df["Vn"], pen="0.8p,black", cmap=True, region=NC_fig_region, projection= size)
-#fig.plot(y=ref_lat, x=ref_lon, style="s.3c", fill="black", pen="0.8p,black", region=NC_fig_region, projection= size)
 
-station_ids = [ "P187", "P186", "P269", "P167", "P345",  "WINT", "P181"  ]
-# Loop over desired station IDs and add text labels
-for sta in station_ids:
-    row = gps_df[gps_df["StaID"] == sta]
-    if row.empty:
-        # Optionally warn if station not found
-        print(f"Warning: station {sta} not found in gps_df")
-        continue
-    lon = row["Lon"].values[0]
-    lat = row["Lat"].values[0]
-    # Adjust offset as needed: here 0.1c to the right and 0.1c up
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM", fill="white", transparency=50)
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM")
-
-station_ids = ["P177",     "SBRB",]
-# Loop over desired station IDs and add text labels
-for sta in station_ids:
-    row = gps_df[gps_df["StaID"] == sta]
-    if row.empty:
-        # Optionally warn if station not found
-        print(f"Warning: station {sta} not found in gps_df")
-        continue
-    lon = row["Lon"].values[0]
-    lat = row["Lat"].values[0]
-    # Adjust offset as needed: here 0.1c to the right and 0.1c up
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.0c+v", justify="RM", fill="white", transparency=50)
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.0c+v", justify="RM")
-
-station_ids = ["CCSF",]
-# Loop over desired station IDs and add text labels
-for sta in station_ids:
-    row = gps_df[gps_df["StaID"] == sta]
-    if row.empty:
-        # Optionally warn if station not found
-        print(f"Warning: station {sta} not found in gps_df")
-        continue
-    lon = row["Lon"].values[0]
-    lat = row["Lat"].values[0]
-    # Adjust offset as needed: here 0.1c to the right and 0.1c up
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/0.25c+v", justify="RM", fill="white", transparency=50)
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/0.25c+v", justify="RM")
-
-
+fig.basemap(frame=["WSrt", "xa", "ya"], map_scale="jBL+w100k+o1.7/0.8c", projection=size)
 
 with pygmt.config(
         FONT_ANNOT_PRIMARY="18p,black", 
@@ -134,36 +91,6 @@ for fault_file in common_paths["fault_files"]:
 fig.text(text="b)", position="TL", offset="0.1c/-0.1c", justify="TL", region=NC_fig_region, projection= size)
 fig.coast(shorelines=True, frame = ["+tEast Velocity"], region=NC_fig_region, projection= size)
 fig.plot(x=gps_df["Lon"], y=gps_df["Lat"],  style="c.2c", fill=gps_df["Ve"], pen="0.8p,black", cmap=True, region=NC_fig_region, projection= size)
-#fig.plot(y=ref_lat, x=ref_lon, style="s.3c", fill="black", pen="0.8p,black", region=NC_fig_region, projection= size)
-
-station_ids = ["P272","P162", "P165", "P219", "P059", "P193","P058", "P344", "TRND", "P336","P313", "P158",]# Loop over desired station IDs and add text labels
-for sta in station_ids:
-    row = gps_df[gps_df["StaID"] == sta]
-    if row.empty:
-        # Optionally warn if station not found
-        print(f"Warning: station {sta} not found in gps_df")
-        continue
-    lon = row["Lon"].values[0]
-    lat = row["Lat"].values[0]
-    # Adjust offset as needed: here 0.1c to the right and 0.1c up
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM", fill="white", transparency=50)
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM")
-
-station_ids = []
-# Loop over desired station IDs and add text labels
-for sta in station_ids:
-    row = gps_df[gps_df["StaID"] == sta]
-    if row.empty:
-        # Optionally warn if station not found
-        print(f"Warning: station {sta} not found in gps_df")
-        continue
-    lon = row["Lon"].values[0]
-    lat = row["Lat"].values[0]
-    # Adjust offset as needed: here 0.1c to the right and 0.1c up
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.5c+v", justify="RM", fill="white", transparency=50)
-    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.5c+v", justify="RM")
-
-
 
 with pygmt.config(
         FONT_ANNOT_PRIMARY="18p,black", 
@@ -205,6 +132,113 @@ with pygmt.config(
         FONT_LABEL="18p,black",
         ):
     fig.colorbar(position="jBL+o0.4c/0.4c+w4c/0.4c", frame=["xaf", "y+lmm/yr"],)
+    
+fig.shift_origin(xshift="7.5c")
+
+# #Plot main map 
+fig.basemap(region=NC_fig_region, projection= size,frame=["wSrt", "xa", "ya"],)
+fig.grdimage(grid=NC_grid, projection=size, frame=["lbrt", "xa", "ya"], cmap='wiki-france.cpt', shading=NC_dgrid, transparency=40)
+pygmt.makecpt(cmap="vik", series=[-12.5, 12.5])
+fig.grdimage(grid=up_grd, cmap=True, nan_transparent=True, region=NC_fig_region, projection= size)
+# Plot Faults
+for fault_file in common_paths["fault_files"]:
+    fig.plot(data=fault_file, pen="0.5p,black", transparency=50, region=NC_fig_region, projection= size)
+
+fig.coast(shorelines=True, frame = ["+tUp Velocity"], region=NC_fig_region, projection= size)
+fig.plot(x=gps_df["Lon"], y=gps_df["Lat"],  style="c.2c", fill=gps_df["Vu"], pen="0.8p,black", cmap=True, region=NC_fig_region, projection= size)
+
+fig.text(text="d)", position="TL", offset="0.1c/-0.1c", justify="TL", region=NC_fig_region, projection= size)
+
+station_ids = ["P272"]# Loop over desired station IDs and add text labels
+for sta in station_ids:
+    row = gps_df[gps_df["StaID"] == sta]
+    if row.empty:
+        # Optionally warn if station not found
+        print(f"Warning: station {sta} not found in gps_df")
+        continue
+    lon = row["Lon"].values[0]
+    lat = row["Lat"].values[0]
+    # Adjust offset as needed: here 0.1c to the right and 0.1c up
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM", fill="salmon", transparency=0)
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM")
+
+
+station_ids = [ "P187", "P186", "P269", "P167", "P345",  "WINT", "P181"  ]
+# Loop over desired station IDs and add text labels
+for sta in station_ids:
+    row = gps_df[gps_df["StaID"] == sta]
+    if row.empty:
+        # Optionally warn if station not found
+        print(f"Warning: station {sta} not found in gps_df")
+        continue
+    lon = row["Lon"].values[0]
+    lat = row["Lat"].values[0]
+    # Adjust offset as needed: here 0.1c to the right and 0.1c up
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM", fill="aquamarine3", transparency=0)
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM")
+
+station_ids = ["P177",     "SBRB",]
+# Loop over desired station IDs and add text labels
+for sta in station_ids:
+    row = gps_df[gps_df["StaID"] == sta]
+    if row.empty:
+        # Optionally warn if station not found
+        print(f"Warning: station {sta} not found in gps_df")
+        continue
+    lon = row["Lon"].values[0]
+    lat = row["Lat"].values[0]
+    # Adjust offset as needed: here 0.1c to the right and 0.1c up
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.0c+v", justify="RM", fill="aquamarine3", transparency=0)
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.0c+v", justify="RM")
+
+station_ids = ["CCSF",]
+# Loop over desired station IDs and add text labels
+for sta in station_ids:
+    row = gps_df[gps_df["StaID"] == sta]
+    if row.empty:
+        # Optionally warn if station not found
+        print(f"Warning: station {sta} not found in gps_df")
+        continue
+    lon = row["Lon"].values[0]
+    lat = row["Lat"].values[0]
+    # Adjust offset as needed: here 0.1c to the right and 0.1c up
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/0.25c+v", justify="RM", fill="aquamarine3", transparency=0)
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/0.25c+v", justify="RM")
+
+station_ids = ["P162", "P165", "P219", "P059", "P193","P058", "P344", "TRND", "P336","P313", "P158",]# Loop over desired station IDs and add text labels
+for sta in station_ids:
+    row = gps_df[gps_df["StaID"] == sta]
+    if row.empty:
+        # Optionally warn if station not found
+        print(f"Warning: station {sta} not found in gps_df")
+        continue
+    lon = row["Lon"].values[0]
+    lat = row["Lat"].values[0]
+    # Adjust offset as needed: here 0.1c to the right and 0.1c up
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM", fill="salmon", transparency=0)
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="0.5c/0.5c+v", justify="LM")
+
+station_ids = []
+# Loop over desired station IDs and add text labels
+for sta in station_ids:
+    row = gps_df[gps_df["StaID"] == sta]
+    if row.empty:
+        # Optionally warn if station not found
+        print(f"Warning: station {sta} not found in gps_df")
+        continue
+    lon = row["Lon"].values[0]
+    lat = row["Lat"].values[0]
+    # Adjust offset as needed: here 0.1c to the right and 0.1c up
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.5c+v", justify="RM", fill="salmon", transparency=0)
+    fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.5c+v", justify="RM")
+
+with pygmt.config(
+        FONT_ANNOT_PRIMARY="18p,black", 
+        FONT_ANNOT_SECONDARY="18p,black",
+        FONT_LABEL="18p,black",
+        ):
+    fig.colorbar(position="jBL+o0.4c/0.4c+w4c/0.4c", frame=["xaf", "y+lmm/yr"],)
+  
     
 fig.savefig(common_paths["fig_dir"]+f"Fig_8_{ref_station}_East_North_Up_170_068_GNSS_INSAR.png", transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths["fig_dir"]+f"Fig_8_{ref_station}_East_North_Up_170_068_GNSS_INSAR.pdf", transparent=False, crop=True, anti_alias=True, show=False)

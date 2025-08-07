@@ -377,6 +377,20 @@ with fig.subplot(nrows=1, ncols=2, figsize=("9.2c", "9.6c"), autolabel="a)",shar
     
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", projection=sub_map_size)
     
+    df = pd.DataFrame(
+        data={
+            "x": [-122.10+0.3*0.9, -122.10+0.3*0.9],
+            "y": [39.30+0.5*0.8, 39.30+0.5*0.8],
+            "east_velocity": [-0.173*0.8,(-0.9848/2.5)*0.8],
+            "north_velocity": [-0.9848*0.8, (0.173/2.5)*0.8],
+            "east_sigma": [0,0],
+            "north_sigma": [0,0],
+            "correlation_EN": [0,0],
+            "SITE": ["",""],
+            })
+    fig.velo(data=df, pen="0.5p,black", line=True, spec="e1.2/1/1", vector="0.3c+p2p+e+gblack",projection=sub_map_size, region=cv_region)
+
+
     fig.plot(data=common_paths["Tehama-Colusa_file"], pen="1p,dodgerblue2", region=cv_region, projection= sub_map_size) #, label="Tehama-Colusa")
     for fault_file in common_paths["fault_files"]:
         fig.plot(data=fault_file, pen="0.5p,black", transparency=50, region=cv_region, projection= sub_map_size)

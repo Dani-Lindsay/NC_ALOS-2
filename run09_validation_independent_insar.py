@@ -17,7 +17,7 @@ unit = 100
 # set your bin size in cm/yr
 #bin_size = 0.01
 
-#ref_station = common_paths["ref_station"]
+ref_station = common_paths["ref_station"]
 
 ref_station = "P208"
 
@@ -265,6 +265,10 @@ fig.shift_origin(yshift="-6.5c", xshift="0c")
 # --- Second subplot block: 4 panels for Descending Comparison (Tracks 169 vs. 170) ---
 with fig.subplot(nrows=1, ncols=4, figsize=("11c", "5.1c"), autolabel="d)", sharex="l", frame=["WSrt"], margins=["0.3c", "0.3c"]):
     
+    ref_station = common_paths["ref_station"]
+    ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
+    ref_lon = gps_df.loc[gps_df["StaID"] == ref_station, "Lon"].values
+    
     vmin, vmax = -0.02, 0.02
     
     # Panel 1: Descending 169 map
@@ -366,6 +370,6 @@ with fig.subplot(nrows=1, ncols=4, figsize=("11c", "5.1c"), autolabel="d)", shar
                 region=vel_region_des, projection=scatter_size_des)
 
 # Save and display the final figure
-fig.savefig(common_paths["fig_dir"]+f'Fig_7_insar_insar_validation_{ref_station}.png', transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths["fig_dir"]+f'Fig_7_insar_insar_validation_{ref_station}.pdf', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f'Fig_7_insar_insar_validation_{ref_station}_2015-2021.png', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f'Fig_7_insar_insar_validation_{ref_station}_2015-2021.pdf', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()

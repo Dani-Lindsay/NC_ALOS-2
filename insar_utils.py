@@ -889,7 +889,7 @@ def extract_averaged_time_series(data, lons, lats, points, radius):
         print(ts_list)
     return ts_list
 
-def extract_incidence_at_points(incidence, lons, lats, points, radius):
+def extract_data_at_points(incidence, lons, lats, points, radius):
     """
     For each (lon, lat) in points, find all grid cells within 'radius'
     and return the mean incidence angle. If no cells fall within radius,
@@ -1024,8 +1024,89 @@ def gps_correction_plate_motion(geo_file: str,
 
     return out
 
+def project_los2vector(observations, los_inc_angle_deg, los_az_angle_deg, slope_deg, aspect_deg):
+    """
+    Calculate the design matrix for converting LOS displacement to slope direction.
+    Converts aspect from positive clockwise from north to positive anticlockwise from east.
+    """
+    # Convert aspect to match LOS azimuth reference
+    aspect_deg = -aspect_deg + 90
 
+    # LOS components
+    los_E = np.sin(np.deg2rad(los_inc_angle_deg)) * np.sin(np.deg2rad(los_az_angle_deg)) * -1
+    los_N = np.sin(np.deg2rad(los_inc_angle_deg)) * np.cos(np.deg2rad(los_az_angle_deg))
+    los_U = np.cos(np.deg2rad(los_inc_angle_deg))
+    
+    # Downslope components
+    fault_E = np.sin(np.deg2rad(slope_deg)) * np.sin(np.deg2rad(aspect_deg)) * -1
+    fault_N = np.sin(np.deg2rad(slope_deg)) * np.cos(np.deg2rad(aspect_deg))
+    fault_U = np.cos(np.deg2rad(slope_deg))
+    
+    # Normalize vectors
+    L = np.array([los_E, los_N, los_U])
+    L = L / np.linalg.norm(L)
 
+    F = np.array([fault_E, fault_N, fault_U])
+    F = F / np.linalg.norm(F)
+
+    # Compute design matrix (dot product)
+    G = np.dot(L, F)
+    
+    project_vel = observations / G if G != 0 else np.nan
+    
+    return project_vel
+
+def extract_geometry_at_points(geo_file, points, radius):
+    """
+    For each (lon, lat) in `points`, sample all fields in `want` 
+    within `radius` degrees and return a dict of lists of means.
+
+    Parameters
+    ----------
+    geo_file : str
+        Path to the HDF5 containing your geometry grids.
+    points : list of (lon, lat) tuples
+        Locations at which to sample.
+    radius : float
+        Search radius in degrees.
+
+    Returns
+    -------
+    means : dict
+        keys are dataset names (e.g. 'height','slope',…) and values are 
+        lists of length len(points) giving the mean at each point.
+    """
+    want = [
+        'height','slope','aspect',
+        'incidenceAngle','azimuthAngle',]
+
+    means = {v: [] for v in want}
+
+    with h5py.File(geo_file, 'r') as hf:
+        # load lon/lat grids once
+        lons = hf['longitude'][()]
+        lats = hf['latitude'][()]
+
+        # load all other arrays into memory
+        data = {v: hf[v][()] for v in want if v not in ('latitude','longitude')}
+
+        # for each point, find local pixels and compute means
+        for lon_pt, lat_pt in points:
+            iy, ix = find_indices_within_radius(lons, lats, lon_pt, lat_pt, radius)
+            for v in want:
+                if v == 'longitude':
+                    # just record the point’s longitude
+                    means[v].append(lon_pt)
+                elif v == 'latitude':
+                    means[v].append(lat_pt)
+                else:
+                    arr = data[v]
+                    if iy.size:
+                        means[v].append(np.nanmean(arr[iy, ix]))
+                    else:
+                        means[v].append(np.nan)
+
+    return means
 # def calculate_average_insar_velocity_std(gps_data, insar_data, dist):
 #     for index, row in gps_data.iterrows():
 #         lat_min = gps_data.at[index, 'Lat'] - dist

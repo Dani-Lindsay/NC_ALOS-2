@@ -159,9 +159,9 @@ itrf_enu_068 = paths_068["geo"]["ITRF_enu"]
 # Load in GPS, correct plate motion, project UNR enu --> los
 # ------------------------
 
-gps_169 = utils.load_UNR_gps(paths_gps["169_enu"], ref_station)
-gps_170 = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
-gps_068 = utils.load_UNR_gps(paths_gps["068_enu"], ref_station)
+gps_169 = utils.load_UNR_gps(paths_gps["169_enu_ISG14"], ref_station)
+gps_170 = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
+gps_068 = utils.load_UNR_gps(paths_gps["068_enu_ISG14"], ref_station)
 
 # Set lat and lon for plotting from the gps file. 
 ref_lat = gps_169.loc[gps_169["StaID"] == ref_station, "Lat"].values
@@ -537,5 +537,6 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     subplot(vel_deramp_068_grd, deramp_068_grd, results_068_dict['vel_deramp_068']['rmse'], "+t ")
 
 fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS_platemotioncorrection.png', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS_platemotioncorrection.jpg', transparent=False, crop=True, anti_alias=True, show=False)
 #fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals.pdf', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()  
