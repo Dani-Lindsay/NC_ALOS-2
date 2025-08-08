@@ -1024,6 +1024,21 @@ def gps_correction_plate_motion(geo_file: str,
 
     return out
 
+def proj_los_into_vertical_no_horiz(los, inc_degrees):
+    """
+    Modified from Kathryn Materna tectonic utils. 
+    
+    Project LOS deformation into a pseudo-vertical deformation,
+    assuming horizontal deformation is zero.
+    Compute the vertical deformation needed to produce given LOS deformation.
+
+    :param los: float
+    :param lkv: list of 3 floats, normalized look vector components E, N, U
+    """
+    incidence_angle = np.deg2rad(inc_degrees)  # incidence angle from the vertical
+    pseudo_vertical_disp = los / np.cos(incidence_angle)  # assuming no horizontal data contributes to LoS
+    return pseudo_vertical_disp
+
 def project_los2vector(observations, los_inc_angle_deg, los_az_angle_deg, slope_deg, aspect_deg):
     """
     Calculate the design matrix for converting LOS displacement to slope direction.
