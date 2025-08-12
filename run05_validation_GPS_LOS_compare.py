@@ -54,9 +54,9 @@ grid_068 = paths_068["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
 # Load in GPS and project UNR enu --> los
 #####################
 
-gps_169 = utils.load_UNR_gps(paths_gps["169_enu"], ref_station)
-gps_170 = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
-gps_068 = utils.load_UNR_gps(paths_gps["068_enu"], ref_station)
+gps_169 = utils.load_UNR_gps(paths_gps["169_enu_ISG14"], ref_station)
+gps_170 = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
+gps_068 = utils.load_UNR_gps(paths_gps["068_enu_ISG14"], ref_station)
 
 # Set lat and lon for plotting from the gps file. 
 ref_lat = gps_169.loc[gps_169["StaID"] == ref_station, "Lat"].values
@@ -470,5 +470,6 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "7.4c"),autolabel="a)", share
         
 fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_GPS_PMCorr.png', transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_GPS_PMCorr.pdf', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_GPS_PMCorr.jpg', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()   
 

@@ -317,5 +317,6 @@ with fig.subplot(nrows=3, ncols=1, figsize=("5c", "13.4c"), autolabel="b)", marg
 
 fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.png", crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.pdf", crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.jpg", crop=True, anti_alias=True, show=False)
 
 fig.show()

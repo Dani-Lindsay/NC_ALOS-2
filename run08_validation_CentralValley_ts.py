@@ -177,10 +177,11 @@ for df, col in [
     df[col].fillna(med, inplace=True)
     
 # Projecting LOS to Up
-ref_gps_ts_170["Up_170_ref_insar"] = ref_gps_ts_170["LOS_170_ref_insar"] * np.cos(np.deg2rad(ref_gps_ts_170["Inc_170"]))
-ref_gps_ts_115["Up_115_ref_insar"] = ref_gps_ts_115["LOS_115_ref_insar"] * np.cos(np.deg2rad(ref_gps_ts_115["Inc_115"]))
-tar_gps_ts_170["Up_170_tar_insar"] = tar_gps_ts_170["LOS_170_tar_insar"] * np.cos(np.deg2rad(tar_gps_ts_170["Inc_170"]))
-tar_gps_ts_115["Up_115_tar_insar"] = tar_gps_ts_115["LOS_115_tar_insar"] * np.cos(np.deg2rad(tar_gps_ts_115["Inc_115"]))
+ref_gps_ts_170["Up_170_ref_insar"] = utils.proj_los_into_vertical_no_horiz(ref_gps_ts_170["LOS_170_ref_insar"], ref_gps_ts_170["Inc_170"])
+ref_gps_ts_115["Up_115_ref_insar"] = utils.proj_los_into_vertical_no_horiz(ref_gps_ts_115["LOS_115_ref_insar"], ref_gps_ts_115["Inc_115"])
+tar_gps_ts_170["Up_170_tar_insar"] = utils.proj_los_into_vertical_no_horiz(tar_gps_ts_170["LOS_170_tar_insar"], tar_gps_ts_170["Inc_170"])
+tar_gps_ts_115["Up_115_tar_insar"] = utils.proj_los_into_vertical_no_horiz(tar_gps_ts_115["LOS_115_tar_insar"], tar_gps_ts_115["Inc_115"])
+
 
 # Calculate baseline changes 
 gps_ts_170['insar_LOS_baseline_170'] = tar_gps_ts_170['LOS_170_tar_insar'] - ref_gps_ts_170['LOS_170_ref_insar']
@@ -389,5 +390,6 @@ with fig.subplot(nrows=2, ncols=1, figsize=("8c", "5.4c"), autolabel="e)", share
     
 fig.savefig(common_paths["fig_dir"]+'Fig_6_Validation_CentrallValley_ts.png', transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths["fig_dir"]+'Fig_6_Validation_CentrallValley_ts.pdf', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+'Fig_6_Validation_CentrallValley_ts.jpg', transparent=False, crop=True, anti_alias=True, show=False)
 
 fig.show()

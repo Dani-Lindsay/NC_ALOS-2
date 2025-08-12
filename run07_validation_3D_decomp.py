@@ -41,10 +41,12 @@ insar_gps_up = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], decomp[
 # Load in GPS and project UNR enu --> los
 #####################
 
-gps_df = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
+gps_df = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
 # Set lat and lon for plotting from the gps file. 
 ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
 ref_lon = gps_df.loc[gps_df["StaID"] == ref_station, "Lon"].values
+
+#NB: Don't need to apply plate boundary correction for vertical velocities. 
 
 #####################
 # Find average InSAR velocity for each GPS point 
@@ -272,4 +274,5 @@ with fig.subplot(nrows=2, ncols=4, figsize=("15c", "12.0c"), autolabel="e)",shar
         
 fig.savefig(common_paths['fig_dir']+f'Fig_4_{ref_station}_3D_results_170_068.png', transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths['fig_dir']+f'Fig_4_{ref_station}_3D_results_170_068.pdf', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+f'Fig_4_{ref_station}_3D_results_170_068.jpg', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()

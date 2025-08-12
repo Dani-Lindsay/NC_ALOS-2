@@ -23,6 +23,49 @@ import subprocess
 from scipy.stats import linregress
 import math
 
+
+def run_command(cmd):
+    """Helper function to run a command and print it."""
+    print("Running:", " ".join(cmd))
+    subprocess.run(cmd, check=True)
+
+# ------------------------------
+# Distance 
+# ------------------------------
+
+def meters_to_degrees(meters, lat_deg):
+    R = 6378137.0  # Earth radius in meters (WGS84)
+    dlat = meters / R * (180.0 / math.pi)
+    dlon = meters / (R * math.cos(math.radians(lat_deg))) * (180.0 / math.pi)
+    return dlat, dlon
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    # Coordinates of the two points
+    coords_1 = (lat1, lon1)
+    coords_2 = (lat2, lon2)
+    
+    # Calculate the distance using geodesic function
+    distance = geodesic(coords_1, coords_2).kilometers
+    
+    return distance
+
+def calculate_distance_to_reference(gps_data, ref_station):
+    ref_lat = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Lat'].iloc[0]
+    ref_lon = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Lon'].iloc[0]
+
+    for index, row in gps_data.iterrows(): 
+        lat = gps_data.at[index, 'Lat']
+        lon = gps_data.at[index, 'Lon']
+        gps_data.at[index, 'dist2ref'] = calculate_distance(ref_lat, ref_lon, lat, lon)
+
+    gps_data = gps_data.sort_values(by='dist2ref')
+    
+    return gps_data
+    
+# ------------------------------
+# Date-time 
+# ------------------------------
+
 def yymmdd_to_decimal_year(date_str):
     """Convert a date in 'YYMMDD' format to a decimal year, assuming all dates are in the 2000s."""
     # Prepend '20' to the date string to make it 'YYYYMMDD'
@@ -72,6 +115,37 @@ def date_to_decimal_year(date_input, format_str=None):
     decimal_year = date.year + year_progress / year_length
     return decimal_year
 
+# ------------------------------
+# Read-Write 
+# ------------------------------
+
+
+def load_UNR_gps(gps_file, ref_station):
+    """
+    Reads CSV from run00_prepUNR.py 
+    https://github.com/Dani-Lindsay/NC_ALOS-2/blob/main/run00_prepUNR.py
+    
+    Zeros at reference station
+    
+    Returns df.
+    """
+    # Read data from the CSV file and create the DataFrame
+    gps_data = pd.read_csv(gps_file, sep=",", header=0, names=['StaID', 'Lon', 'Lat', 'Ve', 'Vn', 'Vu', 'Std_e', 'Std_n', 'Std_u', 'r_e', 'r_n', 'r_u'])
+    gps_data['Lon'] = gps_data['Lon'] - 360
+    # Drop rows with NaN values
+    gps_data = gps_data.dropna()
+
+    # Calculate offset based on ref_station
+    offset_e = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Ve'].values
+    offset_n = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Vn'].values
+    offset_u = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Vu'].values
+    
+    # Subtract offset from 'GNSS_Vel' column
+    gps_data['Ve'] = gps_data['Ve'] - offset_e
+    gps_data['Vn'] = gps_data['Vn'] - offset_n
+    gps_data['Vu'] = gps_data['Vu'] - offset_u
+
+    return gps_data
 
 def read_baselines(file_path):
     """
@@ -115,6 +189,12 @@ def read_baselines(file_path):
     return np.array(secondary_date), np.array(centered_perp_base)
 
 def read_coherence_data(file_path):
+    """
+    Reads 'coherenceSpatialAvg.txt' output from MintPy
+    
+    Returns:
+    - List of pairs with bperp and mean coherence for bperp plot
+    """
     # Initialize the lists to hold the extracted data
     pairs = []
     mean = []
@@ -163,70 +243,16 @@ def read_coherence_data(file_path):
     
     return sorted_pairs, sorted_mean, sorted_btemp, sorted_bperp
 
-def calculate_pairs_bperp(dic):
-    """
-    Calculate the bperp values for each pair of dates in the 'pairs' key of the dictionary.
-    
-    Parameters:
-    - dic (dict): The dictionary containing 'sec_date', 'centered_perp_base', and 'pairs'.
-    
-    Returns:
-    - np.ndarray: An array of bperp values for each pair.
-    """
-    # Initialize an empty list to store bperp values for each pair
-    pairs_bperp = []
-    
-    # Iterate over each pair
-    for pair in dic["pairs"]:
-        # Find the indices of the pair dates in sec_date
-        indices = []
-        for date in pair:
-            index = np.where(dic["sec_date"] == date)[0]
-            if index.size > 0:  # Date found in sec_date
-                indices.append(index[0])
-            else:  # If the date is the reference date (bperp = 0)
-                indices.append(-1)
-        
-        # Use the indices to select the bperp values, default to 0 if index is -1
-        pair_bperp = [dic["centered_perp_base"][i] if i != -1 else 0 for i in indices]
-        
-        # Add the calculated bperp values for the current pair to the list
-        pairs_bperp.append(pair_bperp)
-    
-    # Convert the list to a NumPy array before returning
-    return np.array(pairs_bperp)
 
-def meters_to_degrees(meters, lat_deg):
-    R = 6378137.0  # Earth radius in meters (WGS84)
-    dlat = meters / R * (180.0 / math.pi)
-    dlon = meters / (R * math.cos(math.radians(lat_deg))) * (180.0 / math.pi)
-    return dlat, dlon
-
-def run_command(cmd):
-    """Helper function to run a command and print it."""
-    print("Running:", " ".join(cmd))
-    subprocess.run(cmd, check=True)
-
-def load_UNR_gps(gps_file, ref_station):
-    # Read data from the CSV file and create the DataFrame
-    gps_data = pd.read_csv(gps_file, sep=",", header=0, names=['StaID', 'Lon', 'Lat', 'Ve', 'Vn', 'Vu', 'Std_e', 'Std_n', 'Std_u', 'r_e', 'r_n', 'r_u'])
-    gps_data['Lon'] = gps_data['Lon'] - 360
-    # Drop rows with NaN values
-    gps_data = gps_data.dropna()
-
-    # Calculate offset based on ref_station
-    offset_e = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Ve'].values
-    offset_n = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Vn'].values
-    offset_u = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Vu'].values
-    
-    # Subtract offset from 'GNSS_Vel' column
-    gps_data['Ve'] = gps_data['Ve'] - offset_e
-    gps_data['Vn'] = gps_data['Vn'] - offset_n
-    gps_data['Vu'] = gps_data['Vu'] - offset_u
-
-    return gps_data
 
 def load_insar_vel_as_df(geo_file, vel_file, dic):
+    """
+    Loads MintPy velocity file as df. 
+    Good for both Sentinel-1 from Hyp3 and ALOS_2 from ISCE. 
+    
+    All zeros go to Nan. 
+    
+    """
     # previously load_insar_data
     with h5py.File(geo_file, 'a') as hf:
         # Read in incidence Angle
@@ -273,125 +299,8 @@ def load_insar_vel_as_df(geo_file, vel_file, dic):
     vel = vel.reshape(length, 1)
     print(f"Vel size: {vel.size}")
     
-
     insar_data = pd.DataFrame(np.concatenate([lons, lats, vel, az, inc], axis=1), columns=['Lon', 'Lat', 'Vel', 'Az', 'Inc'])
-    #insar_data = insar_data.dropna()
-
-    # Drop duplicate rows based on all columns
-    #insar_data = insar_data.drop_duplicates()
-
     return insar_data, shape_h5
-
-def calculate_average_insar_velocity(gps_data, insar_data, dist):
-    has_std = 'Std' in insar_data.columns  # Check if 'Std' column exists
-    for index, row in gps_data.iterrows():
-        lat_min = gps_data.at[index, 'Lat'] - dist
-        lat_max = gps_data.at[index, 'Lat'] + dist
-        lon_min = gps_data.at[index, 'Lon'] - dist
-        lon_max = gps_data.at[index, 'Lon'] + dist
-        
-        insar_roi = insar_data[(insar_data.Lat > lat_min) &
-                               (insar_data.Lat < lat_max) &
-                               (insar_data.Lon > lon_min) &
-                               (insar_data.Lon < lon_max)]
-        
-        if not insar_roi.empty:
-            gps_data.at[index, 'insar_Vel'] = np.nanmedian(insar_roi['Vel'])
-            if has_std:
-                gps_data.at[index, 'insar_Vel_std'] = np.nanmedian(insar_roi['Std'])
-        else:
-            gps_data.at[index, 'insar_Vel'] = np.nan
-            if has_std:
-                gps_data.at[index, 'insar_Vel_std'] = np.nan
-    
-    gps_data = gps_data.dropna(subset=['insar_Vel'])
-    return gps_data
-
-def calculate_gps_los(gps_data, insar_data):
-
-    for index, row in gps_data.iterrows(): 
-        i = ((insar_data['Lon'] - row['Lon']) * (insar_data['Lat'] - row['Lat'])).abs().idxmin()                               
-        az_angle = insar_data.loc[i]['Az']
-        inc_angle = insar_data.loc[i]['Inc']
-        
-        gps_data.at[index, 'Az'] = az_angle
-        gps_data.at[index, 'Inc'] = inc_angle
-        
-        # project ENU onto LOS
-        v_los = (  row['Ve'] * np.sin(np.deg2rad(inc_angle)) * np.sin(np.deg2rad(az_angle)) * -1
-                 + row['Vn'] * np.sin(np.deg2rad(inc_angle)) * np.cos(np.deg2rad(az_angle))
-                 + row['Vu'] * np.cos(np.deg2rad(inc_angle)))
-        gps_data.at[index, 'LOS_Vel'] = v_los
-
-    return gps_data
-
-def apply_quadratic_deramp_2D(gps_data, insar_data):
-    """
-    Applies 2D quadratic ramp fitting to minimize GPS residuals and removes the ramp from InSAR velocities.
-
-    Parameters:
-    - gps_data: DataFrame with GPS data ['Lon', 'Lat', 'insar_Vel', 'UNR_Vel'].
-    - insar_data: DataFrame with InSAR data ['Lon', 'Lat', 'Vel'].
-
-    Returns:
-    - insar_data: DataFrame with columns ['quadratic_ramp', 'Vel_deramp'] after removing the quadratic ramp.
-    """
-    # Calculate residuals for GPS data
-    gps_data['residual'] = gps_data['LOS_Vel'] - gps_data['insar_Vel']
-
-    # Quadratic ramp model: a * Lon^2 + b * Lat^2 + c * Lon * Lat + d * Lon + e * Lat + f
-    def quadratic_ramp_model(params, Lon, Lat):
-        return (params[0] * Lon**2 + params[1] * Lat**2 + params[2] * Lon * Lat +
-                params[3] * Lon + params[4] * Lat + params[5])
-
-    # Residuals function for least squares fitting
-    def residuals(params, Lon, Lat, residual):
-        return quadratic_ramp_model(params, Lon, Lat) - residual
-
-    # Fit quadratic ramp model to GPS residuals
-    initial_guess = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    result = least_squares(residuals, initial_guess, args=(gps_data['Lon'], gps_data['Lat'], gps_data['residual']))
-    a, b, c, d, e, f = result.x
-
-    # Apply quadratic ramp to InSAR data and remove it from velocities
-    insar_data['quadratic_ramp'] = (a * insar_data['Lon']**2 + b * insar_data['Lat']**2 +
-                                    c * insar_data['Lon'] * insar_data['Lat'] +
-                                    d * insar_data['Lon'] + e * insar_data['Lat'] + f)
-    insar_data['Vel_quadramp'] = insar_data['Vel'] + insar_data['quadratic_ramp']
-
-    return insar_data
-
-def apply_deramp_2D(gps_data, insar_data):
-    """
-    Applies 2D ramp fitting to minimize GPS residuals and removes the ramp from InSAR velocities.
-
-    Parameters:
-    - gps_data: DataFrame with GPS data ['Lon', 'Lat', 'insar_Vel', 'UNR_Vel'].
-    - insar_data: DataFrame with InSAR data ['Lon', 'Lat', 'Vel'].
-
-    Returns:
-    - insar_data: DataFrame with columns ['ramp', 'Vel_deramp'] after removing the ramp.
-    """
-    # Calculate residuals for GPS data
-    gps_data['residual'] = gps_data['LOS_Vel'] - gps_data['insar_Vel']
-
-    # 2D ramp model: a * Lon + b * Lat + c
-    def ramp_model(params, Lon, Lat):
-        return params[0] * Lon + params[1] * Lat + params[2]
-
-    # Residuals function for least squares fitting
-    def residuals(params, Lon, Lat, residual):
-        return ramp_model(params, Lon, Lat) - residual
-
-    # Fit ramp model to GPS residuals
-    result = least_squares(residuals, [0.0, 0.0, 0.0], args=(gps_data['Lon'], gps_data['Lat'], gps_data['residual']))
-    a, b, c = result.x
-
-    # Apply ramp to InSAR data and remove it from velocities
-    insar_data['ramp'] = a * insar_data['Lon'] + b * insar_data['Lat'] + c
-    insar_data['Vel_2Dramp'] = insar_data['Vel'] + insar_data['ramp']
-
-    return insar_data
 
 def write_new_h5(df_col, vel_file_path, shape, suffix):
     """
@@ -442,89 +351,6 @@ def load_h5_data(geo_file, vel_file, dataset):
     #insar_data = insar_data.drop_duplicates()
 
     return insar_data
-
-def calculate_rmse_r2_and_linear_fit(observed, predicted):
-    rmse = np.sqrt(np.sum((observed - predicted)**2) / (observed.size - 1))
-    slope, intercept, r_value, p_value, std_err = stats.linregress(observed, predicted)
-    r2 = r_value ** 2
-    #print(f'RMSE: {np.round(rmse,2)}, r2: {np.round(r2,2)}')
-    return rmse, r2, slope, intercept
-
-def calculate_gps_los_error(gps_data, insar_data):
-
-    for index, row in gps_data.iterrows(): 
-        i = ((insar_data['Lon'] - row['Lon']) * (insar_data['Lat'] - row['Lat'])).abs().idxmin()                               
-        az_angle = insar_data.loc[i]['Az']
-        inc_angle = insar_data.loc[i]['Inc']
-        
-        gps_data.at[index, 'Az'] = az_angle
-        gps_data.at[index, 'Inc'] = inc_angle
-        
-        # Convert angles to radians once for efficiency
-        inc_rad = np.deg2rad(inc_angle)
-        az_rad = np.deg2rad(az_angle)
-        
-        # Calculate LOS error with proper exponentiation (**2)
-        v_los_err = np.sqrt(
-            (np.sin(inc_rad) * np.sin(az_rad))**2 * row['Std_e']**2 +
-            (np.sin(inc_rad) * np.cos(az_rad))**2 * row['Std_n']**2 +
-            (np.cos(inc_rad))**2 * row['Std_u']**2
-        )
-        gps_data.at[index, 'LOS_Vel_err'] = v_los_err
-
-    return gps_data
-
-def calc_residual_percent(gps_data, threshold):
-    # Calculate the mean and standard deviation (1-sigma) of the residuals
-    gps_data['residual'] = gps_data['LOS_Vel'] - gps_data['insar_Vel']
-    residuals = gps_data['residual']
-    mean_residual = np.mean(residuals)
-    sigma_residual = np.std(residuals)
-    
-    # 1-sigma range around the mean
-    lower_limit = mean_residual - sigma_residual
-    upper_limit = mean_residual + sigma_residual
-    
-    print(f"Mean of residuals: {mean_residual:.2f}")
-    print(f"1-Sigma (Standard Deviation): {sigma_residual:.2f}")
-    print(f"1-Sigma Range: [{lower_limit:.2f}, {upper_limit:.2f}]")
-    
-    res_count = np.sum(np.abs(gps_data['residual']) < sigma_residual)
-    total_count = len(gps_data)
-    percentage = (res_count / total_count) * 100
-    
-    print(f"{percentage:.2f}% < 1-sigma {sigma_residual:.2f} mm/yr")
-    
-    res_count = np.sum(np.abs(gps_data['residual']) < threshold)
-    total_count = len(gps_data)
-    percentage = (res_count / total_count) * 100
-    
-    print(f"{percentage:.2f}% < {threshold} mm/yr")
-    
-    return percentage, sigma_residual
-
-def calculate_distance(lat1, lon1, lat2, lon2):
-    # Coordinates of the two points
-    coords_1 = (lat1, lon1)
-    coords_2 = (lat2, lon2)
-    
-    # Calculate the distance using geodesic function
-    distance = geodesic(coords_1, coords_2).kilometers
-    
-    return distance
-
-def calculate_distance_to_reference(gps_data, ref_station):
-    ref_lat = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Lat'].iloc[0]
-    ref_lon = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Lon'].iloc[0]
-
-    for index, row in gps_data.iterrows(): 
-        lat = gps_data.at[index, 'Lat']
-        lon = gps_data.at[index, 'Lon']
-        gps_data.at[index, 'dist2ref'] = calculate_distance(ref_lat, ref_lon, lat, lon)
-
-    gps_data = gps_data.sort_values(by='dist2ref')
-    
-    return gps_data
 
 def load_gmt_grid(filename):
     with nc.Dataset(filename) as ds:
@@ -641,46 +467,117 @@ def load_insar_vel_ts_as_dictionary(dic):
         'ts_dates': ts_dates
     }
 
-def calculate_gps_timeseries_los(gps_ts, insar_df, track):
-    """
-    Projects a GPS time series onto the InSAR line-of-sight (LOS) direction.
-    
-    Uses the first GPS coordinate to find the nearest InSAR pixel and extracts its
-    constant azimuth and incidence angles, then computes the LOS projection for the
-    entire GPS DataFrame.
+# ------------------------------
+# Post-processing InSAR 
+# ------------------------------
 
+def calculate_rmse_r2_and_linear_fit(observed, predicted):
+    rmse = np.sqrt(np.sum((observed - predicted)**2) / (observed.size - 1))
+    slope, intercept, r_value, p_value, std_err = stats.linregress(observed, predicted)
+    r2 = r_value ** 2
+    #print(f'RMSE: {np.round(rmse,2)}, r2: {np.round(r2,2)}')
+    return rmse, r2, slope, intercept
+
+def calculate_rmse_nans(observed, predicted):
+    """
+    Compute RMSE between observed and predicted values while ignoring NaNs.
+    RMSE = sqrt(sum((observed - predicted)^2) / (n_valid - 1))
+    """
+    diff = observed - predicted
+    valid = ~np.isnan(diff)
+    n_valid = np.sum(valid)
+    if n_valid <= 1:
+        return np.nan
+    return np.sqrt(np.nansum(diff**2) / (n_valid - 1))
+
+
+def calculate_pairs_bperp(dic):
+    """
+    Calculate the bperp values for each pair of dates in the 'pairs' key of the dictionary.
+    
     Parameters:
-      gps_ts : pd.DataFrame
-          GPS time series with columns including 'east', 'north', 'up', 'Lat', 'Lon'.
-      insar_df : pd.DataFrame
-          InSAR data with columns ['Lon', 'Lat', 'Inc', 'Az'] (NaNs dropped).
-      track : str
-          Identifier for naming the LOS column (e.g., '170' yields 'LOS_170').
-
+    - dic (dict): The dictionary containing 'sec_date', 'centered_perp_base', and 'pairs'.
+    
     Returns:
-      pd.DataFrame: A new DataFrame with added columns 'Azi_<track>', 'Inc_<track>', and 'LOS_<track>'.
+    - np.ndarray: An array of bperp values for each pair.
     """
-    # Create a copy of the input DataFrame to avoid modifying it in-place
-    new_df = gps_ts.copy()
+    # Initialize an empty list to store bperp values for each pair
+    pairs_bperp = []
+    
+    # Iterate over each pair
+    for pair in dic["pairs"]:
+        # Find the indices of the pair dates in sec_date
+        indices = []
+        for date in pair:
+            index = np.where(dic["sec_date"] == date)[0]
+            if index.size > 0:  # Date found in sec_date
+                indices.append(index[0])
+            else:  # If the date is the reference date (bperp = 0)
+                indices.append(-1)
+        
+        # Use the indices to select the bperp values, default to 0 if index is -1
+        pair_bperp = [dic["centered_perp_base"][i] if i != -1 else 0 for i in indices]
+        
+        # Add the calculated bperp values for the current pair to the list
+        pairs_bperp.append(pair_bperp)
+    
+    # Convert the list to a NumPy array before returning
+    return np.array(pairs_bperp)
 
-    # Find nearest InSAR pixel using the first GPS coordinate.
-    ref_lat, ref_lon = new_df.iloc[0]['Lat'], new_df.iloc[0]['Lon']
-    distances = np.sqrt((insar_df['Lon'] - ref_lon)**2 + (insar_df['Lat'] - ref_lat)**2)
-    nearest = distances.idxmin()
-    az_angle, inc_angle = insar_df.loc[nearest, 'Az'], insar_df.loc[nearest, 'Inc']
+def calculate_average_insar_velocity(gps_data, insar_data, dist):
+    has_std = 'Std' in insar_data.columns  # Check if 'Std' column exists
+    for index, row in gps_data.iterrows():
+        lat_min = gps_data.at[index, 'Lat'] - dist
+        lat_max = gps_data.at[index, 'Lat'] + dist
+        lon_min = gps_data.at[index, 'Lon'] - dist
+        lon_max = gps_data.at[index, 'Lon'] + dist
+        
+        insar_roi = insar_data[(insar_data.Lat > lat_min) &
+                               (insar_data.Lat < lat_max) &
+                               (insar_data.Lon > lon_min) &
+                               (insar_data.Lon < lon_max)]
+        
+        if not insar_roi.empty:
+            gps_data.at[index, 'insar_Vel'] = np.nanmedian(insar_roi['Vel'])
+            if has_std:
+                gps_data.at[index, 'insar_Vel_std'] = np.nanmedian(insar_roi['Std'])
+        else:
+            gps_data.at[index, 'insar_Vel'] = np.nan
+            if has_std:
+                gps_data.at[index, 'insar_Vel_std'] = np.nan
     
-    # Add constant azimuth and incidence to the new DataFrame.
-    new_df[f'Azi_{track}'] = az_angle
-    new_df[f'Inc_{track}'] = inc_angle
+    gps_data = gps_data.dropna(subset=['insar_Vel'])
+    return gps_data
+
+
+def calc_residual_percent(gps_data, threshold):
+    # Calculate the mean and standard deviation (1-sigma) of the residuals
+    gps_data['residual'] = gps_data['LOS_Vel'] - gps_data['insar_Vel']
+    residuals = gps_data['residual']
+    mean_residual = np.mean(residuals)
+    sigma_residual = np.std(residuals)
     
-    # Compute LOS projection.
-    az_rad, inc_rad = np.deg2rad(az_angle), np.deg2rad(inc_angle)
-    new_df[f'LOS_{track}'] = (
-        - new_df['east'] * np.sin(inc_rad) * np.sin(az_rad) +
-          new_df['north'] * np.sin(inc_rad) * np.cos(az_rad) +
-          new_df['up']    * np.cos(inc_rad)
-    )
-    return new_df
+    # 1-sigma range around the mean
+    lower_limit = mean_residual - sigma_residual
+    upper_limit = mean_residual + sigma_residual
+    
+    print(f"Mean of residuals: {mean_residual:.2f}")
+    print(f"1-Sigma (Standard Deviation): {sigma_residual:.2f}")
+    print(f"1-Sigma Range: [{lower_limit:.2f}, {upper_limit:.2f}]")
+    
+    res_count = np.sum(np.abs(gps_data['residual']) < sigma_residual)
+    total_count = len(gps_data)
+    percentage = (res_count / total_count) * 100
+    
+    print(f"{percentage:.2f}% < 1-sigma {sigma_residual:.2f} mm/yr")
+    
+    res_count = np.sum(np.abs(gps_data['residual']) < threshold)
+    total_count = len(gps_data)
+    percentage = (res_count / total_count) * 100
+    
+    print(f"{percentage:.2f}% < {threshold} mm/yr")
+    
+    return percentage, sigma_residual
 
 def resample_gps_to_insar_dates(gps_df, insar_dates, window_days=6):
     """
@@ -746,6 +643,395 @@ def resample_gps_to_insar_dates(gps_df, insar_dates, window_days=6):
     
     return pd.DataFrame(resampled)
 
+def gps_correction_plate_motion(geo_file: str,
+                                itrf_enu_file: str,
+                                gps_df: pd.DataFrame,
+                                ref_station: str,
+                                unit_factor: float = 1.0) -> pd.DataFrame:
+    """
+    Subtract the ITRF‐based plate‐motion ramp (relative to a reference station)
+    from GPS ENU velocities, with optional unit conversion.
+
+    Parameters
+    ----------
+    geo_file : str
+        HDF5 path containing datasets 'longitude' and 'latitude'.
+    itrf_enu_file : str
+        HDF5 path containing datasets 'east','north','up' (in meters per year).
+    gps_df : pd.DataFrame
+        GPS table with columns ['StaID','Lon','Lat','Ve','Vn','Vu',...]
+        (Ve/Vn/Vu should be in the same units as unit_factor conversion).
+    ref_station : str
+        StaID of the site to use as zero‐point reference.
+    unit_factor : float, optional
+        Multiply the ITRF east/north/up by this factor before subtraction.
+        E.g. 1000 to convert from m yr⁻¹ to mm yr⁻¹.  Defaults to 1.0.
+
+    Returns
+    -------
+    pd.DataFrame
+        Copy of gps_df with added columns 'Ve_corr','Vn_corr','Vu_corr'.
+    """
+
+    # 1) load geometry grid
+    with h5py.File(geo_file, 'r') as g:
+        lon_grid = g['longitude'][:]
+        lat_grid = g['latitude'][:]
+
+    lon1d = lon_grid.reshape(-1)
+    lat1d = lat_grid.reshape(-1)
+
+    # 2) load and scale ITRF ENU grid
+    with h5py.File(itrf_enu_file, 'r') as hf:
+        east  = (hf['east'][:]  * unit_factor).reshape(-1)
+        north = (hf['north'][:] * unit_factor).reshape(-1)
+        up    = (hf['up'][:]    * unit_factor).reshape(-1)
+
+    # mask zeros
+    east [east  == 0] = np.nan
+    north[north== 0] = np.nan
+    up   [up    == 0] = np.nan
+
+    # 3) reference station ENU
+    ref = gps_df.loc[gps_df['StaID']==ref_station]
+    if ref.empty:
+        raise ValueError(f"Reference station '{ref_station}' not in gps_df")
+    lon_ref, lat_ref = ref[['Lon','Lat']].iloc[0]
+
+    d2_ref = (lon1d - lon_ref)**2 + (lat1d - lat_ref)**2
+    idx_ref = np.nanargmin(d2_ref)
+    e_ref, n_ref, u_ref = east[idx_ref], north[idx_ref], up[idx_ref]
+    
+    # 4) apply correction to each GPS site
+    out = gps_df.copy()
+    Ve_corr, Vn_corr, Vu_corr = [], [], []
+
+    for _, row in out.iterrows():
+        lon0, lat0 = row['Lon'], row['Lat']
+        d2 = (lon1d - lon0)**2 + (lat1d - lat0)**2
+        idx = np.nanargmin(d2)
+        
+        rel_e = east[idx] - e_ref
+        rel_n = north[idx] - n_ref
+        rel_u = up[idx]    - u_ref
+
+        Ve_corr.append(row['Ve'] - rel_e)
+        Vn_corr.append(row['Vn'] - rel_n)
+        Vu_corr.append(row['Vu'] - rel_u)
+
+    out['Ve'] = Ve_corr
+    out['Vn'] = Vn_corr
+    out['Vu'] = Vu_corr
+
+    return out
+
+# ------------------------------
+# Projections
+# ------------------------------
+"""
+
+For all projection, I use the same definition as in isce and MintPy 
+https://github.com/insarlab/MintPy/blob/1d25397fc50b1027d8280db77752d6ba60f8411b/src/mintpy/utils/utils0.py#L632
+
+Parameters:     v_e        - np.ndarray or float, displacement in east-west   direction, east  as positive
+                v_n        - np.ndarray or float, displacement in north-south direction, north as positive
+                v_u        - np.ndarray or float, displacement in vertical    direction, up    as positive
+                inc_angle  - np.ndarray or float, incidence angle from vertical, in the unit of degrees
+                head_angle - np.ndarray or float, azimuth angle of the SAR platform along track direction
+                             measured from the north with clockwise direction as positive, in the unit of degrees
+                az_angle   - np.ndarray or float, azimuth angle of the LOS vector from the ground to the SAR platform
+                             measured from the north with anti-clockwise direction as positive, in the unit of degrees
+                             head_angle = 90 - az_angle
+                v_los      - np.ndarray or float, displacement in LOS direction, motion toward satellite as positive
+
+""" 
+
+def calculate_gps_los(gps_data, insar_data):
+    
+    """
+    For each gps lat and lon
+    Find the closest lat lon in the InSAR df. 
+    Get the corresponding az and inc values. 
+    - Inc : angle from vertical in degrees
+    - Azi : angle anti-clockwise from east in degrees
+    - * - 1 : accounts for the convention that motion away from the satelilte is negative. 
+    
+    """
+
+    for index, row in gps_data.iterrows(): 
+        i = ((insar_data['Lon'] - row['Lon']) * (insar_data['Lat'] - row['Lat'])).abs().idxmin()                               
+        azi_angle = insar_data.loc[i]['Az']
+        inc_angle = insar_data.loc[i]['Inc']
+        
+        gps_data.at[index, 'Az'] = azi_angle
+        gps_data.at[index, 'Inc'] = inc_angle
+        
+        # project ENU onto LOS
+        v_los = (  row['Ve'] * np.sin(np.deg2rad(inc_angle)) * np.sin(np.deg2rad(azi_angle)) * -1
+                 + row['Vn'] * np.sin(np.deg2rad(inc_angle)) * np.cos(np.deg2rad(azi_angle))
+                 + row['Vu'] * np.cos(np.deg2rad(inc_angle)))
+        gps_data.at[index, 'LOS_Vel'] = v_los
+
+    return gps_data
+
+def calculate_gps_los_error(gps_data, insar_data):
+
+    for index, row in gps_data.iterrows(): 
+        i = ((insar_data['Lon'] - row['Lon']) * (insar_data['Lat'] - row['Lat'])).abs().idxmin()                               
+        az_angle = insar_data.loc[i]['Az']
+        inc_angle = insar_data.loc[i]['Inc']
+        
+        gps_data.at[index, 'Az'] = az_angle
+        gps_data.at[index, 'Inc'] = inc_angle
+        
+        # Convert angles to radians once for efficiency
+        inc_rad = np.deg2rad(inc_angle)
+        az_rad = np.deg2rad(az_angle)
+        
+        # Calculate LOS error with proper exponentiation (**2)
+        v_los_err = np.sqrt(
+            (np.sin(inc_rad) * np.sin(az_rad))**2 * row['Std_e']**2 +
+            (np.sin(inc_rad) * np.cos(az_rad))**2 * row['Std_n']**2 +
+            (np.cos(inc_rad))**2 * row['Std_u']**2
+        )
+        gps_data.at[index, 'LOS_Vel_err'] = v_los_err
+
+    return gps_data
+
+def calculate_gps_timeseries_los(gps_ts, insar_df, track):
+    """
+    Projects a GPS time series onto the InSAR line-of-sight (LOS) direction.
+    
+    Uses the first GPS coordinate to find the nearest InSAR pixel and extracts its
+    constant azimuth and incidence angles, then computes the LOS projection for the
+    entire GPS DataFrame.
+
+    Parameters:
+      gps_ts : pd.DataFrame
+          GPS time series with columns including 'east', 'north', 'up', 'Lat', 'Lon'.
+      insar_df : pd.DataFrame
+          InSAR data with columns ['Lon', 'Lat', 'Inc', 'Az'] (NaNs dropped).
+      track : str
+          Identifier for naming the LOS column (e.g., '170' yields 'LOS_170').
+
+    Returns:
+      pd.DataFrame: A new DataFrame with added columns 'Azi_<track>', 'Inc_<track>', and 'LOS_<track>'.
+    """
+    # Create a copy of the input DataFrame to avoid modifying it in-place
+    new_df = gps_ts.copy()
+
+    # Find nearest InSAR pixel using the first GPS coordinate.
+    ref_lat, ref_lon = new_df.iloc[0]['Lat'], new_df.iloc[0]['Lon']
+    distances = np.sqrt((insar_df['Lon'] - ref_lon)**2 + (insar_df['Lat'] - ref_lat)**2)
+    nearest = distances.idxmin()
+    az_angle, inc_angle = insar_df.loc[nearest, 'Az'], insar_df.loc[nearest, 'Inc']
+    
+    # Add constant azimuth and incidence to the new DataFrame.
+    new_df[f'Azi_{track}'] = az_angle
+    new_df[f'Inc_{track}'] = inc_angle
+    
+    # Compute LOS projection.
+    az_rad, inc_rad = np.deg2rad(az_angle), np.deg2rad(inc_angle)
+    new_df[f'LOS_{track}'] = (
+        - new_df['east'] *  np.sin(inc_rad) * np.sin(az_rad) +
+          new_df['north'] * np.sin(inc_rad) * np.cos(az_rad) +
+          new_df['up']    * np.cos(inc_rad)
+    )
+    return new_df
+
+def proj_los_into_vertical_no_horiz(los, inc_degrees):
+    """
+    Modified from Kathryn Materna tectonic utils. 
+    
+    Project LOS deformation into a pseudo-vertical deformation,
+    assuming horizontal deformation is zero.
+    Compute the vertical deformation needed to produce given LOS deformation.
+
+    :param los: float
+    :param inc: incidence angle in degrees measured from vertical. 
+    """
+    incidence_angle = np.deg2rad(inc_degrees)  # incidence angle from the vertical
+    pseudo_vertical_disp = los / np.cos(incidence_angle)  # assuming no horizontal data contributes to LoS
+    return pseudo_vertical_disp
+
+
+def project_los2vector(observations, los_inc_angle_deg, los_az_angle_deg, slope_deg, aspect_deg):
+    """
+    Calculate the design matrix for converting LOS displacement to slope direction.
+    Converts aspect from positive clockwise from north to positive anticlockwise from east.
+    """
+    # Convert aspect to match LOS azimuth reference
+    aspect_deg = -aspect_deg + 90
+
+    # LOS components
+    los_E = np.sin(np.deg2rad(los_inc_angle_deg)) * np.sin(np.deg2rad(los_az_angle_deg)) * -1
+    los_N = np.sin(np.deg2rad(los_inc_angle_deg)) * np.cos(np.deg2rad(los_az_angle_deg))
+    los_U = np.cos(np.deg2rad(los_inc_angle_deg))
+    
+    # Downslope components
+    vector_E = np.sin(np.deg2rad(slope_deg)) * np.sin(np.deg2rad(aspect_deg)) * -1
+    vector_N = np.sin(np.deg2rad(slope_deg)) * np.cos(np.deg2rad(aspect_deg))
+    vector_U = np.cos(np.deg2rad(slope_deg))
+    
+    # Normalize vectors
+    L = np.array([los_E, los_N, los_U])
+    L = L / np.linalg.norm(L)
+
+    F = np.array([vector_E, vector_N, vector_U])
+    F = F / np.linalg.norm(F)
+
+    # Compute design matrix (dot product)
+    G = np.dot(L, F)
+    
+    project_vel = observations / G if G != 0 else np.nan
+    
+    return project_vel
+
+# ------------------------------
+# Solve for 2D or 3D velocities fields
+# ------------------------------
+
+# Function to perform least-squares inversion for a single row (i.e., one data point)
+def invert_single_point_ad2eu(row):
+    """
+    Perform least-squares inversion using only ascending and descending LOS vectors
+    to solve for East and Up components (North is excluded).
+    """
+    # Check if 'asc_vel' or 'des_vel' is NaN
+    if pd.isnull(row['asc_vel']) or pd.isnull(row['des_vel']):
+        # If any of the specified columns are NaN, return NaN for east and up
+        return pd.Series({'east': np.nan, 'up': np.nan})
+    
+    # Design matrix (only solving for East and Up, excluding North)
+    G = np.array([
+        [np.sin(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])) * -1,  # East component (ascending)
+         np.cos(np.radians(row['asc_inc']))],  # Up component (ascending)
+        [np.sin(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])) * -1,  # East component (descending)
+         np.cos(np.radians(row['des_inc']))]   # Up component (descending)
+    ])
+    
+    # Observation vector (LOS displacements for ascending and descending)
+    dlos = np.array([row['asc_vel'], row['des_vel']])
+    
+    # Perform the least-squares inversion for this point
+    EN_result, _, _, _ = np.linalg.lstsq(G, dlos, rcond=None)
+    
+    # Return the East and Up components
+    return pd.Series({'east': EN_result[0], 'up': EN_result[1]})
+
+# Function to perform least-squares inversion for a single row (i.e., one data point)
+def invert_single_point_aden2enu(row):
+    """
+    Check if any of 'asc_vel', 'des_vel', or 'gnss_east' is NaN
+    if pd.isnull(row['asc_vel']) or pd.isnull(row['des_vel']) or pd.isnull(row['gnss_east']):
+        # If any of the specified columns are NaN, return NaN for east, north, and up
+        return pd.Series({'east': np.nan, 'north': np.nan, 'up': np.nan})
+    
+    Design matrix for ascending and descending LOS vectors at a single point
+    project ENU onto LOS
+    v_los = (  row['Ve'] * np.sin(np.deg2rad(inc_angle)) * np.sin(np.deg2rad(az_angle)) * -1
+              + row['Vn'] * np.sin(np.deg2rad(inc_angle)) * np.cos(np.deg2rad(az_angle))
+              + row['Vu'] * np.cos(np.deg2rad(inc_angle)))
+    gps_data.at[index, 'UNR_Vel'] = v_los
+    """
+    G = np.array([
+        [np.sin(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])) * -1,  # East component (ascending)
+         np.cos(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])),  # North component (ascending)
+         np.cos(np.radians(row['asc_inc']))],  # Up component (ascending)
+        [np.sin(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])) * -1,  # East component (descending)
+         np.cos(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])),  # North component (descending)
+         np.cos(np.radians(row['des_inc']))],  # Up component (descending)
+        [1, 0, 0],  # GNSS East
+        [0, 1, 0]   # GNSS North
+    ])
+    
+    # Observation vector (LOS displacements and GNSS displacements for a single point)
+    dlos = np.array([row['asc_vel'], row['des_vel'], row['gnss_east'], row['gnss_north']])
+    
+    # Perform the least-squares inversion for this point
+    ENU_result, _, _, _ = np.linalg.lstsq(G, dlos, rcond=None)
+    
+    # Return the East, North, and Up components
+    return pd.Series({'east': ENU_result[0], 'north': ENU_result[1], 'up': ENU_result[2]})
+
+# ------------------------------
+# Deramping tools
+# ------------------------------
+
+def apply_quadratic_deramp_2D(gps_data, insar_data):
+    """
+    Applies 2D quadratic ramp fitting to minimize GPS residuals and removes the ramp from InSAR velocities.
+
+    Parameters:
+    - gps_data: DataFrame with GPS data ['Lon', 'Lat', 'insar_Vel', 'UNR_Vel'].
+    - insar_data: DataFrame with InSAR data ['Lon', 'Lat', 'Vel'].
+
+    Returns:
+    - insar_data: DataFrame with columns ['quadratic_ramp', 'Vel_deramp'] after removing the quadratic ramp.
+    """
+    # Calculate residuals for GPS data
+    gps_data['residual'] = gps_data['LOS_Vel'] - gps_data['insar_Vel']
+
+    # Quadratic ramp model: a * Lon^2 + b * Lat^2 + c * Lon * Lat + d * Lon + e * Lat + f
+    def quadratic_ramp_model(params, Lon, Lat):
+        return (params[0] * Lon**2 + params[1] * Lat**2 + params[2] * Lon * Lat +
+                params[3] * Lon + params[4] * Lat + params[5])
+
+    # Residuals function for least squares fitting
+    def residuals(params, Lon, Lat, residual):
+        return quadratic_ramp_model(params, Lon, Lat) - residual
+
+    # Fit quadratic ramp model to GPS residuals
+    initial_guess = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    result = least_squares(residuals, initial_guess, args=(gps_data['Lon'], gps_data['Lat'], gps_data['residual']))
+    a, b, c, d, e, f = result.x
+
+    # Apply quadratic ramp to InSAR data and remove it from velocities
+    insar_data['quadratic_ramp'] = (a * insar_data['Lon']**2 + b * insar_data['Lat']**2 +
+                                    c * insar_data['Lon'] * insar_data['Lat'] +
+                                    d * insar_data['Lon'] + e * insar_data['Lat'] + f)
+    insar_data['Vel_quadramp'] = insar_data['Vel'] + insar_data['quadratic_ramp']
+
+    return insar_data
+
+def apply_deramp_2D(gps_data, insar_data):
+    """
+    Applies 2D ramp fitting to minimize GPS residuals and removes the ramp from InSAR velocities.
+
+    Parameters:
+    - gps_data: DataFrame with GPS data ['Lon', 'Lat', 'insar_Vel', 'UNR_Vel'].
+    - insar_data: DataFrame with InSAR data ['Lon', 'Lat', 'Vel'].
+
+    Returns:
+    - insar_data: DataFrame with columns ['ramp', 'Vel_deramp'] after removing the ramp.
+    """
+    # Calculate residuals for GPS data
+    gps_data['residual'] = gps_data['LOS_Vel'] - gps_data['insar_Vel']
+
+    # 2D ramp model: a * Lon + b * Lat + c
+    def ramp_model(params, Lon, Lat):
+        return params[0] * Lon + params[1] * Lat + params[2]
+
+    # Residuals function for least squares fitting
+    def residuals(params, Lon, Lat, residual):
+        return ramp_model(params, Lon, Lat) - residual
+
+    # Fit ramp model to GPS residuals
+    result = least_squares(residuals, [0.0, 0.0, 0.0], args=(gps_data['Lon'], gps_data['Lat'], gps_data['residual']))
+    a, b, c = result.x
+
+    # Apply ramp to InSAR data and remove it from velocities
+    insar_data['ramp'] = a * insar_data['Lon'] + b * insar_data['Lat'] + c
+    insar_data['Vel_2Dramp'] = insar_data['Vel'] + insar_data['ramp']
+
+    return insar_data
+
+
+
+# ------------------------------
+# Extract timeseries and profiles from MintPy output
+# ------------------------------
+
 def get_ts_lat_lon_dist(insar_dict, target_lat, target_lon, dist):
     """
     Extracts the mean (median) InSAR timeseries from pixels within a given distance
@@ -790,17 +1076,7 @@ def get_ts_lat_lon_dist(insar_dict, target_lat, target_lon, dist):
     
     return median_ts_adjusted, insar_dict['ts_dates']
 
-def calculate_rmse_nans(observed, predicted):
-    """
-    Compute RMSE between observed and predicted values while ignoring NaNs.
-    RMSE = sqrt(sum((observed - predicted)^2) / (n_valid - 1))
-    """
-    diff = observed - predicted
-    valid = ~np.isnan(diff)
-    n_valid = np.sum(valid)
-    if n_valid <= 1:
-        return np.nan
-    return np.sqrt(np.nansum(diff**2) / (n_valid - 1))
+
 
 def get_start_end_points(lon_ori, lat_ori,  az, dist):
     start_lat, start_lon, start_z = geopy.distance.distance(kilometers=-dist).destination((lat_ori, lon_ori), bearing=az)
@@ -942,135 +1218,6 @@ def compute_velocity(dates, values, start, stop):
     return res.slope, res.stderr
 
 
-def gps_correction_plate_motion(geo_file: str,
-                                itrf_enu_file: str,
-                                gps_df: pd.DataFrame,
-                                ref_station: str,
-                                unit_factor: float = 1.0) -> pd.DataFrame:
-    """
-    Subtract the ITRF‐based plate‐motion ramp (relative to a reference station)
-    from GPS ENU velocities, with optional unit conversion.
-
-    Parameters
-    ----------
-    geo_file : str
-        HDF5 path containing datasets 'longitude' and 'latitude'.
-    itrf_enu_file : str
-        HDF5 path containing datasets 'east','north','up' (in meters per year).
-    gps_df : pd.DataFrame
-        GPS table with columns ['StaID','Lon','Lat','Ve','Vn','Vu',...]
-        (Ve/Vn/Vu should be in the same units as unit_factor conversion).
-    ref_station : str
-        StaID of the site to use as zero‐point reference.
-    unit_factor : float, optional
-        Multiply the ITRF east/north/up by this factor before subtraction.
-        E.g. 1000 to convert from m yr⁻¹ to mm yr⁻¹.  Defaults to 1.0.
-
-    Returns
-    -------
-    pd.DataFrame
-        Copy of gps_df with added columns 'Ve_corr','Vn_corr','Vu_corr'.
-    """
-
-    # 1) load geometry grid
-    with h5py.File(geo_file, 'r') as g:
-        lon_grid = g['longitude'][:]
-        lat_grid = g['latitude'][:]
-
-    lon1d = lon_grid.reshape(-1)
-    lat1d = lat_grid.reshape(-1)
-
-    # 2) load and scale ITRF ENU grid
-    with h5py.File(itrf_enu_file, 'r') as hf:
-        east  = (hf['east'][:]  * unit_factor).reshape(-1)
-        north = (hf['north'][:] * unit_factor).reshape(-1)
-        up    = (hf['up'][:]    * unit_factor).reshape(-1)
-
-    # mask zeros
-    east [east  == 0] = np.nan
-    north[north== 0] = np.nan
-    up   [up    == 0] = np.nan
-
-    # 3) reference station ENU
-    ref = gps_df.loc[gps_df['StaID']==ref_station]
-    if ref.empty:
-        raise ValueError(f"Reference station '{ref_station}' not in gps_df")
-    lon_ref, lat_ref = ref[['Lon','Lat']].iloc[0]
-
-    d2_ref = (lon1d - lon_ref)**2 + (lat1d - lat_ref)**2
-    idx_ref = np.nanargmin(d2_ref)
-    e_ref, n_ref, u_ref = east[idx_ref], north[idx_ref], up[idx_ref]
-    
-    # 4) apply correction to each GPS site
-    out = gps_df.copy()
-    Ve_corr, Vn_corr, Vu_corr = [], [], []
-
-    for _, row in out.iterrows():
-        lon0, lat0 = row['Lon'], row['Lat']
-        d2 = (lon1d - lon0)**2 + (lat1d - lat0)**2
-        idx = np.nanargmin(d2)
-        
-        rel_e = east[idx] - e_ref
-        rel_n = north[idx] - n_ref
-        rel_u = up[idx]    - u_ref
-
-        Ve_corr.append(row['Ve'] - rel_e)
-        Vn_corr.append(row['Vn'] - rel_n)
-        Vu_corr.append(row['Vu'] - rel_u)
-
-    out['Ve'] = Ve_corr
-    out['Vn'] = Vn_corr
-    out['Vu'] = Vu_corr
-
-    return out
-
-def proj_los_into_vertical_no_horiz(los, inc_degrees):
-    """
-    Modified from Kathryn Materna tectonic utils. 
-    
-    Project LOS deformation into a pseudo-vertical deformation,
-    assuming horizontal deformation is zero.
-    Compute the vertical deformation needed to produce given LOS deformation.
-
-    :param los: float
-    :param lkv: list of 3 floats, normalized look vector components E, N, U
-    """
-    incidence_angle = np.deg2rad(inc_degrees)  # incidence angle from the vertical
-    pseudo_vertical_disp = los / np.cos(incidence_angle)  # assuming no horizontal data contributes to LoS
-    return pseudo_vertical_disp
-
-def project_los2vector(observations, los_inc_angle_deg, los_az_angle_deg, slope_deg, aspect_deg):
-    """
-    Calculate the design matrix for converting LOS displacement to slope direction.
-    Converts aspect from positive clockwise from north to positive anticlockwise from east.
-    """
-    # Convert aspect to match LOS azimuth reference
-    aspect_deg = -aspect_deg + 90
-
-    # LOS components
-    los_E = np.sin(np.deg2rad(los_inc_angle_deg)) * np.sin(np.deg2rad(los_az_angle_deg)) * -1
-    los_N = np.sin(np.deg2rad(los_inc_angle_deg)) * np.cos(np.deg2rad(los_az_angle_deg))
-    los_U = np.cos(np.deg2rad(los_inc_angle_deg))
-    
-    # Downslope components
-    fault_E = np.sin(np.deg2rad(slope_deg)) * np.sin(np.deg2rad(aspect_deg)) * -1
-    fault_N = np.sin(np.deg2rad(slope_deg)) * np.cos(np.deg2rad(aspect_deg))
-    fault_U = np.cos(np.deg2rad(slope_deg))
-    
-    # Normalize vectors
-    L = np.array([los_E, los_N, los_U])
-    L = L / np.linalg.norm(L)
-
-    F = np.array([fault_E, fault_N, fault_U])
-    F = F / np.linalg.norm(F)
-
-    # Compute design matrix (dot product)
-    G = np.dot(L, F)
-    
-    project_vel = observations / G if G != 0 else np.nan
-    
-    return project_vel
-
 def extract_geometry_at_points(geo_file, points, radius):
     """
     For each (lon, lat) in `points`, sample all fields in `want` 
@@ -1122,57 +1269,6 @@ def extract_geometry_at_points(geo_file, points, radius):
                         means[v].append(np.nan)
 
     return means
-# def calculate_average_insar_velocity_std(gps_data, insar_data, dist):
-#     for index, row in gps_data.iterrows():
-#         lat_min = gps_data.at[index, 'Lat'] - dist
-#         lat_max = gps_data.at[index, 'Lat'] + dist
-#         lon_min = gps_data.at[index, 'Lon'] - dist
-#         lon_max = gps_data.at[index, 'Lon'] + dist
-        
-#         insar_roi = insar_data[(insar_data.Lat > lat_min) &
-#                                (insar_data.Lat < lat_max) &
-#                                (insar_data.Lon > lon_min) &
-#                                (insar_data.Lon < lon_max)]
-        
-#         if not insar_roi.empty:
-#             gps_data.at[index, 'insar_Vel'] = np.nanmedian(insar_roi.Vel)
-#         else:
-#             gps_data.at[index, 'insar_Vel'] = np.nan
-    
-#     gps_data = gps_data.dropna(subset=['insar_Vel'])
-#     return gps_data
-
-
-
-
-
-
-
-# def calculate_rmse_r2_and_linear_fit(observed, predicted):
-#     rmse = np.sqrt(np.sum((observed - predicted)**2) / (observed.size - 1))
-#     slope, intercept, r_value, p_value, std_err = stats.linregress(observed, predicted)
-#     r2 = r_value ** 2
-#     #print(f'RMSE: {np.round(rmse,2)}, r2: {np.round(r2,2)}')
-#     return rmse, r2, slope, intercept
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -12,32 +12,11 @@ import numpy as np                # Matrix calculations
 import pandas as pd               # Pandas for data
 import h5py
 
+
 distance_threshold = common_paths["dist"]
 ref_station = common_paths["ref_station"]
 
 unit = 1000
-
-##########################3
-# Method 1: Project GNSS to LOS and subtract. 
-##########################3
-
-def calculate_gps_los(gps_data, insar_data):
-
-    for index, row in gps_data.iterrows(): 
-        i = ((insar_data['Lon'] - row['Lon']) * (insar_data['Lat'] - row['Lat'])).abs().idxmin()                               
-        az_angle = insar_data.loc[i]['Az']
-        inc_angle = insar_data.loc[i]['Inc']
-        
-        gps_data.at[index, 'Az'] = az_angle
-        gps_data.at[index, 'Inc'] = inc_angle
-        
-        # project ENU onto LOS
-        v_los = (  row['Ve'] * np.sin(np.deg2rad(inc_angle)) * np.sin(np.deg2rad(az_angle)) * -1
-                 + row['Vn'] * np.sin(np.deg2rad(inc_angle)) * np.cos(np.deg2rad(az_angle))
-                 + row['Vu'] * np.cos(np.deg2rad(inc_angle)))
-        gps_data.at[index, 'LOS_Vel'] = v_los
-
-    return gps_data
 
 def project_gps2los(azi, inc, gps_e, gps_n):
     """
@@ -61,68 +40,69 @@ def project_gps2los(azi, inc, gps_e, gps_n):
     
     return v_los
 
-# Function to perform least-squares inversion for a single row (i.e., one data point)
-def invert_single_point_ad2eu(row):
-    """
-    Perform least-squares inversion using only ascending and descending LOS vectors
-    to solve for East and Up components (North is excluded).
-    """
-    # Check if 'asc_vel' or 'des_vel' is NaN
-    if pd.isnull(row['asc_vel']) or pd.isnull(row['des_vel']):
-        # If any of the specified columns are NaN, return NaN for east and up
-        return pd.Series({'east': np.nan, 'up': np.nan})
-    
-    # Design matrix (only solving for East and Up, excluding North)
-    G = np.array([
-        [np.sin(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])) * -1,  # East component (ascending)
-         np.cos(np.radians(row['asc_inc']))],  # Up component (ascending)
-        [np.sin(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])) * -1,  # East component (descending)
-         np.cos(np.radians(row['des_inc']))]   # Up component (descending)
-    ])
-    
-    # Observation vector (LOS displacements for ascending and descending)
-    dlos = np.array([row['asc_vel'], row['des_vel']])
-    
-    # Perform the least-squares inversion for this point
-    EN_result, _, _, _ = np.linalg.lstsq(G, dlos, rcond=None)
-    
-    # Return the East and Up components
-    return pd.Series({'east': EN_result[0], 'up': EN_result[1]})
 
-# Function to perform least-squares inversion for a single row (i.e., one data point)
-def invert_single_point_aden2enu(row):
-    """
-    Check if any of 'asc_vel', 'des_vel', or 'gnss_east' is NaN
-    if pd.isnull(row['asc_vel']) or pd.isnull(row['des_vel']) or pd.isnull(row['gnss_east']):
-        # If any of the specified columns are NaN, return NaN for east, north, and up
-        return pd.Series({'east': np.nan, 'north': np.nan, 'up': np.nan})
+# # Function to perform least-squares inversion for a single row (i.e., one data point)
+# def invert_single_point_ad2eu(row):
+#     """
+#     Perform least-squares inversion using only ascending and descending LOS vectors
+#     to solve for East and Up components (North is excluded).
+#     """
+#     # Check if 'asc_vel' or 'des_vel' is NaN
+#     if pd.isnull(row['asc_vel']) or pd.isnull(row['des_vel']):
+#         # If any of the specified columns are NaN, return NaN for east and up
+#         return pd.Series({'east': np.nan, 'up': np.nan})
     
-    Design matrix for ascending and descending LOS vectors at a single point
-    project ENU onto LOS
-    v_los = (  row['Ve'] * np.sin(np.deg2rad(inc_angle)) * np.sin(np.deg2rad(az_angle)) * -1
-              + row['Vn'] * np.sin(np.deg2rad(inc_angle)) * np.cos(np.deg2rad(az_angle))
-              + row['Vu'] * np.cos(np.deg2rad(inc_angle)))
-    gps_data.at[index, 'UNR_Vel'] = v_los
-    """
-    G = np.array([
-        [np.sin(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])) * -1,  # East component (ascending)
-         np.cos(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])),  # North component (ascending)
-         np.cos(np.radians(row['asc_inc']))],  # Up component (ascending)
-        [np.sin(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])) * -1,  # East component (descending)
-         np.cos(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])),  # North component (descending)
-         np.cos(np.radians(row['des_inc']))],  # Up component (descending)
-        [1, 0, 0],  # GNSS East
-        [0, 1, 0]   # GNSS North
-    ])
+#     # Design matrix (only solving for East and Up, excluding North)
+#     G = np.array([
+#         [np.sin(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])) * -1,  # East component (ascending)
+#          np.cos(np.radians(row['asc_inc']))],  # Up component (ascending)
+#         [np.sin(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])) * -1,  # East component (descending)
+#          np.cos(np.radians(row['des_inc']))]   # Up component (descending)
+#     ])
     
-    # Observation vector (LOS displacements and GNSS displacements for a single point)
-    dlos = np.array([row['asc_vel'], row['des_vel'], row['gnss_east'], row['gnss_north']])
+#     # Observation vector (LOS displacements for ascending and descending)
+#     dlos = np.array([row['asc_vel'], row['des_vel']])
     
-    # Perform the least-squares inversion for this point
-    ENU_result, _, _, _ = np.linalg.lstsq(G, dlos, rcond=None)
+#     # Perform the least-squares inversion for this point
+#     EN_result, _, _, _ = np.linalg.lstsq(G, dlos, rcond=None)
     
-    # Return the East, North, and Up components
-    return pd.Series({'east': ENU_result[0], 'north': ENU_result[1], 'up': ENU_result[2]})
+#     # Return the East and Up components
+#     return pd.Series({'east': EN_result[0], 'up': EN_result[1]})
+
+# # Function to perform least-squares inversion for a single row (i.e., one data point)
+# def invert_single_point_aden2enu(row):
+#     """
+#     Check if any of 'asc_vel', 'des_vel', or 'gnss_east' is NaN
+#     if pd.isnull(row['asc_vel']) or pd.isnull(row['des_vel']) or pd.isnull(row['gnss_east']):
+#         # If any of the specified columns are NaN, return NaN for east, north, and up
+#         return pd.Series({'east': np.nan, 'north': np.nan, 'up': np.nan})
+    
+#     Design matrix for ascending and descending LOS vectors at a single point
+#     project ENU onto LOS
+#     v_los = (  row['Ve'] * np.sin(np.deg2rad(inc_angle)) * np.sin(np.deg2rad(az_angle)) * -1
+#               + row['Vn'] * np.sin(np.deg2rad(inc_angle)) * np.cos(np.deg2rad(az_angle))
+#               + row['Vu'] * np.cos(np.deg2rad(inc_angle)))
+#     gps_data.at[index, 'UNR_Vel'] = v_los
+#     """
+#     G = np.array([
+#         [np.sin(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])) * -1,  # East component (ascending)
+#          np.cos(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])),  # North component (ascending)
+#          np.cos(np.radians(row['asc_inc']))],  # Up component (ascending)
+#         [np.sin(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])) * -1,  # East component (descending)
+#          np.cos(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])),  # North component (descending)
+#          np.cos(np.radians(row['des_inc']))],  # Up component (descending)
+#         [1, 0, 0],  # GNSS East
+#         [0, 1, 0]   # GNSS North
+#     ])
+    
+#     # Observation vector (LOS displacements and GNSS displacements for a single point)
+#     dlos = np.array([row['asc_vel'], row['des_vel'], row['gnss_east'], row['gnss_north']])
+    
+#     # Perform the least-squares inversion for this point
+#     ENU_result, _, _, _ = np.linalg.lstsq(G, dlos, rcond=None)
+    
+#     # Return the East, North, and Up components
+#     return pd.Series({'east': ENU_result[0], 'north': ENU_result[1], 'up': ENU_result[2]})
 
 
 # Function to calculate the mean of each column in the ROI and assign it to gps_df
@@ -193,7 +173,7 @@ def write_new_h5_with_indices(df, col_name, outfile, shape, suffix):
 # Define column names and read the GPS ENU file using pandas
 columns = ['Lon', 'Lat', 'Ve', 'Vn', 'Vu', 'Std_e', 'Std_n', 'Std_u', 'StaID']
 #gps_df = pd.read_csv(paths_gps["visr"]["gps_enu"], delim_whitespace=True, comment='#', names=columns)
-gps_df = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
+gps_df = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
 
 # Set lat and lon for plotting from the gps file. 
 ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
@@ -230,6 +210,13 @@ gnss_north_ext = np.hstack([gnss_north_flipped, gnss_north_flipped[:, -1][:, np.
 gnss_east = np.vstack([gnss_east_ext, gnss_east_ext[-1, :]])
 gnss_north = np.vstack([gnss_north_ext, gnss_north_ext[-1, :]])
 
+# Correct for plate motion 
+unit = 1000 # go from meters to mm. 
+with h5py.File(paths_170["geo"]["ITRF_enu"], 'a') as hf:
+    # Read in incidence Angle
+    gnss_east_ITRF_cor = np.array(hf["east"][:])* unit
+    gnss_north_ITRF_cor = np.array(hf["north"][:]) * unit
+    
 ###########################
 # Load InSAR Data 
 ###########################
@@ -266,7 +253,9 @@ data = pd.DataFrame({
     'gnss_east': gnss_east.ravel(),
     'gnss_north': gnss_north.ravel(),
     'gnss_lon': gnss_lon.ravel(),  # Add GNSS longitude
-    'gnss_lat': gnss_lat.ravel()   # Add GNSS latitude
+    'gnss_lat': gnss_lat.ravel(),   # Add GNSS latitude
+    'gnss_east_ITRF_cor' :gnss_east_ITRF_cor.ravel(),
+    'gnss_north_ITRF_cor' :gnss_north_ITRF_cor.ravel(),
 })
 
 # assuming ref_lat and ref_lon each contain exactly one value:
@@ -280,10 +269,18 @@ idx0  = dist2.idxmin()
 # pull out the east/north at that nearest point
 e_ref = data.loc[idx0, "gnss_east"]
 n_ref = data.loc[idx0, "gnss_north"]
+e_ref_itrf = data.loc[idx0, "gnss_east_ITRF_cor"]
+n_ref_itrf = data.loc[idx0, "gnss_north_ITRF_cor"]
 
-# subtract so that the nearest point goes to zero
+# subtract so that the nearest point to reference pixel goes to zero
 data["gnss_east"]  -= e_ref
 data["gnss_north"] -= n_ref
+data["gnss_east_ITRF_cor"]  -= e_ref_itrf
+data["gnss_north_ITRF_cor"] -= n_ref_itrf
+
+# Correction Plate Boundary Motion 
+data["gnss_east"] = data["gnss_east"] - data["gnss_east_ITRF_cor"]
+data["gnss_north"] = data["gnss_north"] - data["gnss_north_ITRF_cor"]
 
 # Save original shape values. 
 orig_shape = asc_lon.shape  # e.g., (ny, nx)
@@ -300,7 +297,7 @@ data = data.dropna(subset=['asc_vel', 'des_vel', 'gnss_east'])
 data.reset_index(drop=True, inplace=True)
 
 ##########################3
-# Project GNSS to LOS 
+# Method 1: Project GNSS to LOS and subtract. 
 ##########################3
 
 # Project east and north velocities to LOS
@@ -331,15 +328,14 @@ for chunk_idx in range(num_chunks):
     data_chunk = data.iloc[start_idx:end_idx].copy()  # Get the current chunk of data
 
     # Apply the first inversion (asc and des solving for East and Up)
-    data_chunk[['ad_east', 'ad_up']] = data_chunk.apply(invert_single_point_ad2eu, axis=1)
+    data_chunk[['ad_east', 'ad_up']] = data_chunk.apply(utils.invert_single_point_ad2eu, axis=1)
 
     # Apply the second inversion (asc, des, and GNSS solving for East, North, and Up)
-    data_chunk[['aden_east', 'aden_north', 'aden_up']] = data_chunk.apply(invert_single_point_aden2enu, axis=1)
+    data_chunk[['aden_east', 'aden_north', 'aden_up']] = data_chunk.apply(utils.invert_single_point_aden2enu, axis=1)
     
     # Store the results back in the original DataFrame
     data.loc[start_idx:end_idx-1, ['ad_east', 'ad_up']] = data_chunk[['ad_east', 'ad_up']]
     data.loc[start_idx:end_idx-1, ['aden_east', 'aden_north', 'aden_up']] = data_chunk[['aden_east', 'aden_north', 'aden_up']]
-
 
 ##########################3
 # RMSE for each "Up" 
@@ -528,7 +524,7 @@ for chunk_idx in range(num_chunks):
     data_chunk = data.iloc[start_idx:end_idx].copy()  # Get the current chunk of data
 
     # Apply the first inversion (asc and des solving for East and Up)
-    data_chunk[['ad_east', 'ad_up']] = data_chunk.apply(invert_single_point_ad2eu, axis=1)
+    data_chunk[['ad_east', 'ad_up']] = data_chunk.apply(utils.invert_single_point_ad2eu, axis=1)
 
     # Store the results back in the original DataFrame
     data.loc[start_idx:end_idx-1, ['ad_east', 'ad_up']] = data_chunk[['ad_east', 'ad_up']]

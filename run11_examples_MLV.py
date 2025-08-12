@@ -179,9 +179,7 @@ with fig.subplot(nrows=2, ncols=1, figsize=("6c", "9.35c"), autolabel="a)",share
     pygmt.makecpt(cmap="vik", series=[-(vmin)+(mean_up_a+mean_up_b)/2, (vmin)+(mean_up_a+mean_up_b)/2])
     fig.grdimage(grid=decomp["P784"]["insar_only_up_grd"], cmap=True, nan_transparent=True, region=mlv_region, projection= sub_map_size)
     
-    fig.text(text="Shasta", x=shasta_lon, y=shasta_lat, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black", region=mlv_region, projection= sub_map_size, fill="white", transparency=50)
-    fig.text(text="Shasta", x=shasta_lon, y=shasta_lat, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black", region=mlv_region, projection= sub_map_size)
-    fig.plot(x=shasta_lon, y=shasta_lat,  style="t.25c", fill="black", pen="0.8p,black", region=mlv_region, projection= sub_map_size)
+    
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=mlv_region, projection= sub_map_size)
     
     
@@ -226,6 +224,10 @@ with fig.subplot(nrows=2, ncols=1, figsize=("6c", "9.35c"), autolabel="a)",share
     fig.text(text="Y'", x=B_end_lon, y=B_end_lat, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black", region=mlv_region, projection=sub_map_size, fill="white", transparency=50 )
     fig.text(text="Y", x=B_start_lon, y=B_start_lat, justify="RM", offset="-0.1c/-0.1c", font="10p,Helvetica,black", region=mlv_region, projection=sub_map_size )
     fig.text(text="Y'", x=B_end_lon, y=B_end_lat, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black", region=mlv_region, projection=sub_map_size )
+    
+    fig.text(text="Shasta", x=shasta_lon, y=shasta_lat, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black", region=mlv_region, projection= sub_map_size, fill="white", transparency=50)
+    fig.text(text="Shasta", x=shasta_lon, y=shasta_lat, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black", region=mlv_region, projection= sub_map_size)
+    fig.plot(x=shasta_lon, y=shasta_lat,  style="t.25c", fill="black", pen="0.8p,black", region=mlv_region, projection= sub_map_size)
     
     fig.plot(x=[mlv_center_lo], y=[mlv_center_la], size=[radius*2], style="E-", pen="1.5p,white", region=mlv_region, projection= sub_map_size)
     
@@ -290,6 +292,7 @@ with pygmt.config(
 
 fig.savefig(common_paths["fig_dir"]+f"Fig_9_MLV_Vertial_example_{radius}.png", transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths["fig_dir"]+f"Fig_9_MLV_Vertial_example_{radius}.pdf", transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f"Fig_9_MLV_Vertial_example_{radius}.jpg", transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()  
 
 # fig = pygmt.Figure()

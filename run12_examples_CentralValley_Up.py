@@ -3,6 +3,8 @@
 """
 Created on Wed Jun  4 09:40:43 2025
 
+Need to grab the canal data using gmt in the termminal first. 
+
 gmt grdtrack Tehama-Colusa_Canal.txt -G../170_5_28/CentralValley/geo/geo_velocity_msk.grd -S > canal_subsidence.txt
 gmt grdtrack Tehama-Colusa_Canal.txt -G../170_5_28/CentralValley/geo/geo_cumdisp_20221226_20220110.grd -S > Tehama-Colusa_canal_cumdisp22.txt
 
@@ -143,7 +145,7 @@ cv_gps_df = gps_df
 # Load Canal
 ###########################
 # Load canal data
-columns = ['Lon', 'Lat', 'Vu']
+columns = ['Lon', 'Lat', 'V_LOS']
 artois_df = pd.read_csv(common_paths["Artois_file"], delim_whitespace=True, comment='>', names=columns)
 arbuckle_df = pd.read_csv(common_paths["Arbuckle_file"], delim_whitespace=True, comment='>', names=columns)
 
@@ -152,7 +154,7 @@ g = Geod(ellps="WGS84")
 def process_canal(canal_df, center_lat, center_lon, crop_km=13.0,
                   dist_col_name="dist_from_center"):
     """
-    Given a canal DataFrame with ['Lon','Lat','Vu'], compute:
+    Given a canal DataFrame with ['Lon','Lat','V_LOS'], compute:
       - cumulative distance along canal as 'dist_km'
       - distance from the point closest to (center_lon, center_lat), in km,
         stored as dist_col_name + "_km"
@@ -183,7 +185,7 @@ def process_canal(canal_df, center_lat, center_lon, crop_km=13.0,
 
     # 4) crop to ±crop_km
     mask = df[col_name].abs() <= crop_km
-    df_crop = df.loc[mask, ["Lon", "Lat", "Vu", col_name]].reset_index(drop=True)
+    df_crop = df.loc[mask, ["Lon", "Lat", "V_LOS", col_name]].reset_index(drop=True)
     return df, df_crop
 
 # Process Artois => canal_cropped1
@@ -199,8 +201,11 @@ _, canal_cropped2 = process_canal(
 )
 
 # Final DataFrames for plotting:
-canal_cropped1 = canal_cropped1[["Lon", "Lat", "Vu", "dist_from_center1_km"]]
-canal_cropped2 = canal_cropped2[["Lon", "Lat", "Vu", "dist_from_center2_km"]]
+canal_cropped1 = canal_cropped1[["Lon", "Lat", "V_LOS", "dist_from_center1_km"]]
+canal_cropped2 = canal_cropped2[["Lon", "Lat", "V_LOS", "dist_from_center2_km"]]
+
+
+
 
 # Example: inspect
 print("Cropped around Artois center:")
@@ -245,27 +250,32 @@ insar_CV = utils.load_insar_vel_ts_as_dictionary(dic_CV)
 time_series_CV, time_series_std_CV = extract_averaged_time_series(insar_CV["ts"], insar_CV["lons"], insar_CV["lats"], points_CV, radius_CV)
 time_series_CV = [ts - ts[1] for ts in time_series_CV]
 
-# Project velocities to vertical (using the incidence angles)
-#df_asc_des['asc_v'] = df_asc_des['asc_vel'] * np.cos(np.deg2rad(df_asc_des['asc_inc']))
-#df_asc_des['des_v'] = df_asc_des['des_vel'] * np.cos(np.deg2rad(df_asc_des['des_inc']))
+# Get incidence angle at time series locations
+geo_values = utils.extract_geometry_at_points(dic_CV['geo_file'], points_CV, 0.004)
+
+# Project to vertical assuming no horizontal motion. 
+time_series_up = [utils.proj_los_into_vertical_no_horiz(los, inc) for los, inc in zip(time_series_CV, geo_values['incidenceAngle'])]
 
 vel_t1 = utils.date_to_decimal_year('20220101')
 vel_t2 = utils.date_to_decimal_year('20221231')
 vel_t3 = utils.date_to_decimal_year('20230101')
 vel_t4 = utils.date_to_decimal_year('20231231')
 
-vel_Art_22, err_Art_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_CV[0]*unit, start=vel_t1, stop=vel_t2)
-vel_Art_23, err_Art_23 = utils.compute_velocity(insar_CV["ts_dates"], time_series_CV[0]*unit, start=vel_t3, stop=vel_t4)
+vel_Art_22, err_Art_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[0]*unit, start=vel_t1, stop=vel_t2)
+vel_Art_23, err_Art_23 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[0]*unit, start=vel_t3, stop=vel_t4)
 
-vel_Arb_22, err_Arb_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_CV[1]*unit, start=vel_t1, stop=vel_t2)
-vel_Arb_23, err_Arb_23 = utils.compute_velocity(insar_CV["ts_dates"], time_series_CV[1]*unit, start=vel_t3, stop=vel_t4)
+vel_Arb_22, err_Arb_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[1]*unit, start=vel_t1, stop=vel_t2)
+vel_Arb_23, err_Arb_23 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[1]*unit, start=vel_t3, stop=vel_t4)
 
-cum_Art_22, cum_err_Art_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_CV[0]*unit, start=vel_t1, stop=vel_t2)
-cum_Art_23, cum_err_Art_23 = utils.compute_velocity(insar_CV["ts_dates"], time_series_CV[0]*unit, start=vel_t3, stop=vel_t4)
+cum_Art_22, cum_err_Art_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[0]*unit, start=vel_t1, stop=vel_t2)
+cum_Art_23, cum_err_Art_23 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[0]*unit, start=vel_t3, stop=vel_t4)
 
-cum_Arb_22, cum_err_Arb_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_CV[1]*unit, start=vel_t1, stop=vel_t2)
-cum_Arb_23, cum_err_Arb_23 = utils.compute_velocity(insar_CV["ts_dates"], time_series_CV[1]*unit, start=vel_t3, stop=vel_t4)
+cum_Arb_22, cum_err_Arb_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[1]*unit, start=vel_t1, stop=vel_t2)
+cum_Arb_23, cum_err_Arb_23 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[1]*unit, start=vel_t3, stop=vel_t4)
 
+#Project canal to up. 
+canal_cropped1['Vu'] = utils.proj_los_into_vertical_no_horiz(canal_cropped1['V_LOS'], geo_values['incidenceAngle'][0])
+canal_cropped2['Vu'] = utils.proj_los_into_vertical_no_horiz(canal_cropped2['V_LOS'], geo_values['incidenceAngle'][1])
 
 # Download DEM
 grid = pygmt.datasets.load_earth_relief(region=cv_region, resolution="03s")
@@ -419,35 +429,37 @@ with fig.subplot(nrows=2, ncols=1, figsize=("6c", "4.5c"), autolabel="c)",sharex
     
 
     sym_size = "c0.08c"
-    text_y1 = -30
-    text_y2 = -17
-    region_ts = [t0-0.1, te+0.1, np.nanmin(time_series_CV)*unit-0.05*unit-5, 0.02*unit]
-    fig.basemap(    region=region_ts, projection=sub_proj, frame=["lstE", "xaf", "ya+lLOS (cm)"], panel=True)
+    text_y1 = -35
+    text_y2 = -15
+    region_ts = [t0-0.1, te+0.1, np.nanmin(time_series_up)*unit-0.05*unit, 0.05*unit]
+    region_ts = [t0-0.1, te+0.1, -45, 5]
+    fig.basemap(    region=region_ts, projection=sub_proj, frame=["lstE", "xaf", "ya+lUp (cm)"], panel=True)
     fig.plot(region=region_ts, projection=sub_proj, x=[2021.9167, 2021.9167,  2022.1667,  2022.1667, 2021.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)
     fig.plot(region=region_ts, projection=sub_proj,x=[2022.9167, 2022.9167,  2023.1667,  2023.1667, 2022.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)
     fig.plot(region=region_ts, projection=sub_proj,x=[2023.9167, 2023.9167,  2024.1667,  2024.1667, 2023.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)        
-    fig.plot(       region=region_ts, projection=sub_proj, x=insar_CV["ts_dates"], y=time_series_CV[0]*unit, style=sym_size, fill="dodgerblue4", )
+    fig.plot(       region=region_ts, projection=sub_proj, x=insar_CV["ts_dates"], y=time_series_up[0]*unit, style=sym_size, fill="dodgerblue4", )
     fig.text(       region=region_ts, projection=sub_proj, text="Greenwood", position="TC",offset ="0.0/-0.1c", font="8p,black") 
     
     fig.plot(x=[vel_t1, vel_t2], y=[text_y1, text_y1],  pen="2p,darkorange", region=region_ts, transparency=50)
     fig.plot(x=[vel_t3, vel_t4], y=[text_y2, text_y2],  pen="2p,darkorange", region=region_ts, transparency=50)
-    fig.text(text=f"{cum_Art_22:.1f} ± {cum_err_Art_22:.1f} cm", x=(vel_t1+vel_t2)/2, y=text_y1, font="8p,Helvetica,black", offset="0c/-0.2c")
-    fig.text(text=f"{cum_Art_23:.1f} ± {cum_err_Art_23:.1f} cm", x=(vel_t3+vel_t4)/2, y=text_y2, font="8p,Helvetica,black", offset="0c/0.2c")
+    fig.text(text=f"{cum_Art_22:.1f} ± {cum_err_Art_22:.1f} cm/yr", x=(vel_t1+vel_t2)/2, y=text_y1, font="8p,Helvetica,black", offset="0c/-0.2c")
+    fig.text(text=f"{cum_Art_23:.1f} ± {cum_err_Art_23:.1f} cm/yr", x=(vel_t3+vel_t4)/2, y=text_y2, font="8p,Helvetica,black", offset="0c/0.2c")
     
     text_y1 = -35
-    text_y2 = -20
-    region_ts = [t0-0.1, te+0.1, np.nanmin(time_series_CV)*unit-0.05*unit-10, 0.02*unit]
-    fig.basemap(    region=region_ts, projection=sub_proj, frame=["lStE", "xaf", "ya+lLOS (cm)"], panel=True)
+    text_y2 = -15
+    region_ts = [t0-0.1, te+0.1, np.nanmin(time_series_up)*unit-0.05*unit, 0.05*unit]
+    region_ts = [t0-0.1, te+0.1, -45, 5]
+    fig.basemap(    region=region_ts, projection=sub_proj, frame=["lStE", "xaf", "ya+lUp (cm)"], panel=True)
     fig.plot(region=region_ts, projection=sub_proj,x=[2021.9167, 2021.9167,  2022.1667,  2022.1667, 2021.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)
     fig.plot(region=region_ts, projection=sub_proj,x=[2022.9167, 2022.9167,  2023.1667,  2023.1667, 2022.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)
     fig.plot(region=region_ts, projection=sub_proj,x=[2023.9167, 2023.9167,  2024.1667,  2024.1667, 2023.9167], y=[region_ts[2], region_ts[3], region_ts[3], region_ts[2], region_ts[2]],  fill="lightblue", transparency=50)    
     
     fig.plot(x=[vel_t1, vel_t2], y=[text_y1, text_y1],  pen="2p,darkorange", region=region_ts, transparency=50)
     fig.plot(x=[vel_t3, vel_t4], y=[text_y2, text_y2],  pen="2p,darkorange", region=region_ts, transparency=50)
-    fig.text(text=f"{cum_Arb_22:.1f} ± {cum_err_Arb_22:.1f} cm", x=(vel_t1+vel_t2)/2, y=text_y1, font="8p,Helvetica,black", offset="0c/-0.2c")
-    fig.text(text=f"{cum_Arb_23:.1f} ± {cum_err_Arb_23:.1f} cm", x=(vel_t3+vel_t4)/2, y=text_y2, font="8p,Helvetica,black", offset="0c/0.2c")
+    fig.text(text=f"{cum_Arb_22:.1f} ± {cum_err_Arb_22:.1f} cm/yr", x=(vel_t1+vel_t2)/2, y=text_y1, font="8p,Helvetica,black", offset="0c/-0.2c")
+    fig.text(text=f"{cum_Arb_23:.1f} ± {cum_err_Arb_23:.1f} cm/yr", x=(vel_t3+vel_t4)/2, y=text_y2, font="8p,Helvetica,black", offset="0c/0.2c")
     
-    for date, value, sigma in zip(insar_CV["ts_dates"], time_series_CV[1], time_series_std_CV[1]):
+    for date, value, sigma in zip(insar_CV["ts_dates"], time_series_up[1], time_series_std_CV[1]):
         if np.isnan(value) or np.isnan(sigma):
             continue  # skip NaNs
         y0 = value - sigma
@@ -461,7 +473,7 @@ with fig.subplot(nrows=2, ncols=1, figsize=("6c", "4.5c"), autolabel="c)",sharex
         )
 
 
-    fig.plot(region=region_ts, projection=sub_proj, x=insar_CV["ts_dates"], y=time_series_CV[1]*unit, style=sym_size, fill="dodgerblue4", )
+    fig.plot(region=region_ts, projection=sub_proj, x=insar_CV["ts_dates"], y=time_series_up[1]*unit, style=sym_size, fill="dodgerblue4", )
     fig.text(region=region_ts, projection=sub_proj, text="Arbuckle", position="TC",offset ="0.0/-0.1c", font="8p,black") 
     
 fig.shift_origin(yshift="-5.08c")  
@@ -470,10 +482,10 @@ with fig.subplot(nrows=2, ncols=1, figsize=("6c", "4.5c"), autolabel="e)", share
                  frame=["WSrt", "xa", "ya"], margins=["0.2c", "0.2c"]):
 
     region_profile = [-canal_dist-0.5, canal_dist+0.5, np.nanmin(canal_cropped1['Vu'])*unit-0.05*unit, 0.12*unit]
-    region_profile = [-canal_dist-0.5, canal_dist+0.5, -23, 12]
+    region_profile = [-canal_dist-0.5, canal_dist+0.5, -25, 10]
 
     fig.basemap(region=region_profile, projection=sub_proj, panel=True, frame=[
-                "lsEt", "xaf+l Canal Distance (km)", "yaf+l LOS (cm)"])
+                "lsEt", "xaf+l Canal Distance (km)", "yaf+l Up (cm)"])
     pygmt.makecpt(cmap="magma", series=[-0.25, 0.02])
     fig.plot(x=canal_cropped1['dist_from_center1_km'], y=(canal_cropped1['Vu']-mean_X)*unit, style="c0.1c", fill=canal_cropped1['Vu'],
              cmap=True, transparency=50, projection=sub_proj, region=region_profile)
@@ -490,9 +502,9 @@ with fig.subplot(nrows=2, ncols=1, figsize=("6c", "4.5c"), autolabel="e)", share
              font="8p,Helvetica,black",region=region_profile, projection=sub_proj,)
 
     region_profile = [-canal_dist-0.5, canal_dist+0.5, np.nanmin(canal_cropped2['Vu'])*unit-0.03*unit, 0.12*unit]
-    region_profile = [-canal_dist-0.5, canal_dist+0.5, -23, 12]
+    region_profile = [-canal_dist-0.5, canal_dist+0.5, -25, 10]
     fig.basemap(region=region_profile, projection=sub_proj, panel=True, frame=[
-        "lSEt", "xaf+l Canal Distance (km)", "yaf+l LOS (cm)"])
+        "lSEt", "xaf+l Canal Distance (km)", "yaf+l Up (cm)"])
     pygmt.makecpt(cmap="magma", series=[-0.25, 0.02])
     fig.plot(x=canal_cropped2['dist_from_center2_km'], y=(canal_cropped2['Vu']-mean_Y)*unit, style="c0.1c", fill=canal_cropped2['Vu'],
              cmap=True, transparency=50, projection=sub_proj, region=region_profile)
@@ -508,6 +520,15 @@ with fig.subplot(nrows=2, ncols=1, figsize=("6c", "4.5c"), autolabel="e)", share
     fig.text(text="%s cm" % np.round(subsidence_Y*unit,1), x=5, y=subsidence_Y*unit+2, justify="BL",
              font="8p,Helvetica,black",region=region_profile, projection=sub_proj,)
     
-fig.savefig(common_paths["fig_dir"]+"Fig_11_example_CentralValley.png", transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths["fig_dir"]+"Fig_11_example_CentralValley.pdf", transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+"Fig_11_example_CentralValley_UP.png", transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+"Fig_11_example_CentralValley_UP.jpg", transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+"Fig_11_example_CentralValley_UP.pdf", transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()  
+
+vel_t1 = utils.date_to_decimal_year('20220515')
+vel_t2 = utils.date_to_decimal_year('20220915')
+
+vel_Art_22, err_Art_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[0]*unit, start=vel_t1, stop=vel_t2)
+vel_Arb_22, err_Arb_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[1]*unit, start=vel_t1, stop=vel_t2)
+
+print(f"Velocity for Art 22: {vel_Art_22:.1f} +/- {err_Art_22:.1f}, Arb 22: {vel_Arb_22:.1f} +/- {err_Arb_22:.1f}")

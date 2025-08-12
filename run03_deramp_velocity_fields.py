@@ -63,9 +63,9 @@ itrf_enu_068 = paths_068["geo"]["ITRF_enu"]
 # ------------------------
 # Load GPS Data
 # ------------------------
-gps_169 = utils.load_UNR_gps(paths_gps["169_enu"], ref_station)
-gps_170 = utils.load_UNR_gps(paths_gps["170_enu"], ref_station)
-gps_068 = utils.load_UNR_gps(paths_gps["068_enu"], ref_station)
+gps_169 = utils.load_UNR_gps(paths_gps["169_enu_ISG14"], ref_station)
+gps_170 = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
+gps_068 = utils.load_UNR_gps(paths_gps["068_enu_ISG14"], ref_station)
 
 # Drop GPS with vertical velocity >-5 mm/yr 
 gps_169 = gps_169[gps_169['Vu']>=-5]

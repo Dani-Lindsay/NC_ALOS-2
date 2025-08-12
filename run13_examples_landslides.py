@@ -380,6 +380,7 @@ with fig.subplot(nrows=2, ncols=1, figsize=("8.5c", "6.4c"), autolabel="g)", sha
     
 fig.savefig(common_paths["fig_dir"]+"Fig_12_landslide_examples.png", transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths["fig_dir"]+"Fig_12_landslide_examples.pdf", transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+"Fig_12_landslide_examples.jpg", transparent=False, crop=True, anti_alias=True, show=False)
 
 fig.show()
 
