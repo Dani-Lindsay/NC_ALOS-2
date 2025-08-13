@@ -643,8 +643,90 @@ def resample_gps_to_insar_dates(gps_df, insar_dates, window_days=6):
     
     return pd.DataFrame(resampled)
 
-def gps_correction_plate_motion(geo_file: str,
-                                itrf_enu_file: str,
+# def gps_correction_plate_motion(geo_file: str,
+#                                 itrf_enu_file: str,
+#                                 gps_df: pd.DataFrame,
+#                                 ref_station: str,
+#                                 unit_factor: float = 1.0) -> pd.DataFrame:
+#     """
+#     Subtract the ITRF‐based plate‐motion ramp (relative to a reference station)
+#     from GPS ENU velocities, with optional unit conversion.
+
+#     Parameters
+#     ----------
+#     geo_file : str
+#         HDF5 path containing datasets 'longitude' and 'latitude'.
+#     itrf_enu_file : str
+#         HDF5 path containing datasets 'east','north','up' (in meters per year).
+#     gps_df : pd.DataFrame
+#         GPS table with columns ['StaID','Lon','Lat','Ve','Vn','Vu',...]
+#         (Ve/Vn/Vu should be in the same units as unit_factor conversion).
+#     ref_station : str
+#         StaID of the site to use as zero‐point reference.
+#     unit_factor : float, optional
+#         Multiply the ITRF east/north/up by this factor before subtraction.
+#         E.g. 1000 to convert from m yr⁻¹ to mm yr⁻¹.  Defaults to 1.0.
+
+#     Returns
+#     -------
+#     pd.DataFrame
+#         Copy of gps_df with added columns 'Ve_corr','Vn_corr','Vu_corr'.
+#     """
+
+#     # 1) load geometry grid
+#     with h5py.File(geo_file, 'r') as g:
+#         lon_grid = g['longitude'][:]
+#         lat_grid = g['latitude'][:]
+
+#     lon1d = lon_grid.reshape(-1)
+#     lat1d = lat_grid.reshape(-1)
+
+#     # 2) load and scale ITRF ENU grid
+#     with h5py.File(itrf_enu_file, 'r') as hf:
+#         east  = (hf['east'][:]  * unit_factor).reshape(-1)
+#         north = (hf['north'][:] * unit_factor).reshape(-1)
+#         up    = (hf['up'][:]    * unit_factor).reshape(-1)
+
+#     # mask zeros
+#     east [east  == 0] = np.nan
+#     north[north== 0] = np.nan
+#     up   [up    == 0] = np.nan
+
+#     # 3) reference station ENU
+#     ref = gps_df.loc[gps_df['StaID']==ref_station]
+#     if ref.empty:
+#         raise ValueError(f"Reference station '{ref_station}' not in gps_df")
+#     lon_ref, lat_ref = ref[['Lon','Lat']].iloc[0]
+
+#     d2_ref = (lon1d - lon_ref)**2 + (lat1d - lat_ref)**2
+#     idx_ref = np.nanargmin(d2_ref)
+#     e_ref, n_ref, u_ref = east[idx_ref], north[idx_ref], up[idx_ref]
+    
+#     # 4) apply correction to each GPS site
+#     out = gps_df.copy()
+#     Ve_corr, Vn_corr, Vu_corr = [], [], []
+
+#     for _, row in out.iterrows():
+#         lon0, lat0 = row['Lon'], row['Lat']
+#         d2 = (lon1d - lon0)**2 + (lat1d - lat0)**2
+#         idx = np.nanargmin(d2)
+        
+#         rel_e = east[idx] - e_ref
+#         rel_n = north[idx] - n_ref
+#         rel_u = up[idx]    - u_ref
+
+#         Ve_corr.append(row['Ve'] - rel_e)
+#         Vn_corr.append(row['Vn'] - rel_n)
+#         Vu_corr.append(row['Vu'] - rel_u)
+
+#     out['Ve'] = Ve_corr
+#     out['Vn'] = Vn_corr
+#     out['Vu'] = Vu_corr
+
+#     return out
+
+def gps_LOS_correction_plate_motion(geo_file: str,
+                                itrf_LOS_file: str,
                                 gps_df: pd.DataFrame,
                                 ref_station: str,
                                 unit_factor: float = 1.0) -> pd.DataFrame:
@@ -682,15 +764,11 @@ def gps_correction_plate_motion(geo_file: str,
     lat1d = lat_grid.reshape(-1)
 
     # 2) load and scale ITRF ENU grid
-    with h5py.File(itrf_enu_file, 'r') as hf:
-        east  = (hf['east'][:]  * unit_factor).reshape(-1)
-        north = (hf['north'][:] * unit_factor).reshape(-1)
-        up    = (hf['up'][:]    * unit_factor).reshape(-1)
+    with h5py.File(itrf_LOS_file, 'r') as hf:
+        ITRF_vel  = (hf['velocity'][:]  * unit_factor).reshape(-1)
 
     # mask zeros
-    east [east  == 0] = np.nan
-    north[north== 0] = np.nan
-    up   [up    == 0] = np.nan
+    ITRF_vel [ITRF_vel  == 0] = np.nan
 
     # 3) reference station ENU
     ref = gps_df.loc[gps_df['StaID']==ref_station]
@@ -698,31 +776,32 @@ def gps_correction_plate_motion(geo_file: str,
         raise ValueError(f"Reference station '{ref_station}' not in gps_df")
     lon_ref, lat_ref = ref[['Lon','Lat']].iloc[0]
 
+    # Find closest index points to the reference lat and lon 
     d2_ref = (lon1d - lon_ref)**2 + (lat1d - lat_ref)**2
     idx_ref = np.nanargmin(d2_ref)
-    e_ref, n_ref, u_ref = east[idx_ref], north[idx_ref], up[idx_ref]
+    
+    # Find the ITRF value at the reference point
+    ITRF_vel_ref = ITRF_vel[idx_ref]
     
     # 4) apply correction to each GPS site
     out = gps_df.copy()
-    Ve_corr, Vn_corr, Vu_corr = [], [], []
+    LOS_corr = []
 
+    # For each GPS station, 
     for _, row in out.iterrows():
+        # Get the lat and lon
         lon0, lat0 = row['Lon'], row['Lat']
+        # Find the nearest index values 
         d2 = (lon1d - lon0)**2 + (lat1d - lat0)**2
         idx = np.nanargmin(d2)
-        
-        rel_e = east[idx] - e_ref
-        rel_n = north[idx] - n_ref
-        rel_u = up[idx]    - u_ref
+        # The relative ITRF correction is, the ITRF value at the GPS station minus the value at CASR. 
+        rel_LOS = ITRF_vel[idx] - ITRF_vel_ref
 
-        Ve_corr.append(row['Ve'] - rel_e)
-        Vn_corr.append(row['Vn'] - rel_n)
-        Vu_corr.append(row['Vu'] - rel_u)
+        # Apply correction value to the LOS projection of the GPS ENU. And append to the list
+        LOS_corr.append(row['LOS_Vel'] - rel_LOS)
 
-    out['Ve'] = Ve_corr
-    out['Vn'] = Vn_corr
-    out['Vu'] = Vu_corr
-
+    # Write over LOS_vel with the corrected LOS_Vel value. 
+    out['LOS_Vel'] = LOS_corr
     return out
 
 # ------------------------------

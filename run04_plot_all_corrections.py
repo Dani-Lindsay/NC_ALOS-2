@@ -151,9 +151,9 @@ insar_170_dfs = [
     (vel_deramp_170_df, 'vel_deramp_170'), 
     (slantRange_170_df, 'slantRange_170')]
 
-itrf_enu_169 = paths_169["geo"]["ITRF_enu"]
-itrf_enu_170 = paths_170["geo"]["ITRF_enu"]
-itrf_enu_068 = paths_068["geo"]["ITRF_enu"]
+itrf_LOS_169 = paths_169["geo"]["ITRF_LOS"]
+itrf_LOS_170 = paths_170["geo"]["ITRF_LOS"]
+itrf_LOS_068 = paths_068["geo"]["ITRF_LOS"]
 
 # ------------------------
 # Load in GPS, correct plate motion, project UNR enu --> los
@@ -167,14 +167,15 @@ gps_068 = utils.load_UNR_gps(paths_gps["068_enu_ISG14"], ref_station)
 ref_lat = gps_169.loc[gps_169["StaID"] == ref_station, "Lat"].values
 ref_lon = gps_169.loc[gps_169["StaID"] == ref_station, "Lon"].values
 
-# Correction GPS for plate motion
-gps_169 = utils.gps_correction_plate_motion(geo_169, itrf_enu_169, gps_169, ref_station, unit)
-gps_170 = utils.gps_correction_plate_motion(geo_170, itrf_enu_170, gps_170, ref_station, unit)
-gps_068 = utils.gps_correction_plate_motion(geo_068, itrf_enu_068, gps_068, ref_station, unit)
-
+# Projecy GPS to LOS
 gps_169 = utils.calculate_gps_los(gps_169, vel_169_df)
 gps_170 = utils.calculate_gps_los(gps_170, vel_170_df)
 gps_068 = utils.calculate_gps_los(gps_068, vel_068_df)
+
+# Correction GPS for plate motion
+gps_169 = utils.gps_LOS_correction_plate_motion(geo_169, itrf_LOS_169, gps_169, ref_station, unit)
+gps_170 = utils.gps_LOS_correction_plate_motion(geo_170, itrf_LOS_170, gps_170, ref_station, unit)
+gps_068 = utils.gps_LOS_correction_plate_motion(geo_068, itrf_LOS_068, gps_068, ref_station, unit)
 
 # ------------------------
 # Find average InSAR velocity for each GPS point 
@@ -536,7 +537,7 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     # Row for Track 068 - velocity_SET_ERA5_demErr_ITRF_ramp
     subplot(vel_deramp_068_grd, deramp_068_grd, results_068_dict['vel_deramp_068']['rmse'], "+t ")
 
-fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS_platemotioncorrection.png', transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS_platemotioncorrection.jpg', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS_platemotioncorrectionLOS.png', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS_platemotioncorrectionLOS.jpg', transparent=False, crop=True, anti_alias=True, show=False)
 #fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals.pdf', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()  

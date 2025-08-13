@@ -21,6 +21,7 @@ import insar_utils as utils
 import numpy as np                # Matrix calculations
 import pandas as pd               # Pandas for data
 import pygmt
+import h5py
 
 dist = common_paths["dist"]
 ref_station = common_paths["ref_station"]
@@ -62,15 +63,15 @@ gps_068 = utils.load_UNR_gps(paths_gps["068_enu_ISG14"], ref_station)
 ref_lat = gps_169.loc[gps_169["StaID"] == ref_station, "Lat"].values
 ref_lon = gps_169.loc[gps_169["StaID"] == ref_station, "Lon"].values
 
-# Correct Plate Motion
-gps_169 = utils.gps_correction_plate_motion(paths_169["geo"]["geo_geometryRadar"], paths_169["geo"]["ITRF_enu"], gps_169, ref_station, unit)
-gps_170 = utils.gps_correction_plate_motion(paths_170["geo"]["geo_geometryRadar"], paths_170["geo"]["ITRF_enu"], gps_170, ref_station, unit)
-gps_068 = utils.gps_correction_plate_motion(paths_068["geo"]["geo_geometryRadar"], paths_068["geo"]["ITRF_enu"], gps_068, ref_station, unit)
-
 # Project ENU to LOS 
 gps_169 = utils.calculate_gps_los(gps_169, insar_169)
 gps_170 = utils.calculate_gps_los(gps_170, insar_170)
 gps_068 = utils.calculate_gps_los(gps_068, insar_068)
+
+# Correct for Plate Motion in LOS
+gps_169 = utils.gps_LOS_correction_plate_motion(paths_169["geo"]["geo_geometryRadar"], paths_169["geo"]["ITRF_LOS"], gps_169, ref_station, unit)
+gps_170 = utils.gps_LOS_correction_plate_motion(paths_170["geo"]["geo_geometryRadar"], paths_170["geo"]["ITRF_LOS"], gps_170, ref_station, unit)
+gps_068 = utils.gps_LOS_correction_plate_motion(paths_068["geo"]["geo_geometryRadar"], paths_068["geo"]["ITRF_LOS"], gps_068, ref_station, unit)
 
 # Project error to LOS
 gps_169 = utils.calculate_gps_los_error(gps_169, insar_169)
@@ -468,8 +469,8 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "7.4c"),autolabel="a)", share
         ):
         fig.colorbar(position="JMR+o0.35c/0c+w4.0c/0.4c", frame=["xa+lVelocity (mm/yr)"], projection = size)
         
-fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_GPS_PMCorr.png', transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_GPS_PMCorr.pdf', transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_GPS_PMCorr.jpg', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_GPSISG14_InSARITRFcorr_GPSLOSITRFcorr.png', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_GPSISG14_InSARITRFcorr_GPSLOSITRFcorr.pdf', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_GPSISG14_InSARITRFcorr_GPSLOSITRFcorr.jpg', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()   
 

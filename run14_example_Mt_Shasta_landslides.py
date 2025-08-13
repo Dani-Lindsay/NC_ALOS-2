@@ -229,6 +229,7 @@ with fig.subplot(nrows=2, ncols=1, figsize=("8.5c", "6.25c"), autolabel="c)", sh
     
 fig.savefig(common_paths["fig_dir"]+"Fig_13_Mt_Shasta_landslide.png", transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths["fig_dir"]+"Fig_13_Mt_Shasta_landslide.pdf", transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths["fig_dir"]+"Fig_13_Mt_Shasta_landslide.jpg", transparent=False, crop=True, anti_alias=True, show=False)
 
 fig.show()
 

@@ -10,7 +10,7 @@ import glob
 import os
 import insar_utils as utils
 
-fig_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Figures_07_25/"
+fig_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Figures_08_13/"
 data_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Data_Zenodo"
 gps_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Data_Zenodo/GPS"
 inputs_dir = os.path.join(data_dir, "Inputs")
@@ -70,15 +70,15 @@ paths_gps = {
     "068_StaList":  os.path.join(data_dir, "068", "StationList.txt"),
     "169_StaList":  os.path.join(data_dir, "169", "StationList.txt"),
     "170_StaList":  os.path.join(data_dir, "170", "StationList.txt"),
-    "068_enu_ISG14":      os.path.join(data_dir, "068", "UNR_IGS14_gps.csv"),
-    "169_enu_ISG14":      os.path.join(data_dir, "169", "UNR_IGS14_gps.csv"),
-    "170_enu_ISG14":      os.path.join(data_dir, "170", "UNR_IGS14_gps.csv"),
-    "068_enu_NA":      os.path.join(data_dir, "068", "UNR_NZ_gps.csv"),
-    "169_enu_NA":      os.path.join(data_dir, "169", "UNR_NA_gps.csv"),
-    "170_enu_NA":      os.path.join(data_dir, "170", "UNR_NA_gps.csv"),
-    "068_LOS_comp":      os.path.join(data_dir, "068", "UNR_IGS14_gps_LOS_InSAR.csv"),
-    "169_LOS_comp":      os.path.join(data_dir, "169", "UNR_IGS14_gps_LOS_InSAR.csv"),
-    "170_LOS_comp":      os.path.join(data_dir, "170", "UNR_IGS14_gps_LOS_InSAR.csv"),
+    "068_enu_ISG14":os.path.join(data_dir, "068", "UNR_IGS14_gps.csv"),
+    "169_enu_ISG14":os.path.join(data_dir, "169", "UNR_IGS14_gps.csv"),
+    "170_enu_ISG14":os.path.join(data_dir, "170", "UNR_IGS14_gps.csv"),
+    "068_enu_NA":   os.path.join(data_dir, "068", "UNR_NA_gps.csv"),
+    "169_enu_NA":   os.path.join(data_dir, "169", "UNR_NA_gps.csv"),
+    "170_enu_NA":   os.path.join(data_dir, "170", "UNR_NA_gps.csv"),
+    "068_LOS_comp": os.path.join(data_dir, "068", "UNR_IGS14_gps_LOS_InSAR.csv"),
+    "169_LOS_comp": os.path.join(data_dir, "169", "UNR_IGS14_gps_LOS_InSAR.csv"),
+    "170_LOS_comp": os.path.join(data_dir, "170", "UNR_IGS14_gps_LOS_InSAR.csv"),
     "visr":{
         "east" :    os.path.join(gps_dir, "VISR","visr", "visr_intrp_e_NAN.grd"),
         "north" :   os.path.join(gps_dir, "VISR", "visr", "visr_intrp_n_NAN.grd"),
@@ -133,6 +133,7 @@ paths_068 = {
         "diff_ITRF14": os.path.join(data_dir, "068", "CASR", "geo", "diff_ITRF14.h5"),
         "diff_deramp": os.path.join(data_dir, "068", "CASR", "geo", "diff_deramp.h5"),
         "ITRF_enu"   : os.path.join(data_dir, "068", "CASR", "geo", "ITRF14enu.h5"),
+        "ITRF_LOS"   : os.path.join(data_dir, "068", "CASR", "geo", "ITRF14.h5"),
 #         "vel_grd": os.path.join(data_dir, "068", "CASR", "geo", "geo_velocity_SET_ERA5_demErr_ITRF14_msk_deramp.grd"),
     },
     "grd":{
@@ -235,7 +236,8 @@ paths_169 = {
         "diff_ITRF14":  os.path.join(data_dir, "169", "CASR", "geo", "diff_ITRF14.h5"),
         "diff_deramp":  os.path.join(data_dir, "169", "CASR", "geo", "diff_deramp.h5"),
         "diff_169_170": os.path.join(data_dir, "169", "CASR", "geo", "diff_169_170.h5"),
-        "ITRF_enu"   :  os.path.join(data_dir, "068", "CASR", "geo", "ITRF14enu.h5"),
+        "ITRF_enu"   :  os.path.join(data_dir, "169", "CASR", "geo", "ITRF14enu.h5"),
+        "ITRF_LOS"   :  os.path.join(data_dir, "169", "CASR", "geo", "ITRF14.h5"),
     },
     
     "grd":{
@@ -316,6 +318,7 @@ paths_170 = {
         "diff_ITRF14": os.path.join(data_dir, "170", "CASR", "geo", "diff_ITRF14.h5"),
         "diff_deramp": os.path.join(data_dir, "170", "CASR", "geo", "diff_deramp.h5"),
         "ITRF_enu"   : os.path.join(data_dir, "170", "CASR", "geo", "ITRF14enu.h5"),
+        "ITRF_LOS"   : os.path.join(data_dir, "170", "CASR", "geo", "ITRF14.h5"),
         "ITRF_enu_msk"   : os.path.join(data_dir, "170", "CASR", "geo", "ITRF14enu_msk.h5"),
     },
     "grd":{

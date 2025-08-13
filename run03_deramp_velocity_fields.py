@@ -56,9 +56,9 @@ vel_file_169 = paths_169["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
 vel_file_170 = paths_170["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
 vel_file_068 = paths_068["geo"]["geo_velocity_SET_ERA5_demErr_ITRF14_msk"]
 
-itrf_enu_169 = paths_169["geo"]["ITRF_enu"]
-itrf_enu_170 = paths_170["geo"]["ITRF_enu"]
-itrf_enu_068 = paths_068["geo"]["ITRF_enu"]
+itrf_LOS_169 = paths_169["geo"]["ITRF_LOS"]
+itrf_LOS_170 = paths_170["geo"]["ITRF_LOS"]
+itrf_LOS_068 = paths_068["geo"]["ITRF_LOS"]
 
 # ------------------------
 # Load GPS Data
@@ -72,12 +72,6 @@ gps_169 = gps_169[gps_169['Vu']>=-5]
 gps_170 = gps_170[gps_170['Vu']>=-5]
 gps_068 = gps_068[gps_068['Vu']>=-5]
 
-# ------------------------
-# Correct Plate Motion
-# ------------------------
-gps_169 = utils.gps_correction_plate_motion(geo_file_169, itrf_enu_169, gps_169, ref_station, unit)
-gps_170 = utils.gps_correction_plate_motion(geo_file_170, itrf_enu_170, gps_170, ref_station, unit)
-gps_068 = utils.gps_correction_plate_motion(geo_file_068, itrf_enu_068, gps_068, ref_station, unit)
 
 # ------------------------
 # Load InSAR Data
@@ -103,6 +97,13 @@ gps_068 = utils.calculate_average_insar_velocity(gps_068, insar_068, dist)
 gps_169 = utils.calculate_gps_los(gps_169, insar_169)
 gps_170 = utils.calculate_gps_los(gps_170, insar_170)
 gps_068 = utils.calculate_gps_los(gps_068, insar_068)
+
+# ------------------------
+# Correct Plate Motion
+# ------------------------
+gps_169 = utils.gps_LOS_correction_plate_motion(geo_file_169, itrf_LOS_169, gps_169, ref_station, unit)
+gps_170 = utils.gps_LOS_correction_plate_motion(geo_file_170, itrf_LOS_170, gps_170, ref_station, unit)
+gps_068 = utils.gps_LOS_correction_plate_motion(geo_file_068, itrf_LOS_068, gps_068, ref_station, unit)
 
 # Save original InSAR velocities for reference
 insar_169["Vel_ori"] = insar_169["Vel"]
