@@ -21,15 +21,27 @@ shasta_lat, shasta_lon =  41.410519, -122.194231
 
 radius = 20 
 
+ref_station = "P784"
 ###########################
 # Load GNSS
 ###########################
 # MLV GPS
-columns = ['Lon', 'Lat', 'Ve', 'Vn', 'Vu', 'Std_e', 'Std_n', 'Std_u', 'StaID']
-gps_df = pd.read_csv(paths_gps['visr']['gps_enu'] ,delim_whitespace=True, comment='#', names=columns)
-Vu_ref, Ve_ref, Vn_ref = gps_df.loc[gps_df['StaID'] == 'P784', ['Vu', 'Ve', 'Vn']].values[0]
-gps_df[['Vu', 'Ve', 'Vn']] = gps_df[['Vu', 'Ve', 'Vn']] - [Vu_ref, Ve_ref, Vn_ref]
-mlv_gps_df = gps_df
+# columns = ['Lon', 'Lat', 'Ve', 'Vn', 'Vu', 'Std_e', 'Std_n', 'Std_u', 'StaID']
+# gps_df = pd.read_csv(paths_gps['visr']['gps_enu'] ,delim_whitespace=True, comment='#', names=columns)
+# Vu_ref, Ve_ref, Vn_ref = gps_df.loc[gps_df['StaID'] == 'P784', ['Vu', 'Ve', 'Vn']].values[0]
+# gps_df[['Vu', 'Ve', 'Vn']] = gps_df[['Vu', 'Ve', 'Vn']] - [Vu_ref, Ve_ref, Vn_ref]
+# mlv_gps_df = gps_df
+
+mlv_gps_df = utils.load_UNR_gps(paths_gps["170_enu_IGS14"])
+ref = mlv_gps_df.loc[mlv_gps_df['StaID']==ref_station]
+if ref.empty:
+    raise ValueError(f"Reference station '{ref_station}' not in gps_df")
+ref_lon, ref_lat, ref_Ve, ref_Vn, ref_Vu = ref[['Lon','Lat', 'Ve', 'Vn', 'Vu']].iloc[0]
+
+mlv_gps_df['Ve'] = mlv_gps_df['Ve'] - ref_Ve
+mlv_gps_df['Vn'] = mlv_gps_df['Vn'] - ref_Vn
+mlv_gps_df['Vu'] = mlv_gps_df['Vu'] - ref_Vu
+
 
 ###########################
 # Load InSAR

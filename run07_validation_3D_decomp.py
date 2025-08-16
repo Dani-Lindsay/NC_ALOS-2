@@ -41,10 +41,17 @@ insar_gps_up = utils.load_h5_data(paths_170["geo"]["geo_geometryRadar"], decomp[
 # Load in GPS and project UNR enu --> los
 #####################
 
-gps_df = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
-# Set lat and lon for plotting from the gps file. 
-ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
-ref_lon = gps_df.loc[gps_df["StaID"] == ref_station, "Lon"].values
+gps_df = utils.load_UNR_gps(paths_gps["170_enu_IGS14"])
+# # Set lat and lon for plotting from the gps file. 
+# ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
+# ref_lon = gps_df.loc[gps_df["StaID"] == ref_station, "Lon"].values
+
+ref = gps_df.loc[gps_df['StaID']==ref_station]
+if ref.empty:
+    raise ValueError(f"Reference station '{ref_station}' not in gps_df")
+ref_lon, ref_lat, ref_Vu = ref[['Lon','Lat', 'Vu']].iloc[0]
+
+gps_df['Vu'] = gps_df['Vu'] - ref_Vu
 
 #NB: Don't need to apply plate boundary correction for vertical velocities. 
 
@@ -276,3 +283,14 @@ fig.savefig(common_paths['fig_dir']+f'Fig_4_{ref_station}_3D_results_170_068.png
 fig.savefig(common_paths['fig_dir']+f'Fig_4_{ref_station}_3D_results_170_068.pdf', transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths['fig_dir']+f'Fig_4_{ref_station}_3D_results_170_068.jpg', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()
+
+insar_gps_up = insar_gps_up.copy()
+insar_gps_up["abs_res"] = np.abs(insar_gps_up["residuals"])
+gps_sorted = insar_gps_up.sort_values(by="abs_res")
+
+# Extract best and worst StaIDs into lists
+good = gps_sorted["StaID"].head(10).tolist()
+bad = gps_sorted["StaID"].tail(10).tolist()
+
+print("good =", good)
+print("bad  =", bad)

@@ -33,7 +33,7 @@ import insar_utils as utils
 # ---------------------------------------------------------------------------
 # User parameters
 # ---------------------------------------------------------------------------
-tol             = 1.0     # years slack for station list
+tol             = 1.0     # years slack for station list, start/end date can be within +/- tol of the insar date. 
 data_threshold  = 0.70    # fraction of days required
 noise_threshold = 1.0     # std(Z) > threshold mm → noisy station
 STEP_THRESHOLD  = 3.0     # mm jump to correct
@@ -52,15 +52,19 @@ Range = [minlon, maxlon, minlat, maxlat]
 # File locations
 DataHoldings_file = paths_gps['DataHoldings']
 Steps_file        = paths_gps['Steps']
-UNR_dir           = paths_gps['UNRdaily_Dir']
 fig_dir           = paths_gps['Fig_Dir']
 sta_list_068      = paths_gps['068_StaList']
 sta_list_169      = paths_gps['169_StaList']
 sta_list_170      = paths_gps['170_StaList']
-out_068           = paths_gps['068_enu_ISG14']
-out_169           = paths_gps['169_enu_ISG14']
-out_170           = paths_gps['170_enu_ISG14']
+out_068           = paths_gps[f'068_enu_{ref_frame}']
+out_169           = paths_gps[f'169_enu_{ref_frame}']
+out_170           = paths_gps[f'170_enu_{ref_frame}']
 ref_station       = common_paths['ref_station']
+
+if ref_frame    == 'NA':
+    UNR_dir     = paths_gps['NA_dir']
+elif ref_frame  == 'IGS14':
+    UNR_dir     = paths_gps['IGS14_dir']
 
 # Manual exclusion list # check 312,
 manual_exclude = [
@@ -294,7 +298,7 @@ def plot_timeseries(
     sta_id: str, fig_dir: str, t0: float, te: float,
     track_label: str,
     E_ori: np.ndarray, N_ori: np.ndarray, Z_ori: np.ndarray,
-    track: str,
+    track: str, ref_frame: str,
 ):
     paths_map = {
         'Raw': os.path.join(fig_dir, 'Uncorrected'),
@@ -354,7 +358,7 @@ def plot_timeseries(
     plt.xlim(t0, te)
     plt.legend(loc='center left', bbox_to_anchor=(1,0.5))
     plt.tight_layout()
-    outp = os.path.join(paths_map[folder], f"{track}_{sta_id}_{folder}.png")
+    outp = os.path.join(paths_map[folder], f"{track}_{sta_id}_{folder}_{ref_frame}.png")
     plt.savefig(outp)
     plt.close()
 
@@ -473,7 +477,7 @@ def run_path(
         plot_timeseries(
             yrs, E, N, Z, equip, quake,
             corr_steps, sid, fig_dir, t0, te, status_label,
-            E_ori, N_ori, Z_ori, track)
+            E_ori, N_ori, Z_ori, track, ref_frame)
     return summary
 
 # ---------------------------------------------------------------------------

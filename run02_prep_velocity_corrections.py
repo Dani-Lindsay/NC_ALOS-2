@@ -27,7 +27,11 @@ This script takes the MintPy output and does the following:
 import os
 import subprocess
 from NC_ALOS2_filepaths import (common_paths, paths_068, paths_169, paths_170, paths_170_5_28, paths_115)
-import insar_utils as utils
+
+def run_command(cmd):
+    """Helper function to run a command and print it."""
+    print("Running:", " ".join(cmd))
+    subprocess.run(cmd, check=True)
 
 # ------------------------
 # Parameters
@@ -45,10 +49,10 @@ lon_step = common_paths["lon_step"]
 # Path to geocode.py executable (adjust if needed)
 geocode_py = "/Users/daniellelindsay/miniconda3/envs/MintPy_24_2/bin/geocode.py"
 
-def run_command(cmd):
-    """Helper function to run a command and print it."""
-    print("Running:", " ".join(cmd))
-    subprocess.run(cmd, check=True)
+# def run_command(cmd):
+#     """Helper function to run a command and print it."""
+#     print("Running:", " ".join(cmd))
+#     subprocess.run(cmd, check=True)
 
 def process_track(track):
     """
@@ -98,14 +102,6 @@ def process_track(track):
                  "--lalo", lat_step, lon_step,
                  "--bbox", s, n, w, e,
                  "--outdir", geo_dir])
-    #run_command([geocode_py, casr["velocityERA5"], "-l", geo["geometryRadar"],
-    #             "--lalo", lat_step, lon_step,
-    #             "--bbox", s, n, w, e,
-    #             "--outdir", geo_dir])
-    #run_command([geocode_py, casr["demErr"], "-l", geo["geometryRadar"],
-    #             "--lalo", lat_step, lon_step,
-    #             "--bbox", s, n, w, e,
-    #             "--outdir", geo_dir])
     
     # --- Plate Motion ---
     run_command(["plate_motion.py", "-g", geo["geo_geometryRadar"],
@@ -213,9 +209,6 @@ run_command(["mask.py", paths_170["P784"]["geo_velocity"], "-m", paths_170["P784
 
 run_command(["save_gmt.py", paths_068["P784"]["geo_velocity_msk"], "-o", paths_068["P784"]["vel_grd"]])
 run_command(["save_gmt.py", paths_170["P784"]["geo_velocity_msk"], "-o", paths_170["P784"]["vel_grd"]])
-
-# Mask 170 for geysers
-#run_command(["mask.py", paths_170["geo"]["geo_timeseries"], "-m", paths_170["geo"]["geo_maskTempCoh"], "-o", paths_170["geo"]["geo_timeseries_msk"]])
 
 # Mask and save ls as gmt 
 temp_coh = str(0.6)  

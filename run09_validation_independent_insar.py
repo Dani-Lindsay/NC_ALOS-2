@@ -62,10 +62,17 @@ def prepare_heatmap_xyz(df, x_col, y_col, bin_size=0.1):
     )
 
 
-gps_df = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
-# Set lat and lon for plotting from the gps file. 
-ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
-ref_lon = gps_df.loc[gps_df["StaID"] == ref_station, "Lon"].values
+
+# Load GPS
+gps_df = utils.load_UNR_gps(paths_gps["170_enu_IGS14"])
+
+ref = gps_df.loc[gps_df['StaID']==ref_station]
+ref_lon, ref_lat, ref_Ve, ref_Vn, ref_Vu = ref[['Lon','Lat', 'Ve', 'Vn', 'Vu']].iloc[0]
+
+gps_df['Ve'] = gps_df['Ve'] - ref_Ve
+gps_df['Vn'] = gps_df['Vn'] - ref_Vn
+gps_df['Vu'] = gps_df['Vu'] - ref_Vu
+
 
 ##############################
 # Prepare asc and des comparison 
@@ -181,7 +188,6 @@ map_size_asc = "M4c"
 scatter_size_asc = "X5.1/5.1c"
 
 
-
 fig = pygmt.Figure()
 pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain", FONT=9, FONT_TITLE=10, MAP_TITLE_OFFSET="-7p")
 
@@ -197,9 +203,9 @@ with fig.subplot(nrows=1, ncols=3, figsize=("12.5c", "5.1c"), autolabel="a)", sh
     fig.grdimage(grid=paths_068["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], cmap=True, region=region_asc, projection=map_size_asc)
     fig.coast(shorelines=True, region=[region_asc], projection=map_size_asc, frame=["+tAscending LOS 068"])
     fig.plot(x=ref_lon, y=ref_lat, style="s.2c", fill="black", pen="1p")
-    fig.text(text="117 Interferograms", position="BL", offset="0.2c/0.2c",
+    fig.text(text="83 Interferograms", position="BL", offset="0.2c/0.2c",
              font="9p,Helvetica,black", region=region_asc, projection=map_size_asc)
-    fig.text(text="27 Acquisitions", position="BL", offset="0.2c/0.7c",
+    fig.text(text="22 Acquisitions", position="BL", offset="0.2c/0.7c",
              font="9p,Helvetica,black", region=region_asc, projection=map_size_asc)
     df = pd.DataFrame(
         data={
@@ -223,9 +229,9 @@ with fig.subplot(nrows=1, ncols=3, figsize=("12.5c", "5.1c"), autolabel="a)", sh
     fig.grdimage(grid=paths_170["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"], cmap=True, region=region_asc, projection=map_size_asc)
     fig.coast(shorelines=True, region=[region_asc], projection=map_size_asc, frame=["+tDescending LOS 170"])
     fig.plot(x=ref_lon, y=ref_lat, style="s.2c", fill="black", pen="1p")
-    fig.text(text="561 Interferograms", position="BL", offset="0.2c/0.2c",
+    fig.text(text="364 Interferograms", position="BL", offset="0.2c/0.2c",
              font="9p,Helvetica,black", region=region_asc, projection=map_size_asc)
-    fig.text(text="91 Acquisitions", position="BL", offset="0.2c/0.7c",
+    fig.text(text="89 Acquisitions", position="BL", offset="0.2c/0.7c",
              font="9p,Helvetica,black", region=region_asc, projection=map_size_asc)
     df = pd.DataFrame(
         data={
@@ -324,7 +330,7 @@ with fig.subplot(nrows=1, ncols=4, figsize=("11c", "5.1c"), autolabel="d)", shar
     
     # Panel 3: Difference map (Des 169 minus Des 170)
     fig.basemap(frame=["wSrt", "xa", "ya"], region=region_des, projection=map_size_des, panel=True)
-    pygmt.makecpt(cmap="vik", series=[vmin+0.005, vmax+0.005])
+    pygmt.makecpt(cmap="vik", series=[vmin, vmax])
     fig.grdimage(grid=paths_169["grd"]["diff_169_170"], cmap=True, region=[region_des], projection=map_size_des)
     fig.coast(shorelines=True, region=[region_des], projection=map_size_des, frame=["+tDifference"])
 

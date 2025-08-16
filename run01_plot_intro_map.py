@@ -14,6 +14,8 @@ import pandas as pd
 from NC_ALOS2_filepaths import (common_paths, paths_068, paths_169, paths_170)
 import insar_utils as utils
 
+ref_station = common_paths["ref_station"]
+
 ###############################
 # Read baselines and burst
 ###############################
@@ -24,7 +26,7 @@ offset = 0
 # Call the function with the path to the uploaded file
 ref_date = utils.yymmdd_to_decimal_year("200929")
 sec_date, centered_perp_base = utils.read_baselines(paths_068["baselines"])
-pairs, mean, btemp, bperp = utils.read_coherence_data(paths_068["CASR"]["coherence"])
+pairs, mean, btemp, bperp = utils.read_coherence_data(paths_068[ref_station]["coherence"])
 
 dic_068 = {
     "ref_date": ref_date, 
@@ -42,7 +44,7 @@ dic_068["pairs_bperp"] = utils.calculate_pairs_bperp(dic_068)
 ### ******* 169 *******
 ref_date = utils.yymmdd_to_decimal_year("150408")
 sec_date, centered_perp_base = utils.read_baselines(paths_169["baselines"])
-pairs, mean, btemp, bperp = utils.read_coherence_data(paths_169["CASR"]["coherence"])
+pairs, mean, btemp, bperp = utils.read_coherence_data(paths_169[ref_station]["coherence"])
 
 dic_169 = {
     "ref_date": ref_date, 
@@ -61,7 +63,7 @@ dic_169["pairs_bperp"] = utils.calculate_pairs_bperp(dic_169)
 ### ******* 170 *******
 ref_date = utils.yymmdd_to_decimal_year("150511")
 sec_date, centered_perp_base = utils.read_baselines(paths_170["baselines"])
-pairs, mean, btemp, bperp = utils.read_coherence_data(paths_170["CASR"]["coherence"])
+pairs, mean, btemp, bperp = utils.read_coherence_data(paths_170[ref_station]["coherence"])
 
 dic_170 = {
     "ref_date": ref_date, 
@@ -317,6 +319,6 @@ with fig.subplot(nrows=3, ncols=1, figsize=("5c", "13.4c"), autolabel="b)", marg
 
 fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.png", crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.pdf", crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.jpg", crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.jpg", crop=True, anti_alias=True, show=False, dpi=400)
 
 fig.show()

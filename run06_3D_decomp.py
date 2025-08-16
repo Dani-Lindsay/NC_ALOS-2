@@ -41,70 +41,6 @@ def project_gps2los(azi, inc, gps_e, gps_n):
     return v_los
 
 
-# # Function to perform least-squares inversion for a single row (i.e., one data point)
-# def invert_single_point_ad2eu(row):
-#     """
-#     Perform least-squares inversion using only ascending and descending LOS vectors
-#     to solve for East and Up components (North is excluded).
-#     """
-#     # Check if 'asc_vel' or 'des_vel' is NaN
-#     if pd.isnull(row['asc_vel']) or pd.isnull(row['des_vel']):
-#         # If any of the specified columns are NaN, return NaN for east and up
-#         return pd.Series({'east': np.nan, 'up': np.nan})
-    
-#     # Design matrix (only solving for East and Up, excluding North)
-#     G = np.array([
-#         [np.sin(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])) * -1,  # East component (ascending)
-#          np.cos(np.radians(row['asc_inc']))],  # Up component (ascending)
-#         [np.sin(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])) * -1,  # East component (descending)
-#          np.cos(np.radians(row['des_inc']))]   # Up component (descending)
-#     ])
-    
-#     # Observation vector (LOS displacements for ascending and descending)
-#     dlos = np.array([row['asc_vel'], row['des_vel']])
-    
-#     # Perform the least-squares inversion for this point
-#     EN_result, _, _, _ = np.linalg.lstsq(G, dlos, rcond=None)
-    
-#     # Return the East and Up components
-#     return pd.Series({'east': EN_result[0], 'up': EN_result[1]})
-
-# # Function to perform least-squares inversion for a single row (i.e., one data point)
-# def invert_single_point_aden2enu(row):
-#     """
-#     Check if any of 'asc_vel', 'des_vel', or 'gnss_east' is NaN
-#     if pd.isnull(row['asc_vel']) or pd.isnull(row['des_vel']) or pd.isnull(row['gnss_east']):
-#         # If any of the specified columns are NaN, return NaN for east, north, and up
-#         return pd.Series({'east': np.nan, 'north': np.nan, 'up': np.nan})
-    
-#     Design matrix for ascending and descending LOS vectors at a single point
-#     project ENU onto LOS
-#     v_los = (  row['Ve'] * np.sin(np.deg2rad(inc_angle)) * np.sin(np.deg2rad(az_angle)) * -1
-#               + row['Vn'] * np.sin(np.deg2rad(inc_angle)) * np.cos(np.deg2rad(az_angle))
-#               + row['Vu'] * np.cos(np.deg2rad(inc_angle)))
-#     gps_data.at[index, 'UNR_Vel'] = v_los
-#     """
-#     G = np.array([
-#         [np.sin(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])) * -1,  # East component (ascending)
-#          np.cos(np.radians(row['asc_azi'])) * np.sin(np.radians(row['asc_inc'])),  # North component (ascending)
-#          np.cos(np.radians(row['asc_inc']))],  # Up component (ascending)
-#         [np.sin(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])) * -1,  # East component (descending)
-#          np.cos(np.radians(row['des_azi'])) * np.sin(np.radians(row['des_inc'])),  # North component (descending)
-#          np.cos(np.radians(row['des_inc']))],  # Up component (descending)
-#         [1, 0, 0],  # GNSS East
-#         [0, 1, 0]   # GNSS North
-#     ])
-    
-#     # Observation vector (LOS displacements and GNSS displacements for a single point)
-#     dlos = np.array([row['asc_vel'], row['des_vel'], row['gnss_east'], row['gnss_north']])
-    
-#     # Perform the least-squares inversion for this point
-#     ENU_result, _, _, _ = np.linalg.lstsq(G, dlos, rcond=None)
-    
-#     # Return the East, North, and Up components
-#     return pd.Series({'east': ENU_result[0], 'north': ENU_result[1], 'up': ENU_result[2]})
-
-
 # Function to calculate the mean of each column in the ROI and assign it to gps_df
 def calculate_column_averages(gps_data, insar_data, dist, columns_to_average):
     """
@@ -173,7 +109,7 @@ def write_new_h5_with_indices(df, col_name, outfile, shape, suffix):
 # Define column names and read the GPS ENU file using pandas
 columns = ['Lon', 'Lat', 'Ve', 'Vn', 'Vu', 'Std_e', 'Std_n', 'Std_u', 'StaID']
 #gps_df = pd.read_csv(paths_gps["visr"]["gps_enu"], delim_whitespace=True, comment='#', names=columns)
-gps_df = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
+gps_df = utils.load_UNR_gps(paths_gps["170_enu_IGS14"])
 
 # Set lat and lon for plotting from the gps file. 
 ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values

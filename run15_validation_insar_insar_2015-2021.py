@@ -69,13 +69,16 @@ def prepare_heatmap_xyz(df, x_col, y_col, bin_size=0.1):
         .sort_values('count')
     )
 
+# Load UNR data
+gps_df = utils.load_UNR_gps(paths_gps["170_enu_IGS14"])
+ref = gps_df.loc[gps_df['StaID']==ref_station]
+if ref.empty:
+    raise ValueError(f"Reference station '{ref_station}' not in gps_df")
+ref_lon, ref_lat, ref_Ve, ref_Vn, ref_Vu = ref[['Lon','Lat', 'Ve', 'Vn', 'Vu']].iloc[0]
 
-gps_df = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
-# Set lat and lon for plotting from the gps file. 
-ref_lat = gps_df.loc[gps_df["StaID"] == ref_station, "Lat"].values
-ref_lon = gps_df.loc[gps_df["StaID"] == ref_station, "Lon"].values
-
-
+gps_df['Ve'] = gps_df['Ve'] - ref_Ve
+gps_df['Vn'] = gps_df['Vn'] - ref_Vn
+gps_df['Vu'] = gps_df['Vu'] - ref_Vu
 
 ##############################
 # Prepare 170, 169 comparison

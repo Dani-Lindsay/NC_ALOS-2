@@ -51,32 +51,36 @@ grid_169 = paths_169["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
 grid_170 = paths_170["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
 grid_068 = paths_068["grd"]["geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk"]
 
+itrf_LOS_169 = paths_169["geo"]["ITRF_LOS"]
+itrf_LOS_170 = paths_170["geo"]["ITRF_LOS"]
+itrf_LOS_068 = paths_068["geo"]["ITRF_LOS"]
+
 #####################
 # Load in GPS and project UNR enu --> los
 #####################
 
-gps_169 = utils.load_UNR_gps(paths_gps["169_enu_ISG14"], ref_station)
-gps_170 = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
-gps_068 = utils.load_UNR_gps(paths_gps["068_enu_ISG14"], ref_station)
+gps_169 = utils.load_UNR_gps(paths_gps["169_enu_IGS14"])
+gps_170 = utils.load_UNR_gps(paths_gps["170_enu_IGS14"])
+gps_068 = utils.load_UNR_gps(paths_gps["068_enu_IGS14"])
+
+# Project GPS ENU velocities to InSAR LOS
+gps_169 = utils.project_gps2los(gps_169, insar_169)
+gps_170 = utils.project_gps2los(gps_170, insar_170)
+gps_068 = utils.project_gps2los(gps_068, insar_068)
+
+# Reference to local GPS Station 
+gps_169 = utils.ref_los_to_station(gps_169, ref_station)
+gps_170 = utils.ref_los_to_station(gps_170, ref_station)
+gps_068 = utils.ref_los_to_station(gps_068, ref_station)
+
+# Correction GPS for plate motion
+gps_169 = utils.gps_LOS_correction_plate_motion(paths_169["geo"]["geo_geometryRadar"], itrf_LOS_169, gps_169, ref_station, unit)
+gps_170 = utils.gps_LOS_correction_plate_motion(paths_170["geo"]["geo_geometryRadar"], itrf_LOS_170, gps_170, ref_station, unit)
+gps_068 = utils.gps_LOS_correction_plate_motion(paths_068["geo"]["geo_geometryRadar"], itrf_LOS_068, gps_068, ref_station, unit)
 
 # Set lat and lon for plotting from the gps file. 
 ref_lat = gps_169.loc[gps_169["StaID"] == ref_station, "Lat"].values
 ref_lon = gps_169.loc[gps_169["StaID"] == ref_station, "Lon"].values
-
-# Project ENU to LOS 
-gps_169 = utils.calculate_gps_los(gps_169, insar_169)
-gps_170 = utils.calculate_gps_los(gps_170, insar_170)
-gps_068 = utils.calculate_gps_los(gps_068, insar_068)
-
-# Correct for Plate Motion in LOS
-gps_169 = utils.gps_LOS_correction_plate_motion(paths_169["geo"]["geo_geometryRadar"], paths_169["geo"]["ITRF_LOS"], gps_169, ref_station, unit)
-gps_170 = utils.gps_LOS_correction_plate_motion(paths_170["geo"]["geo_geometryRadar"], paths_170["geo"]["ITRF_LOS"], gps_170, ref_station, unit)
-gps_068 = utils.gps_LOS_correction_plate_motion(paths_068["geo"]["geo_geometryRadar"], paths_068["geo"]["ITRF_LOS"], gps_068, ref_station, unit)
-
-# Project error to LOS
-gps_169 = utils.calculate_gps_los_error(gps_169, insar_169)
-gps_170 = utils.calculate_gps_los_error(gps_170, insar_170)
-gps_068 = utils.calculate_gps_los_error(gps_068, insar_068)
 
 #####################
 # Find average InSAR velocity for each GPS point 
@@ -103,22 +107,6 @@ unr_rmse_068, unr_r2_068, unr_slope_068, unr_intercept_068 = utils.calculate_rms
 #####################
 # Calculate percentage of residuals below 2 mm/yr
 #####################    
-
-# print(" ")
-# print("Track 169:")
-# print("RMSE: %s" % unr_rmse_169)
-# unr_rmse_169, unr_r2_169, unr_slope_169, unr_intercept_169
-# res_per_169, res_std_169 = utils.calc_residual_percent(gps_169, 2)
-# print(" ")
-# print("Track 170:")
-# print("RMSE: %s" % unr_rmse_170)
-# unr_rmse_170, unr_r2_170, unr_slope_170, unr_intercept_170
-# res_per_170, res_std_170 = utils.calc_residual_percent(gps_170, 2)
-# print(" ")
-# print("Track 068:")
-# print("RMSE: %s" % unr_rmse_068)
-# unr_rmse_068, unr_r2_068, unr_slope_068, unr_intercept_068 
-# res_per_068, res_std_068 = utils.calc_residual_percent(gps_068, 2)
 
 print("\nTrack 169 (all stations):")
 print(f"RMSE: {unr_rmse_169:.3f}, R²: {unr_r2_169:.3f}, "
@@ -153,7 +141,6 @@ common_ids = (
 gps_170_common = gps_170[gps_170['StaID'].isin(common_ids)].reset_index(drop=True)
 gps_169_common = gps_169[gps_169['StaID'].isin(common_ids)].reset_index(drop=True)
 gps_068_common = gps_068[gps_068['StaID'].isin(common_ids)].reset_index(drop=True)
-
 
 
 # Track 169
@@ -213,7 +200,7 @@ gps_068[columns_to_save].to_csv(paths_gps["068_LOS_comp"], index=False, header=T
 
 # Find the minimum and maximum values in each DataFrame
 min_values = [df['dist2ref'].min() for df in [ gps_170, gps_169, gps_068]] # gps_UNR_169,
-max_values = [df['dist2ref'].max() for df in [ gps_068]] # gps_UNR_169,
+max_values = [df['dist2ref'].max() for df in [ gps_170, gps_169, gps_068]] # gps_UNR_169,
 min_dist = 0 #min(min_values)
 max_dist = max(max_values)
 
@@ -378,8 +365,8 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "7.4c"),autolabel="a)", share
     pygmt.makecpt(cmap="vik", series=[-25, 25])
     fig.plot(y=gps_169["Lat"], x=gps_169["Lon"], style="c.1c", fill=gps_169['LOS_Vel'], cmap=True, pen="0.5p,black", region=[fig_region],projection= size)
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
-    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", fill="white", transparency=50, region=[fig_region],projection= size)
-    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="0.5c/-0.25c+v", justify="LM", fill="white", transparency=50, region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="0.5c/-0.25c+v", justify="LM", region=[fig_region],projection= size)
     
     df = pd.DataFrame(
         data={
@@ -411,8 +398,8 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "7.4c"),autolabel="a)", share
     pygmt.makecpt(cmap="vik", series=[-25, 25])
     fig.plot(y=gps_170["Lat"], x=gps_170["Lon"], style="c.1c", fill=gps_170['LOS_Vel'], cmap=True, pen="0.5p,black", region=[fig_region],projection= size)
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
-    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", fill="white", transparency=50, region=[fig_region],projection= size)
-    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="0.5c/-0.25c+v", justify="LM", fill="white", transparency=50, region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="0.5c/-0.25c+v", justify="LM", region=[fig_region],projection= size)
     
     df = pd.DataFrame(
         data={
@@ -445,8 +432,8 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "7.4c"),autolabel="a)", share
     pygmt.makecpt(cmap="vik", series=[-25, 25])
     fig.plot(y=gps_068["Lat"], x=gps_068["Lon"], style="c.1c", fill=gps_068['LOS_Vel'], cmap=True, pen="0.5p,black", region=[fig_region],projection= size)
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
-    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", fill="white", transparency=50, region=[fig_region],projection= size)
-    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="-0.5c/-0.25c+v", justify="RM", region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="0.5c/-0.25c+v", justify="LM", fill="white", transparency=50, region=[fig_region],projection= size)
+    fig.text(x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="0.5c/-0.25c+v", justify="LM", region=[fig_region],projection= size)
     
     df = pd.DataFrame(
         data={
@@ -462,11 +449,7 @@ with fig.subplot(nrows=1, ncols=3, figsize=("15c", "7.4c"),autolabel="a)", share
     fig.velo(data=df, pen="0.8p,black", line=True, spec="e1.5/1/1", vector="0.5c+p2p+e+gblack",region=fig_region, projection=size,)
     
     pygmt.makecpt(cmap="vik", series=[-25, 25])
-    with pygmt.config(
-        FONT_ANNOT_PRIMARY="18p,black", 
-        FONT_ANNOT_SECONDARY="18p,black",
-        FONT_LABEL="18p,black",
-        ):
+    with pygmt.config(FONT_ANNOT_PRIMARY="18p,black", FONT_ANNOT_SECONDARY="18p,black", FONT_LABEL="18p,black",):
         fig.colorbar(position="JMR+o0.35c/0c+w4.0c/0.4c", frame=["xa+lVelocity (mm/yr)"], projection = size)
         
 fig.savefig(common_paths["fig_dir"]+f'Fig_5_{ref_station}_InSAR_GNSS_Map_dist{dist}_geo_velocity_SET_ERA5_demErr_ITRF14_deramp_msk_GPSISG14_InSARITRFcorr_GPSLOSITRFcorr.png', transparent=False, crop=True, anti_alias=True, show=False)

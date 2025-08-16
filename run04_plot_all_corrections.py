@@ -158,24 +158,28 @@ itrf_LOS_068 = paths_068["geo"]["ITRF_LOS"]
 # ------------------------
 # Load in GPS, correct plate motion, project UNR enu --> los
 # ------------------------
+gps_169 = utils.load_UNR_gps(paths_gps["169_enu_IGS14"])
+gps_170 = utils.load_UNR_gps(paths_gps["170_enu_IGS14"])
+gps_068 = utils.load_UNR_gps(paths_gps["068_enu_IGS14"])
 
-gps_169 = utils.load_UNR_gps(paths_gps["169_enu_ISG14"], ref_station)
-gps_170 = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
-gps_068 = utils.load_UNR_gps(paths_gps["068_enu_ISG14"], ref_station)
+# Project GPS ENU velocities to InSAR LOS
+gps_169 = utils.project_gps2los(gps_169, vel_169_df)
+gps_170 = utils.project_gps2los(gps_170, vel_170_df)
+gps_068 = utils.project_gps2los(gps_068, vel_068_df)
 
-# Set lat and lon for plotting from the gps file. 
-ref_lat = gps_169.loc[gps_169["StaID"] == ref_station, "Lat"].values
-ref_lon = gps_169.loc[gps_169["StaID"] == ref_station, "Lon"].values
-
-# Projecy GPS to LOS
-gps_169 = utils.calculate_gps_los(gps_169, vel_169_df)
-gps_170 = utils.calculate_gps_los(gps_170, vel_170_df)
-gps_068 = utils.calculate_gps_los(gps_068, vel_068_df)
+# Reference to local GPS Station 
+gps_169 = utils.ref_los_to_station(gps_169, ref_station)
+gps_170 = utils.ref_los_to_station(gps_170, ref_station)
+gps_068 = utils.ref_los_to_station(gps_068, ref_station)
 
 # Correction GPS for plate motion
 gps_169 = utils.gps_LOS_correction_plate_motion(geo_169, itrf_LOS_169, gps_169, ref_station, unit)
 gps_170 = utils.gps_LOS_correction_plate_motion(geo_170, itrf_LOS_170, gps_170, ref_station, unit)
 gps_068 = utils.gps_LOS_correction_plate_motion(geo_068, itrf_LOS_068, gps_068, ref_station, unit)
+
+# Set lat and lon for plotting from the gps file. 
+ref_lat = gps_169.loc[gps_169["StaID"] == ref_station, "Lat"].values
+ref_lon = gps_169.loc[gps_169["StaID"] == ref_station, "Lon"].values
 
 # ------------------------
 # Find average InSAR velocity for each GPS point 
@@ -233,7 +237,6 @@ for insar_df, insar_name in insar_068_dfs:
     # Step 3: Add the InSAR velocity as a new column in the GPS DataFrame
     gps_068[insar_name] = gps_068['insar_Vel']
     
-
 # ------------------------
 # Residual Ramp stats
 # ------------------------
@@ -289,6 +292,87 @@ ramp100_068, ramp350_068 = slope_km_to_mm100km_and_swath(res_slope_068, swath_km
 print(f"Track 169: Slope {res_slope_169:.4f} mm/° → {ramp100_169:.2f} mm/100 km → {ramp350_169:.2f} mm over 350 km")
 print(f"Track 170: Slope {res_slope_170:.4f} mm/° → {ramp100_170:.2f} mm/100 km → {ramp350_170:.2f} mm over 350 km")
 print(f"Track 068: Slope {res_slope_068:.4f} mm/° → {ramp100_068:.2f} mm/100 km → {ramp350_068:.2f} mm over 350 km")
+
+# ------------------------
+# Extract box centered on reference pixel
+# ------------------------
+
+length = 250 
+width = 150
+azi_169 = np.nanmean(gps_169['Azi'])*-1
+gps_169_xyz = gps_169[['Lon', 'Lat', 'LOS_Vel']].copy()
+
+# Project data to extract the profile
+gps_169_points = pygmt.project(data=gps_169_xyz, center=[ref_lon[0], ref_lat[0]], length=[-length, length], width=[-width, width], azimuth=azi_169, unit=True)
+gps_169_points.columns = ['Lon', 'Lat', 'LOS_Vel', 'p', 'q', 'r', 's']
+gps_169_profile = (gps_169.merge(gps_169_points[['Lon','Lat','p','q','r','s']].drop_duplicates(), on=['Lon','Lat'], how='inner').sort_values('Lat').reset_index(drop=True))
+
+ct_lon_169, ct_lat_169, cb_lon_169, cb_lat_169 = utils.get_start_end_points(ref_lon[0], ref_lat[0], azi_169+90, width)
+tl_lon_169, tl_lat_169, tr_lon_169, tr_lat_169 = utils.get_start_end_points(ct_lon_169, ct_lat_169, azi_169, length)
+bl_lon_169, bl_lat_169, br_lon_169, br_lat_169 = utils.get_start_end_points(cb_lon_169, cb_lat_169, azi_169, length)
+
+azi_170 = np.nanmean(gps_170['Azi'])*-1
+gps_170_xyz = gps_170[['Lon', 'Lat', 'LOS_Vel']].copy()
+
+# Project data to extract the profile
+gps_170_points = pygmt.project(data=gps_170_xyz, center=[ref_lon[0], ref_lat[0]], length=[-length, length], width=[-width, width], azimuth=azi_170, unit=True)
+gps_170_points.columns = ['Lon', 'Lat', 'LOS_Vel', 'p', 'q', 'r', 's']
+gps_170_profile = (gps_170.merge(gps_170_points[['Lon','Lat','p','q','r','s']].drop_duplicates(), on=['Lon','Lat'], how='inner').sort_values('Lat').reset_index(drop=True))
+
+ct_lon_170, ct_lat_170, cb_lon_170, cb_lat_170 = utils.get_start_end_points(ref_lon[0], ref_lat[0], azi_170+90, width)
+tl_lon_170, tl_lat_170, tr_lon_170, tr_lat_170 = utils.get_start_end_points(ct_lon_170, ct_lat_170, azi_170, length)
+bl_lon_170, bl_lat_170, br_lon_170, br_lat_170 = utils.get_start_end_points(cb_lon_170, cb_lat_170, azi_170, length)
+
+azi_068 = np.nanmean(gps_068['Azi'])*-1
+gps_068_xyz = gps_068[['Lon', 'Lat', 'LOS_Vel']].copy()
+
+# Project data to extract the profile
+gps_068_points = pygmt.project(data=gps_068_xyz, center=[ref_lon[0], ref_lat[0]], length=[-length, length], width=[-width, width], azimuth=azi_068, unit=True)
+gps_068_points.columns = ['Lon', 'Lat', 'LOS_Vel', 'p', 'q', 'r', 's']
+gps_068_profile = (gps_068.merge(gps_068_points[['Lon','Lat','p','q','r','s']].drop_duplicates(), on=['Lon','Lat'], how='inner').sort_values('Lat').reset_index(drop=True))
+
+ct_lon_068, ct_lat_068, cb_lon_068, cb_lat_068 = utils.get_start_end_points(ref_lon[0], ref_lat[0], azi_068+90, width)
+tl_lon_068, tl_lat_068, tr_lon_068, tr_lat_068 = utils.get_start_end_points(ct_lon_068, ct_lat_068, azi_068, length)
+bl_lon_068, bl_lat_068, br_lon_068, br_lat_068 = utils.get_start_end_points(cb_lon_068, cb_lat_068, azi_068, length)
+
+print("-------------------------------------------------\n",
+      "Only stations in the profile \n",
+      "-------------------------------------------------\n")
+
+
+res_p_rmse_169, res_p_r2_169, res_p_slope_169, res_p_intercept_169 = utils.calculate_rmse_r2_and_linear_fit(gps_169_profile['groundRange_169'], gps_169_profile['residual_ITRF14_169'])
+res_p_rmse_170, res_p_r2_170, res_p_slope_170, res_p_intercept_170 = utils.calculate_rmse_r2_and_linear_fit(gps_170_profile['groundRange_170'], gps_170_profile['residual_ITRF14_170'])
+res_p_rmse_068, res_p_r2_068, res_p_slope_068, res_p_intercept_068 = utils.calculate_rmse_r2_and_linear_fit(gps_068_profile['groundRange_068'], gps_068_profile['residual_ITRF14_068'])
+
+# — print longitude stats —
+print(f"groundRange — Site 169: R² = {res_p_r2_169:.3f} ({res_p_r2_169*100:.1f}% of variance)")
+print(f"groundRange — Site 170: R² = {res_p_r2_170:.3f} ({res_p_r2_170*100:.1f}% of variance)")
+print(f"groundRange — Site 068: R² = {res_p_r2_068:.3f} ({res_p_r2_068*100:.1f}% of variance)")
+
+mean_res_p_169 = gps_169_profile['residual_ITRF14_169'].mean()
+mean_res_p_170 = gps_170_profile['residual_ITRF14_170'].mean()
+mean_res_p_068 = gps_068_profile['residual_ITRF14_068'].mean()
+
+print(f"Mean residual — Site 169: {mean_res_p_169:.2f} mm/yr")
+print(f"Mean residual — Site 170: {mean_res_p_170:.2f} mm/yr")
+print(f"Mean residual — Site 068: {mean_res_p_068:.2f} mm/yr")
+
+mean_lat_169_p = gps_169_profile['Lat'].mean()
+mean_lat_170_p = gps_170_profile['Lat'].mean()
+mean_lat_068_p = gps_068_profile['Lat'].mean()
+
+ramp100_p_169, ramp350_p_169 = slope_km_to_mm100km_and_swath(res_p_slope_169, swath_km=350)
+ramp100_p_170, ramp350_p_170 = slope_km_to_mm100km_and_swath(res_p_slope_170, swath_km=350)
+ramp100_p_068, ramp350_p_068 = slope_km_to_mm100km_and_swath(res_p_slope_068, swath_km=350)
+
+print(f"Track 169: Slope {res_p_slope_169:.4f} mm/° → {ramp100_p_169:.2f} mm/100 km → {ramp350_p_169:.2f} mm over 350 km")
+print(f"Track 170: Slope {res_p_slope_170:.4f} mm/° → {ramp100_p_170:.2f} mm/100 km → {ramp350_p_170:.2f} mm over 350 km")
+print(f"Track 068: Slope {res_p_slope_068:.4f} mm/° → {ramp100_p_068:.2f} mm/100 km → {ramp350_p_068:.2f} mm over 350 km")
+
+
+print("-------------------------------------------------\n",
+      "After deramping \n",
+      "-------------------------------------------------\n")
 
 print(f"Site 169: RMSE improved by {((results_169_dict['vel_ITRF14_169']['rmse'] - results_169_dict['vel_deramp_169']['rmse']) / results_169_dict['vel_ITRF14_169']['rmse'] * 100):.1f}% "
       f"(from {results_169_dict['vel_ITRF14_169']['rmse']:.2f} to {results_169_dict['vel_deramp_169']['rmse']:.2f} mm/yr)")
@@ -382,24 +466,28 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
         fig.colorbar(position="jBL+o0.2c/2c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
     fig.coast(      region=[fig_region], projection=size, borders=1, shorelines=True, frame=["+t- DEM Error"])
     
-    
-    
     # Row for Track 169 - velocity_SET_ERA5_demErr_ITRF
     subplot(vel_ITRF14_169_grd, ITRF14_169_grd, results_169_dict['vel_ITRF14_169']['rmse'], "+t- Bulk Plate Motion")
     
     # Row for Track 068 - residuals
     # main velocity panel
     fig.basemap(    region=[fig_region], projection=size, panel=True)
+    
+    fig.plot(x = [tl_lon_169, tr_lon_169, br_lon_169, bl_lon_169, tl_lon_169], 
+             y = [tl_lat_169, tr_lat_169, br_lat_169, bl_lat_169, tl_lat_169], 
+             pen="0.8p,black", region=[fig_region], projection=size,transparency=50)
+    
     pygmt.makecpt(cmap="roma", series=[-5+mean_res_169, 5+mean_res_169, 1])
     fig.plot(y=gps_169["Lat"], x=gps_169["Lon"], style="c.12c", fill=gps_169['residual_ITRF14_169'], cmap=True, pen="0.3p,black", region=[fig_region],projection= size)
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
     fig.coast(      region=[fig_region], projection=size, borders=1, shorelines=True, frame=["+t Residuals"])
-    fig.text(       region=[fig_region], projection=size, text=f"Mean {mean_res_169:.1f} mm/yr", position="BL", offset="0.15c/0.5c", fill="white", font="8p")
-    fig.text(       region=[fig_region], projection=size, text=f"Range {ramp100_169:.2f} mm/yr/100 km", position="BL", offset="0.15c/0.15c", fill="white", font="8p")
+    #fig.text(       region=[fig_region], projection=size, text=f"Mean {mean_res_p_169:.1f} mm/yr", position="BL", offset="0.15c/0.5c", fill="white", font="8p")
+    fig.text(       region=[fig_region], projection=size, text="Range-Ramp", position="BL", offset="0.15c/0.5c", fill="white", font="8p")
+    fig.text(       region=[fig_region], projection=size, text=f"{ramp100_p_169:.2f} mm/yr/100 km", position="BL", offset="0.15c/0.15c", fill="white", font="8p")
     #fig.text(       region=[fig_region], projection=size, text=f"Ramp {res_r2_169*100:.2f}% of var.", position="BL", offset="0.15c/1.0c", fill="white", font="8p")
-
+    
     with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/2c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
+        fig.colorbar(position="jBL+o0.2c/0.8c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
     
     
     # Row for Track 169 - velocity_SET_ERA5_demErr_ITRF_ramp
@@ -454,20 +542,27 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     
     # Row for Track 170 - velocity_SET_ERA5_demErr_ITRF
     subplot(vel_ITRF14_170_grd, ITRF14_170_grd, results_170_dict['vel_ITRF14_170']['rmse'], "+t ")
-    
+      
     # Row for Track 068 - residuals
     # main velocity panel
     fig.basemap(    region=[fig_region], projection=size, panel=True)
+    
+    fig.plot(x = [tl_lon_170, tr_lon_170, br_lon_170, bl_lon_170, tl_lon_170], 
+             y = [tl_lat_170, tr_lat_170, br_lat_170, bl_lat_170, tl_lat_170], 
+             pen="0.8p,black", region=[fig_region], projection=size,transparency=50)
+    
     pygmt.makecpt(cmap="roma", series=[-5+mean_res_170, 5+mean_res_170, 1])
     fig.plot(y=gps_170["Lat"], x=gps_170["Lon"], style="c.12c", fill=gps_170['residual_ITRF14_170'], cmap=True, pen="0.3p,black", region=[fig_region],projection= size)
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
     fig.coast(      region=[fig_region], projection=size, borders=1, shorelines=True, frame=["+t "])
-    fig.text(       region=[fig_region], projection=size, text=f"Mean {mean_res_170:.1f} mm/yr", position="BL", offset="0.15c/0.5c", fill="white", font="8p")
-    fig.text(       region=[fig_region], projection=size, text=f"Range {ramp100_170:.2f} mm/yr/100 km", position="BL", offset="0.15c/0.15c", fill="white", font="8p")
+    #fig.text(       region=[fig_region], projection=size, text=f"Mean {mean_res_p_170:.1f} mm/yr", position="BL", offset="0.15c/0.5c", fill="white", font="8p")
+    fig.text(       region=[fig_region], projection=size, text="Range-Ramp", position="BL", offset="0.15c/0.5c", fill="white", font="8p")
+    fig.text(       region=[fig_region], projection=size, text=f"{ramp100_p_170:.2f} mm/yr/100 km", position="BL", offset="0.15c/0.15c", fill="white", font="8p")
     #fig.text(       region=[fig_region], projection=size, text=f"Ramp {res_r2_170*100:.2f}% of var.", position="BL", offset="0.15c/1.0c", fill="white", font="8p")
 
+
     with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/2c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
+        fig.colorbar(position="jBL+o0.2c/0.8c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
         
     # Row for Track 170 - velocity_SET_ERA5_demErr_ITRF_ramp
     subplot(vel_deramp_170_grd, deramp_170_grd, results_170_dict['vel_deramp_170']['rmse'], "+t ")
@@ -508,7 +603,7 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
 
     # inset difference panel
     fig.basemap(    region=[fig_region], projection=sub_size, frame="+t")
-    pygmt.makecpt(  cmap="plasma", series=[-2, 2])
+    pygmt.makecpt(  cmap="plasma", series=[-4, 1])
     fig.grdimage(   region=[fig_region], projection=sub_size, grid=demErr_068_grd, cmap=True, nan_transparent=True)
     fig.coast(      region=[fig_region], projection=sub_size, shorelines=True, area_thresh=5000)
     with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
@@ -523,21 +618,27 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     # main velocity panel
     fig.basemap(    region=[fig_region], projection=size, panel=True)
     pygmt.makecpt(cmap="roma", series=[-5+mean_res_068, 5+mean_res_068, 1])
+    
+    fig.plot(x = [tl_lon_068, tr_lon_068, br_lon_068, bl_lon_068, tl_lon_068], 
+             y = [tl_lat_068, tr_lat_068, br_lat_068, bl_lat_068, tl_lat_068], 
+             pen="0.8p,black", region=[fig_region], projection=size, transparency=50) 
+    
     fig.plot(y=gps_068["Lat"], x=gps_068["Lon"], style="c.12c", fill=gps_068['residual_ITRF14_068'], cmap=True, pen="0.3p,black", region=[fig_region],projection= size)
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
     fig.coast(      region=[fig_region], projection=size, borders=1, shorelines=True, frame=["+t "])
-    fig.text(       region=[fig_region], projection=size, text=f"Mean {mean_res_068:.1f} mm/yr", position="BL", offset="0.15c/0.5c", fill="white", font="8p")
-    fig.text(       region=[fig_region], projection=size, text=f"Range {ramp100_068:.2f} mm/yr/100 km", position="BL", offset="0.15c/0.15c", fill="white", font="8p")
+    #fig.text(       region=[fig_region], projection=size, text=f"Mean {mean_res_p_068:.1f} mm/yr", position="BL", offset="0.15c/0.5c", fill="white", font="8p")
+    fig.text(       region=[fig_region], projection=size, text="Range-Ramp", position="BL", offset="0.15c/0.5c", fill="white", font="8p")
+    fig.text(       region=[fig_region], projection=size, text=f"{ramp100_p_068:.2f} mm/yr/100 km", position="BL", offset="0.15c/0.15c", fill="white", font="8p")
 
 
     with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/2c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
+        fig.colorbar(position="jBL+o0.2c/0.8c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
     
 
     # Row for Track 068 - velocity_SET_ERA5_demErr_ITRF_ramp
     subplot(vel_deramp_068_grd, deramp_068_grd, results_068_dict['vel_deramp_068']['rmse'], "+t ")
 
-fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS_platemotioncorrectionLOS.png', transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS_platemotioncorrectionLOS.jpg', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS-ISG14_platemotioncorrectionLOS.png', transparent=False, crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS-ISG14_platemotioncorrectionLOS.jpg', dpi = 400, transparent=False, crop=True, anti_alias=True, show=False)
 #fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals.pdf', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()  

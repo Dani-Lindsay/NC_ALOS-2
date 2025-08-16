@@ -61,19 +61,6 @@ itrf_LOS_170 = paths_170["geo"]["ITRF_LOS"]
 itrf_LOS_068 = paths_068["geo"]["ITRF_LOS"]
 
 # ------------------------
-# Load GPS Data
-# ------------------------
-gps_169 = utils.load_UNR_gps(paths_gps["169_enu_ISG14"], ref_station)
-gps_170 = utils.load_UNR_gps(paths_gps["170_enu_ISG14"], ref_station)
-gps_068 = utils.load_UNR_gps(paths_gps["068_enu_ISG14"], ref_station)
-
-# Drop GPS with vertical velocity >-5 mm/yr 
-gps_169 = gps_169[gps_169['Vu']>=-5]
-gps_170 = gps_170[gps_170['Vu']>=-5]
-gps_068 = gps_068[gps_068['Vu']>=-5]
-
-
-# ------------------------
 # Load InSAR Data
 # ------------------------
 insar_169, shape169 = utils.load_insar_vel_as_df(geo_file_169, vel_file_169, des169_dic)
@@ -86,24 +73,39 @@ insar_170["Vel"] = insar_170["Vel"] * unit
 insar_068["Vel"] = insar_068["Vel"] * unit 
 
 # ------------------------
+# Load GPS Data
+# ------------------------
+gps_169 = utils.load_UNR_gps(paths_gps["169_enu_IGS14"])
+gps_170 = utils.load_UNR_gps(paths_gps["170_enu_IGS14"])
+gps_068 = utils.load_UNR_gps(paths_gps["068_enu_IGS14"])
+
+# Drop GPS with vertical velocity >-5 mm/yr 
+gps_169 = gps_169[gps_169['Vu']>=-5]
+gps_170 = gps_170[gps_170['Vu']>=-5]
+gps_068 = gps_068[gps_068['Vu']>=-5]
+
+# Project GPS ENU velocities to InSAR LOS
+gps_169 = utils.project_gps2los(gps_169, insar_169)
+gps_170 = utils.project_gps2los(gps_170, insar_170)
+gps_068 = utils.project_gps2los(gps_068, insar_068)
+
+# Reference to local GPS Station 
+gps_169 = utils.ref_los_to_station(gps_169, ref_station)
+gps_170 = utils.ref_los_to_station(gps_170, ref_station)
+gps_068 = utils.ref_los_to_station(gps_068, ref_station)
+
+# Correct Plate Motion
+gps_169 = utils.gps_LOS_correction_plate_motion(geo_file_169, itrf_LOS_169, gps_169, ref_station, unit)
+gps_170 = utils.gps_LOS_correction_plate_motion(geo_file_170, itrf_LOS_170, gps_170, ref_station, unit)
+gps_068 = utils.gps_LOS_correction_plate_motion(geo_file_068, itrf_LOS_068, gps_068, ref_station, unit)
+
+# ------------------------
 # Process InSAR Data
 # ------------------------
 # Calculate average InSAR velocity for each GPS point
 gps_169 = utils.calculate_average_insar_velocity(gps_169, insar_169, dist)
 gps_170 = utils.calculate_average_insar_velocity(gps_170, insar_170, dist)
 gps_068 = utils.calculate_average_insar_velocity(gps_068, insar_068, dist)
-
-# Project GPS ENU velocities to InSAR LOS
-gps_169 = utils.calculate_gps_los(gps_169, insar_169)
-gps_170 = utils.calculate_gps_los(gps_170, insar_170)
-gps_068 = utils.calculate_gps_los(gps_068, insar_068)
-
-# ------------------------
-# Correct Plate Motion
-# ------------------------
-gps_169 = utils.gps_LOS_correction_plate_motion(geo_file_169, itrf_LOS_169, gps_169, ref_station, unit)
-gps_170 = utils.gps_LOS_correction_plate_motion(geo_file_170, itrf_LOS_170, gps_170, ref_station, unit)
-gps_068 = utils.gps_LOS_correction_plate_motion(geo_file_068, itrf_LOS_068, gps_068, ref_station, unit)
 
 # Save original InSAR velocities for reference
 insar_169["Vel_ori"] = insar_169["Vel"]

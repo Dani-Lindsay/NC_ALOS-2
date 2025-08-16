@@ -120,7 +120,7 @@ def date_to_decimal_year(date_input, format_str=None):
 # ------------------------------
 
 
-def load_UNR_gps(gps_file, ref_station):
+def load_UNR_gps(gps_file):
     """
     Reads CSV from run00_prepUNR.py 
     https://github.com/Dani-Lindsay/NC_ALOS-2/blob/main/run00_prepUNR.py
@@ -134,16 +134,6 @@ def load_UNR_gps(gps_file, ref_station):
     gps_data['Lon'] = gps_data['Lon'] - 360
     # Drop rows with NaN values
     gps_data = gps_data.dropna()
-
-    # Calculate offset based on ref_station
-    offset_e = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Ve'].values
-    offset_n = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Vn'].values
-    offset_u = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['Vu'].values
-    
-    # Subtract offset from 'GNSS_Vel' column
-    gps_data['Ve'] = gps_data['Ve'] - offset_e
-    gps_data['Vn'] = gps_data['Vn'] - offset_n
-    gps_data['Vu'] = gps_data['Vu'] - offset_u
 
     return gps_data
 
@@ -643,106 +633,26 @@ def resample_gps_to_insar_dates(gps_df, insar_dates, window_days=6):
     
     return pd.DataFrame(resampled)
 
-# def gps_correction_plate_motion(geo_file: str,
-#                                 itrf_enu_file: str,
-#                                 gps_df: pd.DataFrame,
-#                                 ref_station: str,
-#                                 unit_factor: float = 1.0) -> pd.DataFrame:
-#     """
-#     Subtract the ITRF‐based plate‐motion ramp (relative to a reference station)
-#     from GPS ENU velocities, with optional unit conversion.
-
-#     Parameters
-#     ----------
-#     geo_file : str
-#         HDF5 path containing datasets 'longitude' and 'latitude'.
-#     itrf_enu_file : str
-#         HDF5 path containing datasets 'east','north','up' (in meters per year).
-#     gps_df : pd.DataFrame
-#         GPS table with columns ['StaID','Lon','Lat','Ve','Vn','Vu',...]
-#         (Ve/Vn/Vu should be in the same units as unit_factor conversion).
-#     ref_station : str
-#         StaID of the site to use as zero‐point reference.
-#     unit_factor : float, optional
-#         Multiply the ITRF east/north/up by this factor before subtraction.
-#         E.g. 1000 to convert from m yr⁻¹ to mm yr⁻¹.  Defaults to 1.0.
-
-#     Returns
-#     -------
-#     pd.DataFrame
-#         Copy of gps_df with added columns 'Ve_corr','Vn_corr','Vu_corr'.
-#     """
-
-#     # 1) load geometry grid
-#     with h5py.File(geo_file, 'r') as g:
-#         lon_grid = g['longitude'][:]
-#         lat_grid = g['latitude'][:]
-
-#     lon1d = lon_grid.reshape(-1)
-#     lat1d = lat_grid.reshape(-1)
-
-#     # 2) load and scale ITRF ENU grid
-#     with h5py.File(itrf_enu_file, 'r') as hf:
-#         east  = (hf['east'][:]  * unit_factor).reshape(-1)
-#         north = (hf['north'][:] * unit_factor).reshape(-1)
-#         up    = (hf['up'][:]    * unit_factor).reshape(-1)
-
-#     # mask zeros
-#     east [east  == 0] = np.nan
-#     north[north== 0] = np.nan
-#     up   [up    == 0] = np.nan
-
-#     # 3) reference station ENU
-#     ref = gps_df.loc[gps_df['StaID']==ref_station]
-#     if ref.empty:
-#         raise ValueError(f"Reference station '{ref_station}' not in gps_df")
-#     lon_ref, lat_ref = ref[['Lon','Lat']].iloc[0]
-
-#     d2_ref = (lon1d - lon_ref)**2 + (lat1d - lat_ref)**2
-#     idx_ref = np.nanargmin(d2_ref)
-#     e_ref, n_ref, u_ref = east[idx_ref], north[idx_ref], up[idx_ref]
-    
-#     # 4) apply correction to each GPS site
-#     out = gps_df.copy()
-#     Ve_corr, Vn_corr, Vu_corr = [], [], []
-
-#     for _, row in out.iterrows():
-#         lon0, lat0 = row['Lon'], row['Lat']
-#         d2 = (lon1d - lon0)**2 + (lat1d - lat0)**2
-#         idx = np.nanargmin(d2)
-        
-#         rel_e = east[idx] - e_ref
-#         rel_n = north[idx] - n_ref
-#         rel_u = up[idx]    - u_ref
-
-#         Ve_corr.append(row['Ve'] - rel_e)
-#         Vn_corr.append(row['Vn'] - rel_n)
-#         Vu_corr.append(row['Vu'] - rel_u)
-
-#     out['Ve'] = Ve_corr
-#     out['Vn'] = Vn_corr
-#     out['Vu'] = Vu_corr
-
-#     return out
-
 def gps_LOS_correction_plate_motion(geo_file: str,
                                 itrf_LOS_file: str,
                                 gps_df: pd.DataFrame,
                                 ref_station: str,
                                 unit_factor: float = 1.0) -> pd.DataFrame:
     """
-    Subtract the ITRF‐based plate‐motion ramp (relative to a reference station)
-    from GPS ENU velocities, with optional unit conversion.
+    Read the LOS ITRF plate-model 
+    Static shift to local reference station
+    Corrected LOS velocity by subtracting correction from LOS. 
 
     Parameters
     ----------
     geo_file : str
         HDF5 path containing datasets 'longitude' and 'latitude'.
-    itrf_enu_file : str
-        HDF5 path containing datasets 'east','north','up' (in meters per year).
+    itrf_LOS_file : str
+        HDF5 path containing datasets 'velocity' (in meters per year).
     gps_df : pd.DataFrame
-        GPS table with columns ['StaID','Lon','Lat','Ve','Vn','Vu',...]
+        GPS table with columns ['StaID','Lon','Lat','Ve','Vn','Vu','LOS_Vel'...]
         (Ve/Vn/Vu should be in the same units as unit_factor conversion).
+        LOS_Vel should be zero at the InSAR reference station
     ref_station : str
         StaID of the site to use as zero‐point reference.
     unit_factor : float, optional
@@ -825,33 +735,127 @@ Parameters:     v_e        - np.ndarray or float, displacement in east-west   di
 
 """ 
 
-def calculate_gps_los(gps_data, insar_data):
+# def calculate_gps_los(gps_data, insar_data, ref_station):
     
-    """
-    For each gps lat and lon
-    Find the closest lat lon in the InSAR df. 
-    Get the corresponding az and inc values. 
-    - Inc : angle from vertical in degrees
-    - Azi : angle anti-clockwise from east in degrees
-    - * - 1 : accounts for the convention that motion away from the satelilte is negative. 
+#     """
+#     For each gps lat and lon
+#     Find the closest lat lon in the InSAR df. 
+#     Get the corresponding az and inc values. 
+#     - Inc : angle from vertical in degrees
+#     - Azi : angle anti-clockwise from east in degrees
+#     - * - 1 : accounts for the convention that motion away from the satelilte is negative. 
     
-    """
+#     """
 
-    for index, row in gps_data.iterrows(): 
-        i = ((insar_data['Lon'] - row['Lon']) * (insar_data['Lat'] - row['Lat'])).abs().idxmin()                               
-        azi_angle = insar_data.loc[i]['Az']
-        inc_angle = insar_data.loc[i]['Inc']
+#     for index, row in gps_data.iterrows(): 
+#         i = ((insar_data['Lon'] - row['Lon']) * (insar_data['Lat'] - row['Lat'])).abs().idxmin()                               
+#         azi_angle = insar_data.loc[i]['Az']
+#         inc_angle = insar_data.loc[i]['Inc']
         
-        gps_data.at[index, 'Az'] = azi_angle
-        gps_data.at[index, 'Inc'] = inc_angle
+#         gps_data.at[index, 'Az'] = azi_angle
+#         gps_data.at[index, 'Inc'] = inc_angle
         
+#         # project ENU onto LOS
+#         v_los = (  row['Ve'] * np.sin(np.deg2rad(inc_angle)) * np.sin(np.deg2rad(azi_angle)) * -1
+#                  + row['Vn'] * np.sin(np.deg2rad(inc_angle)) * np.cos(np.deg2rad(azi_angle))
+#                  + row['Vu'] * np.cos(np.deg2rad(inc_angle)))
+#         gps_data.at[index, 'LOS_Vel'] = v_los
+        
+#     # Calculate offset based on ref_station
+#     offset_los = gps_data[gps_data.StaID.str.contains(ref_station, case=False)]['LOS_Vel'].values
+    
+#     # make relative to the reference station 
+#     # Subtract offset from 'GNSS_Vel' column
+#     gps_data['LOS_Vel'] = gps_data['LOS_Vel'] - offset_los
+        
+#     return gps_data
+
+
+# def project_gps2los_no_reference(gps_data, insar_data):
+    
+#     """
+#     For each gps lat and lon
+#     Find the closest lat lon in the InSAR df. 
+#     Get the corresponding az and inc values. 
+#     - Inc : angle from vertical in degrees
+#     - Azi : angle anti-clockwise from east in degrees
+#     - * - 1 : accounts for the convention that motion away from the satelilte is negative. 
+    
+#     """
+
+#     for index, row in gps_data.iterrows(): 
+#         i = ((insar_data['Lon'] - row['Lon']) * (insar_data['Lat'] - row['Lat'])).abs().idxmin()                               
+#         azi_angle = insar_data.loc[i]['Az']
+#         inc_angle = insar_data.loc[i]['Inc']
+        
+#         gps_data.at[index, 'Az'] = azi_angle
+#         gps_data.at[index, 'Inc'] = inc_angle
+        
+#         # project ENU onto LOS
+#         v_los = (  row['Ve'] * np.sin(np.deg2rad(inc_angle)) * np.sin(np.deg2rad(azi_angle)) * -1
+#                  + row['Vn'] * np.sin(np.deg2rad(inc_angle)) * np.cos(np.deg2rad(azi_angle))
+#                  + row['Vu'] * np.cos(np.deg2rad(inc_angle)))
+#         gps_data.at[index, 'LOS_Vel'] = v_los
+        
+#     return gps_data
+
+
+def project_gps2los(gps_data: pd.DataFrame,
+                                 insar_data: pd.DataFrame,
+                                 window_deg: float = 0.004) -> pd.DataFrame:
+    """
+    For each GPS site, find InSAR pixels in a +/- window (degrees) around (Lon,Lat),
+    take median Az and Inc, and project ENU -> LOS.
+
+    NOTE:
+      - Does NOT mutate the input gps_data.
+      - Drops rows with no nearby InSAR match AFTER the loop.
+      - window_deg=0.004 ~ 0.4 km in latitude (lon distance scales with cos(lat)).
+    """
+    # Work on a copy and add output column
+    out = gps_data.copy(deep=True)
+    out["LOS_Vel"] = np.nan
+
+    # Keep only columns we need from InSAR (and drop NaNs once)
+    insar = insar_data[["Lon", "Lat", "Az", "Inc"]].dropna(subset=["Lon","Lat","Az","Inc"])
+
+    # Iterate over rows WITHOUT dropping rows inside the loop
+    for idx, row in out.iterrows():
+        lat, lon = float(row["Lat"]), float(row["Lon"])
+
+        roi = insar.loc[
+            insar["Lat"].between(lat - window_deg, lat + window_deg) &
+            insar["Lon"].between(lon - window_deg, lon + window_deg)
+        ]
+
+        if roi.empty:
+            continue  # leave NaN; we’ll drop after the loop
+
+        azi_deg = float(np.nanmedian(roi["Az"]))
+        inc_deg = float(np.nanmedian(roi["Inc"]))
+
         # project ENU onto LOS
-        v_los = (  row['Ve'] * np.sin(np.deg2rad(inc_angle)) * np.sin(np.deg2rad(azi_angle)) * -1
-                 + row['Vn'] * np.sin(np.deg2rad(inc_angle)) * np.cos(np.deg2rad(azi_angle))
-                 + row['Vu'] * np.cos(np.deg2rad(inc_angle)))
-        gps_data.at[index, 'LOS_Vel'] = v_los
+        v_los = (  row['Ve'] * np.sin(np.deg2rad(inc_deg)) * np.sin(np.deg2rad(azi_deg)) * -1
+                 + row['Vn'] * np.sin(np.deg2rad(inc_deg)) * np.cos(np.deg2rad(azi_deg))
+                 + row['Vu'] * np.cos(np.deg2rad(inc_deg)))
+        
+        out.at[idx, "LOS_Vel"] = v_los
+        out.at[idx, "Inc"] = inc_deg
+        out.at[idx, "Azi"] = azi_deg
 
-    return gps_data
+    # Only now drop rows with no LOS
+    out = out.dropna(subset=["LOS_Vel"]).reset_index(drop=True)
+    return out
+
+def ref_los_to_station(df_los: pd.DataFrame, station: str) -> pd.DataFrame:
+    """Subtract LOS at `station` from LOS; returns a copy."""
+    out = df_los.copy(deep=True)
+    mask = out["StaID"].str.fullmatch(station, case=False)
+    if not mask.any():
+        raise ValueError(f"Reference station '{station}' not found.")
+    v0 = float(out.loc[mask, "LOS_Vel"].iloc[0])
+    out["LOS_Vel"] = out["LOS_Vel"] - v0
+    return out
 
 def calculate_gps_los_error(gps_data, insar_data):
 
