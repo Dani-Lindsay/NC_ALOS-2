@@ -103,11 +103,11 @@ fig.coast(shorelines=True,lakes=False, borders="2/thin")
 # Loop through and plot each fault file
 # Plot Faults
 for fault_file in common_paths["fault_files"]:
-    fig.plot(data=fault_file, pen="0.5p,black", transparency=50)
+    fig.plot(data=fault_file, pen="0.5p,black", transparency=70)
     
-fig.plot(data=common_paths['pb_file'] , pen="1.5p,red3", style="f-1c/0.5c+r+s+p1.5p,red3,solid")
-fig.plot(data=common_paths['pb2_file'] , pen="1.5p,red3", style="f0.5c/0.15c+r+t", fill="red3")
-fig.plot(data=common_paths['pb3_file'] , pen="1.5p,red3", style="f-1c/0.5c+r+s+p1.5p,red3,solid")
+fig.plot(data=common_paths['pb_file'] , pen="1.5p,red3", style="f-1c/0.5c+r+s+p1.5p,red3,solid", transparency=30)
+fig.plot(data=common_paths['pb2_file'] , pen="1.5p,red3", style="f0.5c/0.15c+r+t", fill="red3", transparency=30)
+fig.plot(data=common_paths['pb3_file'] , pen="1.5p,red3", style="f-1c/0.5c+r+s+p1.5p,red3,solid", transparency=30)
 
 #fig.plot(data="/Users/daniellelindsay/Figures/inputdata/wcSlides.gmt", pen="0.3p,purple", fill="purple")
 
@@ -193,8 +193,8 @@ val_max_lat=39.26
 fig.plot(x = [val_min_lon, val_min_lon, val_max_lon, val_max_lon, val_min_lon], 
          y = [val_min_lat, val_max_lat, val_max_lat, val_min_lat, val_min_lat], 
          pen="0.8p,black,--", transparency=0)
-fig.text(text="Fig. 6&7", x=val_max_lon, y=val_min_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" , fill="white", transparency=50)
-fig.text(text="Fig. 6&7", x=val_max_lon, y=val_min_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" )
+fig.text(text="Fig. 4&5", x=val_max_lon, y=val_min_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" , fill="white", transparency=50)
+fig.text(text="Fig. 4&5", x=val_max_lon, y=val_min_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" )
 
 
 # Subplot region for MLV
@@ -205,19 +205,19 @@ mlv_max_lat = 41.90
 fig.plot(x = [mlv_min_lon, mlv_min_lon, mlv_max_lon, mlv_max_lon, mlv_min_lon], 
          y = [mlv_min_lat, mlv_max_lat, mlv_max_lat, mlv_min_lat, mlv_min_lat], 
          pen="0.8p,black,--", transparency=0)
-fig.text(text="Fig. 8", x=mlv_min_lon, y=mlv_min_lat, justify="TL", offset="0.1c/-0.1c", font="8p,gray15" , fill="white", transparency=50 )
-fig.text(text="Fig. 8", x=mlv_min_lon, y=mlv_min_lat, justify="TL", offset="0.1c/-0.1c", font="8p,gray15" )
+fig.text(text="Fig. 7", x=mlv_min_lon, y=mlv_min_lat, justify="TL", offset="0.1c/-0.1c", font="8p,gray15" , fill="white", transparency=50 )
+fig.text(text="Fig. 7", x=mlv_min_lon, y=mlv_min_lat, justify="TL", offset="0.1c/-0.1c", font="8p,gray15" )
 
 # Subplot region Geysers
-gey_min_lon = -123.15
-gey_max_lon = -122.4
-gey_min_lat = 38.58-0.03
-gey_max_lat = 38.98+0.03
-fig.plot(x = [gey_min_lon, gey_min_lon, gey_max_lon, gey_max_lon, gey_min_lon], 
-         y = [gey_min_lat, gey_max_lat, gey_max_lat, gey_min_lat, gey_min_lat], 
-         pen="0.8p,black,--", transparency=0)
-fig.text(text="Fig. 9", x=gey_min_lon, y=gey_max_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15", fill="white", transparency=50  )
-fig.text(text="Fig. 9", x=gey_min_lon, y=gey_max_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" )
+#gey_min_lon = -123.15
+#gey_max_lon = -122.4
+#gey_min_lat = 38.58-0.03
+#gey_max_lat = 38.98+0.03
+#fig.plot(x = [gey_min_lon, gey_min_lon, gey_max_lon, gey_max_lon, gey_min_lon], 
+#         y = [gey_min_lat, gey_max_lat, gey_max_lat, gey_min_lat, gey_min_lat], 
+#         pen="0.8p,black,--", transparency=0)
+#fig.text(text="Fig. 9", x=gey_min_lon, y=gey_max_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15", fill="white", transparency=50  )
+#fig.text(text="Fig. 9", x=gey_min_lon, y=gey_max_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" )
 
 # Subplot region for Central Valley 
 cv_min_lon=-122.4
@@ -227,8 +227,8 @@ cv_max_lat=39.8
 fig.plot(x = [cv_min_lon, cv_min_lon, cv_max_lon, cv_max_lon, cv_min_lon], 
          y = [cv_min_lat, cv_max_lat, cv_max_lat, cv_min_lat, cv_min_lat], 
          pen="0.8p,black,--", transparency=0)
-fig.text(text="Fig. 10", x=cv_min_lon, y=cv_max_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15", fill="white", transparency=50 )
-fig.text(text="Fig. 10", x=cv_min_lon, y=cv_max_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" )
+fig.text(text="Fig. 8", x=cv_min_lon, y=cv_max_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15", fill="white", transparency=50 )
+fig.text(text="Fig. 8", x=cv_min_lon, y=cv_max_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" )
 
 
 # Subplot region Landslides 
@@ -239,8 +239,8 @@ ls_max_lat=40.8
 fig.plot(x = [ls_min_lon, ls_min_lon, ls_max_lon, ls_max_lon, ls_min_lon], 
          y = [ls_min_lat, ls_max_lat, ls_max_lat, ls_min_lat, ls_min_lat], 
          pen="0.8p,black,--", transparency=0)
-fig.text(text="Fig. 11a", x=ls_min_lon, y=ls_min_lat, justify="TL", offset="0.1c/-0.1c", font="8p,gray15", fill="white", transparency=50 )
-fig.text(text="Fig. 11a", x=ls_min_lon, y=ls_min_lat, justify="TL", offset="0.1c/-0.1c", font="8p,gray15" )
+fig.text(text="Fig. 9a", x=ls_min_lon, y=ls_min_lat, justify="TL", offset="0.1c/-0.1c", font="8p,gray15", fill="white", transparency=50 )
+fig.text(text="Fig. 9a", x=ls_min_lon, y=ls_min_lat, justify="TL", offset="0.1c/-0.1c", font="8p,gray15" )
 
 
 ls2_min_lon=-123.52859
@@ -251,8 +251,8 @@ ls2_max_lat=40.10566
 fig.plot(x = [ls2_min_lon, ls2_min_lon, ls2_max_lon, ls2_max_lon, ls2_min_lon], 
          y = [ls2_min_lat, ls2_max_lat, ls2_max_lat, ls2_min_lat, ls2_min_lat], 
          pen="0.8p,black,--", transparency=0)
-fig.text(text="Fig. 11e", x=ls2_max_lon, y=ls2_min_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" , fill="white", transparency=50)
-fig.text(text="Fig. 11e", x=ls2_max_lon, y=ls2_min_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" )
+fig.text(text="Fig. 9e", x=ls2_max_lon, y=ls2_min_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" , fill="white", transparency=50)
+fig.text(text="Fig. 9e", x=ls2_max_lon, y=ls2_min_lat, justify="BL", offset="0.1c/0.1c", font="8p,gray15" )
 
 
 
@@ -317,8 +317,8 @@ with fig.subplot(nrows=3, ncols=1, figsize=("5c", "13.4c"), autolabel="b)", marg
     fig.plot(x=dic_068["ref_date"],y=0, style="c.1c", fill="black", pen="0.1p", projection=size) # ******
     fig.plot(x=dic_068["sec_date"],y=dic_068["centered_perp_base"], style="c.1c", fill="black", projection=size) # ******
 
-fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.png", crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.pdf", crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap.jpg", crop=True, anti_alias=True, show=False, dpi=400)
+fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap_Jan26.png", crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap_Jan26.pdf", crop=True, anti_alias=True, show=False)
+fig.savefig(common_paths['fig_dir']+"Fig_1_IntroMap_Jan26.jpg", crop=True, anti_alias=True, show=False, dpi=400)
 
 fig.show()

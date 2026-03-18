@@ -10,7 +10,7 @@ import glob
 import os
 import insar_utils as utils
 
-fig_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Figures_08_15/"
+fig_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Figures_03_18_2026/"
 data_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Data_Zenodo"
 gps_dir = "/Volumes/WD2TB_Phd/NC_ALOS-2/Data_Zenodo/GPS"
 inputs_dir = os.path.join(data_dir, "Inputs")
@@ -81,7 +81,7 @@ paths_gps = {
     "visr":{
         "east" :    os.path.join(gps_dir, "VISR","visr", "visr_intrp_e_NAN.grd"),
         "north" :   os.path.join(gps_dir, "VISR", "visr", "visr_intrp_n_NAN.grd"),
-        "gps_enu" : os.path.join(gps_dir, "VISR", "GPS_resolved_IGS14_Sept24_P345.txt"),
+        "gps_enu" : os.path.join(gps_dir, "VISR", "GPS_resolved_IGS14_Sept24_CASR.txt"),
     }
 }
     

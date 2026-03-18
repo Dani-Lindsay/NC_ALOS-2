@@ -393,16 +393,19 @@ def subplot(vel_grd, diff_grd, rmse, frame_title):
     pygmt.makecpt(  cmap="vik", series=[vel_min, vel_max])
     fig.grdimage(   region=[fig_region], projection=size, grid=vel_grd, cmap=True, nan_transparent=True)
     fig.plot(       region=[fig_region], projection=size, x=ref_lon, y=ref_lat, style="s.15c", fill="black", pen="0.8p,black")
-    
     fig.text(       region=[fig_region], projection=size, text=f"{rmse:.2f} mm/yr", position="BR", offset="-0.15c/0.15c", fill="white", font="8p")
 
     # inset difference panel
     fig.basemap(    region=[fig_region], projection=sub_size, frame="+t")
+    
+    #info_summary = pygmt.grdinfo(grid=diff_grd, per_column=True)
+    #z_min, z_max = [float(x) for x in info_summary.split()][4:6]
+    #pygmt.makecpt(  cmap="plasma", series=[z_min, z_max])
+    
     fig.grdimage(   region=[fig_region], projection=sub_size, grid=diff_grd, cmap="plasma", nan_transparent=True)
     fig.coast(      region=[fig_region], projection=sub_size, shorelines=True, area_thresh=5000)
-    with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/2c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
-        
+    with pygmt.config(FONT_ANNOT_PRIMARY="18p,black", FONT_ANNOT_SECONDARY="18p,black"):
+        fig.colorbar(position="JBC+o0.0c/0.2c+w2.5c/0.30", frame=["xa","y+lmm/yr"], projection=size)
     fig.coast(      region=[fig_region], projection=size, borders=1, shorelines=True, frame=[frame_title])
         
 
@@ -420,8 +423,9 @@ fig = pygmt.Figure()
 # Begin plot
 pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain", FONT=9, FONT_TITLE=10, FONT_SUBTITLE = 10, MAP_TITLE_OFFSET= "-7p")
 
-with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,sharex="b", sharey="l",
-                  frame=["WSrt", "xa", "ya"], margins=["0.2c", "0.2c"]):
+#with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,sharex="b", sharey="l",
+with fig.subplot(nrows=3, ncols=7, figsize=("29c", "18.5c"), autolabel="+jTL+o0.1c/0.85c",
+                  frame=["ltrb", "xa", "ya"], margins=["0.2c", "0.2c"]):
     
     # ------------------------
     # Track 169 
@@ -433,14 +437,14 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     fig.grdimage(   region=[fig_region], projection=size, grid=vel_169_grd , cmap=True, nan_transparent=True)
     fig.plot(       region=[fig_region], projection=size, y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", )
     fig.coast(      region=[fig_region], projection=size, borders=1, shorelines=True,  frame = ["+tLinear Velocity"])
-    fig.text(       region=[fig_region], projection=size, text=f'{results_169_dict['vel_169']['rmse']:.2f} mm/yr',  
+    fig.text(       region=[fig_region], projection=size, text=f'{results_169_dict["vel_169"]["rmse"]:.2f} mm/yr',  
              position="BR", offset="-0.15c/0.15c", fill="white", font="8p", )
         
     fig.text(       region=[fig_region], projection=size, text="Track 169", font="11p,Helvetica-Bold,black",  
-             position="ML", justify="MC", offset="-1.5c/0.0c", no_clip=True, angle = 90)
-    
-    with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/0.2c+w2.5c/0.3c", frame=["xa+lVelocity", "y+lmm/yr"], projection = size)
+             position="ML", justify="MC", offset="-0.5c/0.0c", no_clip=True, angle = 90)
+ 
+    with pygmt.config(FONT_ANNOT_PRIMARY="18p,black", FONT_ANNOT_SECONDARY="18p,black"):
+        fig.colorbar(position="JBC+o0.0c/0.2c+w2.5c/0.30", frame=["xa","y+lmm/yr"], projection=size)
     
     # Row for Track 169 - velocity_SET
     subplot(vel_SET_169_grd, SET_169_grd, results_169_dict['vel_SET_169']['rmse'], "+t- Solid Earth Tides")
@@ -459,11 +463,12 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
 
     # inset difference panel
     fig.basemap(    region=[fig_region], projection=sub_size, frame="+t")
-    pygmt.makecpt(  cmap="plasma", series=[-1, 1])
+    pygmt.makecpt(  cmap="plasma", series=[-1.5, 1.5])
     fig.grdimage(   region=[fig_region], projection=sub_size, grid=demErr_169_grd, cmap=True, nan_transparent=True)
     fig.coast(      region=[fig_region], projection=sub_size, shorelines=True, area_thresh=5000)
-    with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/2c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
+    
+    with pygmt.config(FONT_ANNOT_PRIMARY="18p,black", FONT_ANNOT_SECONDARY="18p,black"):
+        fig.colorbar(position="JBC+o0.0c/0.2c+w2.5c/0.30", frame=["xa","y+lmm/yr"], projection=size)
     fig.coast(      region=[fig_region], projection=size, borders=1, shorelines=True, frame=["+t- DEM Error"])
     
     # Row for Track 169 - velocity_SET_ERA5_demErr_ITRF
@@ -486,8 +491,8 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     fig.text(       region=[fig_region], projection=size, text=f"{ramp100_p_169:.2f} mm/yr/100 km", position="BL", offset="0.15c/0.15c", fill="white", font="8p")
     #fig.text(       region=[fig_region], projection=size, text=f"Ramp {res_r2_169*100:.2f}% of var.", position="BL", offset="0.15c/1.0c", fill="white", font="8p")
     
-    with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/0.8c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
+    with pygmt.config(FONT_ANNOT_PRIMARY="18p,black", FONT_ANNOT_SECONDARY="18p,black", FONT_LABEL="18p,black"):
+        fig.colorbar(position="JBC+o0.0c/0.2c+w2.5c/0.30", frame=["xa","y+lmm/yr"], projection=size)
     
     
     # Row for Track 169 - velocity_SET_ERA5_demErr_ITRF_ramp
@@ -503,17 +508,17 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     fig.grdimage(   region=[fig_region], projection=size, grid=vel_170_grd , cmap=True, nan_transparent=True)
     fig.plot(       region=[fig_region], projection=size, y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", )
     fig.coast(      region=[fig_region], projection=size, borders=1, shorelines=True,  frame = ["+t "])
-    fig.text(       region=[fig_region], projection=size, text=f'{results_170_dict['vel_170']['rmse']:.2f} mm/yr',  
-             position="BR", offset="-0.15c/0.15c", fill="white", font="8p", )
+    fig.text(       region=[fig_region], projection=size, text=f'{results_170_dict["vel_170"]["rmse"]:.2f} mm/yr',  
+              position="BR", offset="-0.15c/0.15c", fill="white", font="8p", )
         
     fig.text(       region=[fig_region], projection=size, text="Track 170", font="11p,Helvetica-Bold,black",  
-             position="ML", justify="MC", offset="-1.5c/0.0c", no_clip=True, angle = 90)
+              position="ML", justify="MC", offset="-0.5c/0.0c", no_clip=True, angle = 90)
     
     fig.text(region=[fig_region], projection=size, x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="0.5c/-0.3c+v", justify="LM", fill="white", transparency=50)
     fig.text(region=[fig_region], projection=size, x=ref_lon, y=ref_lat, text="%s" % ref_station,  font="10p,Helvetica,black", offset="0.5c/-0.3c+v", justify="LM")
     
-    with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/0.2c+w2.5c/0.3c", frame=["xa+lVelocity", "y+lmm/yr"], projection = size)
+    with pygmt.config(FONT_ANNOT_PRIMARY="18p,black", FONT_ANNOT_SECONDARY="18p,black", FONT_LABEL="18p,black"):
+        fig.colorbar(position="JBC+o0.0c/0.2c+w2.5c/0.30", frame=["xa", "y+lmm/yr"], projection = size)
     
     # Row for Track 170 - velocity_SET
     subplot(vel_SET_170_grd, SET_170_grd, results_170_dict['vel_SET_170']['rmse'], "+t ")
@@ -535,8 +540,8 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     pygmt.makecpt(  cmap="plasma", series=[-0.5, 0.5])
     fig.grdimage(   region=[fig_region], projection=sub_size, grid=demErr_170_grd, cmap=True, nan_transparent=True)
     fig.coast(      region=[fig_region], projection=sub_size, shorelines=True, area_thresh=5000)
-    with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/2c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
+    with pygmt.config(FONT_ANNOT_PRIMARY="18p,black", FONT_ANNOT_SECONDARY="18p,black", FONT_LABEL="18p,black"):
+        fig.colorbar(position="JBC+o0.0c/0.2c+w2.5c/0.30", frame=["xa","y+lmm/yr"], projection=size)
     fig.coast(      region=[fig_region], projection=size, borders=1, shorelines=True, frame=["+t "])
     
     
@@ -548,8 +553,8 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     fig.basemap(    region=[fig_region], projection=size, panel=True)
     
     fig.plot(x = [tl_lon_170, tr_lon_170, br_lon_170, bl_lon_170, tl_lon_170], 
-             y = [tl_lat_170, tr_lat_170, br_lat_170, bl_lat_170, tl_lat_170], 
-             pen="0.8p,black", region=[fig_region], projection=size,transparency=50)
+              y = [tl_lat_170, tr_lat_170, br_lat_170, bl_lat_170, tl_lat_170], 
+              pen="0.8p,black", region=[fig_region], projection=size,transparency=50)
     
     pygmt.makecpt(cmap="roma", series=[-5+mean_res_170, 5+mean_res_170, 1])
     fig.plot(y=gps_170["Lat"], x=gps_170["Lon"], style="c.12c", fill=gps_170['residual_ITRF14_170'], cmap=True, pen="0.3p,black", region=[fig_region],projection= size)
@@ -561,8 +566,8 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     #fig.text(       region=[fig_region], projection=size, text=f"Ramp {res_r2_170*100:.2f}% of var.", position="BL", offset="0.15c/1.0c", fill="white", font="8p")
 
 
-    with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/0.8c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
+    with pygmt.config(FONT_ANNOT_PRIMARY="18p,black", FONT_ANNOT_SECONDARY="18p,black", FONT_LABEL="18p,black"):
+        fig.colorbar(position="JBC+o0.0c/0.2c+w2.5c/0.30", frame=["xa","y+lmm/yr"], projection=size)
         
     # Row for Track 170 - velocity_SET_ERA5_demErr_ITRF_ramp
     subplot(vel_deramp_170_grd, deramp_170_grd, results_170_dict['vel_deramp_170']['rmse'], "+t ")
@@ -577,14 +582,14 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     fig.grdimage(   region=[fig_region], projection=size, grid=vel_068_grd , cmap=True, nan_transparent=True)
     fig.plot(       region=[fig_region], projection=size, y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", )
     fig.coast(      region=[fig_region], projection=size, borders=1, shorelines=True,  frame=["+t "])
-    fig.text(       region=[fig_region], projection=size, text=f'{results_068_dict['vel_068']['rmse']:.2f} mm/yr',  
-             position="BR", offset="-0.15c/0.15c", fill="white", font="8p", )
+    fig.text(       region=[fig_region], projection=size, text=f'{results_068_dict["vel_068"]["rmse"]:.2f} mm/yr',  
+              position="BR", offset="-0.15c/0.15c", fill="white", font="8p", )
         
     fig.text(       region=[fig_region], projection=size, text="Track 068", font="11p,Helvetica-Bold,black",  
-             position="ML", justify="MC", offset="-1.5c/0.0c", no_clip=True, angle = 90)
+              position="ML", justify="MC", offset="-0.5c/0.0c", no_clip=True, angle = 90)
     
-    with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/0.2c+w2.5c/0.3c", frame=["xa+lVelocity", "y+lmm/yr"], projection = size)
+    with pygmt.config(FONT_ANNOT_PRIMARY="18p,black", FONT_ANNOT_SECONDARY="18p,black", FONT_LABEL="14p,black"):
+        fig.colorbar(position="JBC+o0.0c/0.2c+w2.5c/0.30", frame=["xa", "y+lmm/yr"], projection = size)
     
     # Row for Track 068 - velocity_SET
     subplot(vel_SET_068_grd, SET_068_grd, results_068_dict['vel_SET_068']['rmse'], "+t ")
@@ -606,8 +611,8 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     pygmt.makecpt(  cmap="plasma", series=[-4, 1])
     fig.grdimage(   region=[fig_region], projection=sub_size, grid=demErr_068_grd, cmap=True, nan_transparent=True)
     fig.coast(      region=[fig_region], projection=sub_size, shorelines=True, area_thresh=5000)
-    with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/2c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
+    with pygmt.config(FONT_ANNOT_PRIMARY="18p,black", FONT_ANNOT_SECONDARY="18p,black", FONT_LABEL="14p,black"):
+        fig.colorbar(position="JBC+o0.0c/0.2c+w2.5c/0.30", frame=["xa","y+lmm/yr"], projection=size)
     fig.coast(      region=[fig_region], projection=size, borders=1, shorelines=True, frame=["+t "])
     
     
@@ -620,8 +625,8 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     pygmt.makecpt(cmap="roma", series=[-5+mean_res_068, 5+mean_res_068, 1])
     
     fig.plot(x = [tl_lon_068, tr_lon_068, br_lon_068, bl_lon_068, tl_lon_068], 
-             y = [tl_lat_068, tr_lat_068, br_lat_068, bl_lat_068, tl_lat_068], 
-             pen="0.8p,black", region=[fig_region], projection=size, transparency=50) 
+              y = [tl_lat_068, tr_lat_068, br_lat_068, bl_lat_068, tl_lat_068], 
+              pen="0.8p,black", region=[fig_region], projection=size, transparency=50) 
     
     fig.plot(y=gps_068["Lat"], x=gps_068["Lon"], style="c.12c", fill=gps_068['residual_ITRF14_068'], cmap=True, pen="0.3p,black", region=[fig_region],projection= size)
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", region=[fig_region],projection= size)
@@ -631,14 +636,14 @@ with fig.subplot(nrows=3, ncols=7, figsize=("29c", "16.5c"), autolabel=True,shar
     fig.text(       region=[fig_region], projection=size, text=f"{ramp100_p_068:.2f} mm/yr/100 km", position="BL", offset="0.15c/0.15c", fill="white", font="8p")
 
 
-    with pygmt.config(FONT_ANNOT_PRIMARY="14p,black", FONT_ANNOT_SECONDARY="14p,black", FONT_LABEL="14p,black"):
-        fig.colorbar(position="jBL+o0.2c/0.8c+w1.5c/0.2c", frame=["xa","y+lmm/yr"], projection=size)
+    with pygmt.config(FONT_ANNOT_PRIMARY="18p,black", FONT_ANNOT_SECONDARY="18p,black", FONT_LABEL="18p,black"):
+        fig.colorbar(position="JBC+o0.0c/0.2c+w2.5c/0.30", frame=["xa","y+lmm/yr"], projection=size)
     
 
     # Row for Track 068 - velocity_SET_ERA5_demErr_ITRF_ramp
     subplot(vel_deramp_068_grd, deramp_068_grd, results_068_dict['vel_deramp_068']['rmse'], "+t ")
 
-fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS-ISG14_platemotioncorrectionLOS.png', transparent=False, crop=True, anti_alias=True, show=False)
+#fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS-ISG14_platemotioncorrectionLOS.png', transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals_GPS-ISG14_platemotioncorrectionLOS.jpg', dpi = 400, transparent=False, crop=True, anti_alias=True, show=False)
 #fig.savefig(common_paths['fig_dir']+f'Fig_3_{ref_station}_InSAR_vel_all_corrections_dist{distance_threshold}_latstep{lat_step}_lonstep{lon_step}QuadRammp_Residuals.pdf', transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()  
