@@ -146,13 +146,14 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="a)", sh
     labels = ["c)", "d)"]
 
     label_kwargs = [
-        {"justify": "RM", "offset": "0.5c/0.5c"},
-        {"justify": "LM", "offset": "-0.5c/0.5c"},
+        {"justify": "RM", "offset": "0.5c/0.3c"},
+        {"justify": "LM", "offset": "-0.5c/0.4c"},
     ]
     
     for (lon, lat), lbl, kwargs in zip(points_Gr, labels, label_kwargs):
         # Plot marker at (lon, lat)
-        fig.plot(x=lon, y=lat, style="c.2c", pen="0.5p", projection=fig_size)
+        #fig.plot(x=lon, y=lat, style="c.2c", pen="0.5p", projection=fig_size)
+        fig.plot(x=lon, y=lat, style="t.1c", pen="1.2p,black", fill="black", projection=fig_size)
     
         # Label the marker with offset
         fig.text(text=lbl, x=lon, y=lat, font="10p,Helvetica,black",
@@ -180,13 +181,15 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="a)", sh
     labels = ["c)", "d)"]
 
     label_kwargs = [
-        {"justify": "RM", "offset": "0.5c/0.5c"},
-        {"justify": "LM", "offset": "-0.5c/0.5c"},
+        {"justify": "RM", "offset": "0.5c/0.3c"},
+        {"justify": "LM", "offset": "-0.5c/0.4c"},
     ]
     
     for (lon, lat), lbl, kwargs in zip(points_Gr, labels, label_kwargs):
         # Plot marker at (lon, lat)
-        fig.plot(x=lon, y=lat, style="c.2c", pen="0.5p", projection=fig_size)
+        #fig.plot(x=lon, y=lat, style="c.2c", pen="0.5p", projection=fig_size)
+        fig.plot(x=lon, y=lat, style="t.1c", pen="1.2p,white", fill="white", projection=fig_size)
+        
     
         # Label the marker with offset
         fig.text(text=lbl, x=lon, y=lat, font="10p,Helvetica,black",
@@ -288,7 +291,8 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="e)", sh
     labels = ["g)", "h)"]
     for (lon, lat), lbl in zip(points_Ee, labels):
         # Plot marker at (lon, lat)
-        fig.plot(x=lon, y=lat, style="c.2c", pen="0.8p,black", projection=fig_size)
+        #fig.plot(x=lon, y=lat, style="c.2c", pen="0.8p,black", projection=fig_size)
+        fig.plot(x=lon, y=lat, style="t.1c", pen="1.2p,black", fill="black", projection=fig_size)
         
         fig.text(text=lbl, x=lon, y=lat, justify="LM", offset="-0.5c/0.5c", font="10p,Helvetica,black", 
                  region=region, projection=fig_size, fill="white", transparency=50)
@@ -311,7 +315,8 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="e)", sh
     labels = ["g)", "h)"]
     for (lon, lat), lbl in zip(points_Ee, labels):
         # Plot marker at (lon, lat)
-        fig.plot(x=lon, y=lat, style="c.2c", pen="0.8p,blacl", projection=fig_size)
+        #fig.plot(x=lon, y=lat, style="c.2c", pen="0.8p,blacl", projection=fig_size)
+        fig.plot(x=lon, y=lat, style="t.1c", pen="1.2p,white", fill="white", projection=fig_size)
     
         # Label the marker with offset 0.5 cm to the right
         fig.text(text=lbl, x=lon, y=lat, justify="LM", offset="-0.5c/0.5c", font="10p,Helvetica,black", 

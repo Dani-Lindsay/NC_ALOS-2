@@ -292,6 +292,11 @@ with fig.subplot(nrows=3, ncols=1, figsize=("5c", "13.4c"), autolabel="b)", marg
     ###### Des 169. 
     fig.basemap(region=fig_region, projection=size, frame=["ya+lBperp (m)", "lStE+tDescending 169", "xa"], panel=True)   
     
+    t1 = utils.yymmdd_to_decimal_year("150301")
+    t2 = utils.yymmdd_to_decimal_year("191231")
+    
+    fig.plot(x=[t1, t2], y=[-400, -400],  pen="2p,dodgerblue", projection=size, transparency=50)
+    
     for i in range(len(dic_169["pairs"])):  
         fig.plot(x=dic_169["pairs"][i], y=dic_169["pairs_bperp"][i], pen="0.4p,black", projection=size, transparency=80) # ****** , cmap=True, zvalue=dic_169["mean"][i],
     
@@ -301,11 +306,23 @@ with fig.subplot(nrows=3, ncols=1, figsize=("5c", "13.4c"), autolabel="b)", marg
     ###### Des 170. 
     fig.basemap(region=fig_region, projection=size, frame=["ya+lBperp (m)", "lStE+tDescending 170", "xa"], panel=True)   
     
+    t1 = utils.yymmdd_to_decimal_year("150301")
+    t2 = utils.yymmdd_to_decimal_year("191231")
+    
+    fig.plot(x=[t1, t2], y=[-400, -400],  pen="2p,dodgerblue", projection=size, transparency=50)
+    
     for i in range(len(dic_170["pairs"])):  
         fig.plot(x=dic_170["pairs"][i], y=dic_170["pairs_bperp"][i], pen="0.4p,black", projection=size, transparency = 80) # ******cmap=True, zvalue=dic_170["mean"][i],
         
     fig.plot(x=dic_170["ref_date"],y=0, style="c.1c", fill="black", pen="0.1p", projection=size) # ******
     fig.plot(x=dic_170["sec_date"],y=dic_170["centered_perp_base"], style="c.1c", fill="black", projection=size) # ******
+    
+    t1 = utils.yymmdd_to_decimal_year("210701")
+    t2 = utils.yymmdd_to_decimal_year("240320")
+    
+    fig.plot(x=[t1, t2], y=[-400, -400],  pen="2p,darkorange", projection=size, transparency=50)
+    
+    
     
     ##### Asc 068
     # Network
