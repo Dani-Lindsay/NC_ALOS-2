@@ -351,12 +351,6 @@ with fig.subplot(nrows=1, ncols=2, figsize=("9.2c", "9.6c"), autolabel="a)",shar
     fig.text(text="Arbuckle", x=Arb_lo, y=Arb_la, justify="LB", offset="0.1c/0.1c", font="10p,Helvetica,black", projection=sub_map_size, fill="white", transparency=50)
     fig.text(text="Greenwood", x=Art_lo, y=Art_la, justify="LB", offset="0.1c/0.1c", font="10p,Helvetica,black", projection=sub_map_size)
     fig.text(text="Arbuckle", x=Arb_lo, y=Arb_la, justify="LB", offset="0.1c/0.1c", font="10p,Helvetica,black", projection=sub_map_size)
-    fig.plot(x=points_CV[0][0], y=points_CV[0][1], style="+.2c", pen="0.5p,black", projection=sub_map_size)
-    fig.plot(x=points_CV[1][0], y=points_CV[1][1], style="+.2c", pen="0.5p,black", projection=sub_map_size)
-    fig.text(text="c)", x=points_CV[0][0], y=points_CV[0][1], justify="BR", offset="-0.2c/-0.1c", font="10p,Helvetica,black", projection=sub_map_size, fill="white", transparency=50)
-    fig.text(text="d)", x=points_CV[1][0], y=points_CV[1][1], justify="BR", offset="-0.2c/-0.1c", font="10p,Helvetica,black", projection=sub_map_size, fill="white", transparency=50)
-    fig.text(text="c)", x=points_CV[0][0], y=points_CV[0][1], justify="BR", offset="-0.2c/-0.1c", font="10p,Helvetica,black", projection=sub_map_size)
-    fig.text(text="d)", x=points_CV[1][0], y=points_CV[1][1], justify="BR", offset="-0.2c/-0.1c", font="10p,Helvetica,black", projection=sub_map_size)
     
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", projection=sub_map_size)
     fig.text(text=ref_station, y=ref_lat, x=ref_lon, justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size, fill="white", transparency=50)
@@ -385,6 +379,8 @@ with fig.subplot(nrows=1, ncols=2, figsize=("9.2c", "9.6c"), autolabel="a)",shar
     fig.text(text="Y",  x=canal_cropped2['Lon'].iloc[0],  y=canal_cropped2['Lat'].iloc[0], justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size)
     fig.text(text="Y'", x=canal_cropped2['Lon'].iloc[-1], y=canal_cropped2['Lat'].iloc[-1],justify="LM", offset="0.1c/0.1c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size)
     
+
+    
     fig.plot(y=ref_lat, x=ref_lon, style="s.15c", fill="black", pen="0.8p,black", projection=sub_map_size)
     
     df = pd.DataFrame(
@@ -405,8 +401,20 @@ with fig.subplot(nrows=1, ncols=2, figsize=("9.2c", "9.6c"), autolabel="a)",shar
     for fault_file in common_paths["fault_files"]:
         fig.plot(data=fault_file, pen="0.5p,black", transparency=50, region=cv_region, projection= sub_map_size)
     
-    fig.text(text="Tehama-Colusa Canal", position="CM", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size, fill="white", transparency=50)
-    fig.text(text="Tehama-Colusa Canal", position="CM", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size)
+    #fig.text(text="Tehama-Colusa Canal", position="CM", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size, fill="white", transparency=50)
+    #fig.text(text="Tehama-Colusa Canal", position="CM", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size)
+    #fig.text(text="c)", x=points_CV[0][0], y=points_CV[0][1], justify="LM", offset="0.0c/0.2c", font="10p,Helvetica,black", projection=sub_map_size, fill="white", transparency=50)
+    #fig.text(text="d)", x=points_CV[1][0], y=points_CV[1][1], justify="LM", offset="0.0c/0.2c", font="10p,Helvetica,black", projection=sub_map_size, fill="white", transparency=50)
+    #fig.text(text="c)", x=points_CV[0][0], y=points_CV[0][1], justify="LM", offset="0.0c/0.2c", font="10p,Helvetica,black", projection=sub_map_size)
+    #fig.text(text="d)", x=points_CV[1][0], y=points_CV[1][1], justify="LM", offset="0.0c/0.2c", font="10p,Helvetica,black", projection=sub_map_size)
+    
+    fig.text(text="c)", x=points_CV[0][0], y=points_CV[0][1], justify="BR", offset="-0.18c/0.3c", font="10p,Helvetica,black", projection=sub_map_size, fill="white", transparency=50)
+    fig.text(text="d)", x=points_CV[1][0], y=points_CV[1][1], justify="BR", offset="-0.22c/-0.32c", font="10p,Helvetica,black", projection=sub_map_size, fill="white", transparency=50)
+    fig.text(text="c)", x=points_CV[0][0], y=points_CV[0][1], justify="BR", offset="-0.18c/0.3c", font="10p,Helvetica,black", projection=sub_map_size)
+    fig.text(text="d)", x=points_CV[1][0], y=points_CV[1][1], justify="BR", offset="-0.22c/-0.32c", font="10p,Helvetica,black", projection=sub_map_size)
+    
+    fig.plot(x=points_CV[0][0], y=points_CV[0][1], style="t.1c", pen="1.2p,white", fill="white", projection=sub_map_size)
+    fig.plot(x=points_CV[1][0], y=points_CV[1][1], style="t.1c", pen="1.2p,white", fill="white", projection=sub_map_size)
     
     fig.text(text="01-01-22 to 12-31-22", position="BC", offset="0.0c/0.2c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size, fill="white", transparency=50)
     fig.text(text="01-01-22 to 12-31-22", position="BC", offset="0.0c/0.2c", font="10p,Helvetica,black",region=cv_region, projection= sub_map_size)
@@ -522,7 +530,7 @@ with fig.subplot(nrows=2, ncols=1, figsize=("6c", "4.5c"), autolabel="e)", share
     
 fig.savefig(common_paths["fig_dir"]+"Fig_11_example_CentralValley_UP.png", transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths["fig_dir"]+"Fig_11_example_CentralValley_UP.jpg", transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths["fig_dir"]+"Fig_11_example_CentralValley_UP.pdf", transparent=False, crop=True, anti_alias=True, show=False)
+#fig.savefig(common_paths["fig_dir"]+"Fig_11_example_CentralValley_UP.pdf", transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()  
 
 vel_t1 = utils.date_to_decimal_year('20220515')
@@ -531,4 +539,4 @@ vel_t2 = utils.date_to_decimal_year('20220915')
 vel_Art_22, err_Art_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[0]*unit, start=vel_t1, stop=vel_t2)
 vel_Arb_22, err_Arb_22 = utils.compute_velocity(insar_CV["ts_dates"], time_series_up[1]*unit, start=vel_t1, stop=vel_t2)
 
-print(f"Velocity for Art 22: {vel_Art_22:.1f} +/- {err_Art_22:.1f}, Arb 22: {vel_Arb_22:.1f} +/- {err_Arb_22:.1f}")
+print(f"Peak Velocity for Art 22: {vel_Art_22:.1f} +/- {err_Art_22:.1f}, Arb 22: {vel_Arb_22:.1f} +/- {err_Arb_22:.1f}")

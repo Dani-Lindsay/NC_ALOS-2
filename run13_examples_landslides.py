@@ -119,12 +119,7 @@ DS_vel_Ee_h_23 = utils.project_los2vector(vel_Ee_g_23, geometry_Ee["incidenceAng
 #### Plot results
 ##################################
 
-
-
 fig_size = "M6.1c"
-
-
-
 
 fig = pygmt.Figure()
 pygmt.config(FONT=10, FONT_TITLE=10, PS_MEDIA="A3", FORMAT_GEO_MAP="ddd.xx", MAP_FRAME_TYPE="plain",)
@@ -146,17 +141,24 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="a)", sh
     
     fig.basemap(frame=["WSrt", "xa0.1", "ya0.1"], region=region, projection=fig_size, panel=True)
     fig.grdimage(grid=grid, projection=fig_size, frame=["lbrt", "xa", "ya"], cmap="grey", shading=dgrid, region=region)
-    fig.plot(data=landslide_poly_file, pen="1.0p,dodgerblue4", projection=fig_size)
-        
+    fig.plot(data=landslide_poly_file, pen="1.5p,dodgerblue2", projection=fig_size)
+            
     labels = ["c)", "d)"]
+
+    label_kwargs = [
+        {"justify": "RM", "offset": "0.5c/0.5c"},
+        {"justify": "LM", "offset": "-0.5c/0.5c"},
+    ]
     
-    for (lon, lat), lbl in zip(points_Gr, labels):
+    for (lon, lat), lbl, kwargs in zip(points_Gr, labels, label_kwargs):
         # Plot marker at (lon, lat)
-        fig.plot(x=lon, y=lat, style="c.2c", pen="0.8p", projection=fig_size)
+        fig.plot(x=lon, y=lat, style="c.2c", pen="0.5p", projection=fig_size)
     
-        # Label the marker with offset 0.5 cm to the right
-        fig.text(text=lbl, x=lon, y=lat, justify="RM", offset="0.5c/0c", font="10p,Helvetica,black", 
-                 region=region, projection=fig_size)
+        # Label the marker with offset
+        fig.text(text=lbl, x=lon, y=lat, font="10p,Helvetica,black",
+                 region=region, projection=fig_size, fill="white", transparency=50, **kwargs)
+        fig.text(text=lbl, x=lon, y=lat, font="10p,Helvetica,black",
+                 region=region, projection=fig_size, **kwargs)
     
     fig.plot(y=gra_lat, x=gra_lon, style="s.15c", fill="black", pen="0.8p,black", region=region, projection=fig_size)
     fig.basemap(frame=["WSrt", "xa0.1", "ya0.1"], map_scale="jBR+w5k+o0.3/0.5c", projection=fig_size)
@@ -176,14 +178,21 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="a)", sh
     fig.text(region=region, projection=fig_size, text="Graham Complex", position="TC",offset ="0.0/-0.2c") 
     
     labels = ["c)", "d)"]
+
+    label_kwargs = [
+        {"justify": "RM", "offset": "0.5c/0.5c"},
+        {"justify": "LM", "offset": "-0.5c/0.5c"},
+    ]
     
-    for (lon, lat), lbl in zip(points_Gr, labels):
+    for (lon, lat), lbl, kwargs in zip(points_Gr, labels, label_kwargs):
         # Plot marker at (lon, lat)
         fig.plot(x=lon, y=lat, style="c.2c", pen="0.5p", projection=fig_size)
     
-        # Label the marker with offset 0.5 cm to the right
-        fig.text(text=lbl, x=lon, y=lat, justify="RM", offset="0.5c/0c", font="10p,Helvetica,black", 
-                 region=region, projection=fig_size)
+        # Label the marker with offset
+        fig.text(text=lbl, x=lon, y=lat, font="10p,Helvetica,black",
+                 region=region, projection=fig_size, fill="white", transparency=50, **kwargs)
+        fig.text(text=lbl, x=lon, y=lat, font="10p,Helvetica,black",
+                 region=region, projection=fig_size, **kwargs)
     
     df = pd.DataFrame(
         data={
@@ -274,15 +283,16 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="e)", sh
     
     fig.basemap(frame=["WSrt", "xa0.1", "ya0.1"], region=region, projection=fig_size, panel=True)
     fig.grdimage(grid=grid, projection=fig_size, frame=["lbrt", "xa", "ya"], cmap="grey", shading=dgrid, region=region)
-    fig.plot(data=landslide_poly_file, pen="1.0p,dodgerblue4", projection=fig_size)
+    fig.plot(data=landslide_poly_file, pen="1.5p,dodgerblue2", projection=fig_size)
     
     labels = ["g)", "h)"]
     for (lon, lat), lbl in zip(points_Ee, labels):
         # Plot marker at (lon, lat)
         fig.plot(x=lon, y=lat, style="c.2c", pen="0.8p,black", projection=fig_size)
-    
-        # Label the marker with offset 0.5 cm to the right
-        fig.text(text=lbl, x=lon, y=lat, justify="RM", offset="0.5c/0c", font="10p,Helvetica,black", 
+        
+        fig.text(text=lbl, x=lon, y=lat, justify="LM", offset="-0.5c/0.5c", font="10p,Helvetica,black", 
+                 region=region, projection=fig_size, fill="white", transparency=50)
+        fig.text(text=lbl, x=lon, y=lat, justify="LM", offset="-0.5c/0.5c", font="10p,Helvetica,black", 
                  region=region, projection=fig_size)
     
     fig.plot(y=eel_lat, x=eel_lon, style="s.15c", fill="black", pen="0.8p,black", region=region, projection=fig_size)
@@ -291,7 +301,7 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="e)", sh
     fig.basemap(frame=["wSrt", "xa0.1", "ya0.1"], region=region, projection=fig_size, panel=True)
     pygmt.makecpt(cmap="vik", series=[-0.1, 0.1])
     fig.grdimage(grid=paths_170_5_28['EelRiver']['geo_velocity_msk_grd'], cmap=True, region=region, projection=fig_size)
-    fig.plot(data=landslide_poly_file, pen="1.0p,white", projection=fig_size)
+    fig.plot(data=landslide_poly_file, pen="1.5p,white", projection=fig_size)
     
     
     
@@ -304,7 +314,9 @@ with fig.subplot(nrows=1, ncols=2, figsize=("12.0c", "6.4c"), autolabel="e)", sh
         fig.plot(x=lon, y=lat, style="c.2c", pen="0.8p,blacl", projection=fig_size)
     
         # Label the marker with offset 0.5 cm to the right
-        fig.text(text=lbl, x=lon, y=lat, justify="RM", offset="0.5c/0c", font="10p,Helvetica,black", 
+        fig.text(text=lbl, x=lon, y=lat, justify="LM", offset="-0.5c/0.5c", font="10p,Helvetica,black", 
+                 region=region, projection=fig_size, fill="white", transparency=50)
+        fig.text(text=lbl, x=lon, y=lat, justify="LM", offset="-0.5c/0.5c", font="10p,Helvetica,black", 
                  region=region, projection=fig_size)
     
     
@@ -379,7 +391,7 @@ with fig.subplot(nrows=2, ncols=1, figsize=("8.5c", "6.4c"), autolabel="g)", sha
     
     
 fig.savefig(common_paths["fig_dir"]+"Fig_12_landslide_examples.png", transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths["fig_dir"]+"Fig_12_landslide_examples.pdf", transparent=False, crop=True, anti_alias=True, show=False)
+#fig.savefig(common_paths["fig_dir"]+"Fig_12_landslide_examples.pdf", transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths["fig_dir"]+"Fig_12_landslide_examples.jpg", transparent=False, crop=True, anti_alias=True, show=False)
 
 fig.show()

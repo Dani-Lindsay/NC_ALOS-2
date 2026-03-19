@@ -130,7 +130,7 @@ sf_max_lat = 38.0
 
 fig.plot(x = [sf_min_lon, sf_min_lon, sf_max_lon, sf_max_lon, sf_min_lon], 
          y = [sf_min_lat, sf_max_lat, sf_max_lat, sf_min_lat, sf_min_lat], 
-         pen="0.8p,black,--", transparency=0)
+         pen="1.2p,black", transparency=0)
 
 with pygmt.config(
         FONT_ANNOT_PRIMARY="18p,black", 
@@ -139,21 +139,21 @@ with pygmt.config(
         ):
     fig.colorbar(position="jBL+o0.4c/0.4c+w4c/0.4c", frame=["xaf", "y+lmm/yr"],)
     
-fig.shift_origin(xshift="7.5c")
+#fig.shift_origin(xshift="7.5c")
 
 # #Plot main map 
-fig.basemap(region=NC_fig_region, projection= size,frame=["wSrt", "xa", "ya"],)
-fig.grdimage(grid=NC_grid, projection=size, frame=["lbrt", "xa", "ya"], cmap='wiki-france.cpt', shading=NC_dgrid, transparency=40)
-pygmt.makecpt(cmap="vik", series=[-12.5, 12.5])
-fig.grdimage(grid=up_grd, cmap=True, nan_transparent=True, region=NC_fig_region, projection= size)
+#fig.basemap(region=NC_fig_region, projection= size,frame=["wSrt", "xa", "ya"],)
+#fig.grdimage(grid=NC_grid, projection=size, frame=["lbrt", "xa", "ya"], cmap='wiki-france.cpt', shading=NC_dgrid, transparency=40)
+#pygmt.makecpt(cmap="vik", series=[-12.5, 12.5])
+#fig.grdimage(grid=up_grd, cmap=True, nan_transparent=True, region=NC_fig_region, projection= size)
 # Plot Faults
-for fault_file in common_paths["fault_files"]:
-    fig.plot(data=fault_file, pen="0.5p,black", transparency=50, region=NC_fig_region, projection= size)
+#for fault_file in common_paths["fault_files"]:
+#    fig.plot(data=fault_file, pen="0.5p,black", transparency=50, region=NC_fig_region, projection= size)
 
-fig.coast(shorelines=True, frame = ["+tUp Velocity"], region=NC_fig_region, projection= size)
-fig.plot(x=gps_df["Lon"], y=gps_df["Lat"],  style="c.2c", fill=gps_df["Vu"], pen="0.8p,black", cmap=True, region=NC_fig_region, projection= size)
+#fig.coast(shorelines=True, frame = ["+tUp Velocity"], region=NC_fig_region, projection= size)
+#fig.plot(x=gps_df["Lon"], y=gps_df["Lat"],  style="c.2c", fill=gps_df["Vu"], pen="0.8p,black", cmap=True, region=NC_fig_region, projection= size)
 
-fig.text(text="d)", position="TL", offset="0.1c/-0.1c", justify="TL", region=NC_fig_region, projection= size)
+#fig.text(text="d)", position="TL", offset="0.1c/-0.1c", justify="TL", region=NC_fig_region, projection= size)
 
 
 
@@ -218,16 +218,16 @@ for sta in station_ids:
     fig.text(x=lon, y=lat, text="%s" % sta,  font="10p,Helvetica,black", offset="-0.5c/-0.5c+v", justify="RM")
 
 
-with pygmt.config(
-        FONT_ANNOT_PRIMARY="18p,black", 
-        FONT_ANNOT_SECONDARY="18p,black",
-        FONT_LABEL="18p,black",
-        ):
-    fig.colorbar(position="jBL+o0.4c/0.4c+w4c/0.4c", frame=["xaf", "y+lmm/yr"],)
+# with pygmt.config(
+#         FONT_ANNOT_PRIMARY="18p,black", 
+#         FONT_ANNOT_SECONDARY="18p,black",
+#         FONT_LABEL="18p,black",
+#         ):
+#     fig.colorbar(position="jBL+o0.4c/0.4c+w4c/0.4c", frame=["xaf", "y+lmm/yr"],)
   
     
 fig.savefig(common_paths["fig_dir"]+f"Fig_8_{ref_station}_East_North_Up_170_068_GNSS_INSAR.png", transparent=False, crop=True, anti_alias=True, show=False)
-fig.savefig(common_paths["fig_dir"]+f"Fig_8_{ref_station}_East_North_Up_170_068_GNSS_INSAR.pdf", transparent=False, crop=True, anti_alias=True, show=False)
+#fig.savefig(common_paths["fig_dir"]+f"Fig_8_{ref_station}_East_North_Up_170_068_GNSS_INSAR.pdf", transparent=False, crop=True, anti_alias=True, show=False)
 fig.savefig(common_paths["fig_dir"]+f"Fig_8_{ref_station}_East_North_Up_170_068_GNSS_INSAR.jpg", transparent=False, crop=True, anti_alias=True, show=False)
 fig.show()  
 
