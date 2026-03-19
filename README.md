@@ -26,4 +26,3 @@ The work demonstrates how L-band ScanSAR can reveal multi-scale tectonic and non
 2. Mapping long‐wavelength regional uplift/subsidence 
 3. Validating InSAR velocities against continuous GNSS stations and Sentinel-1 time series
 
-NB: Run in pygmt24 conda env *to do: make yaml*
